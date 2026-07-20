@@ -1,0 +1,26 @@
+/* ---- Billiards (Stage 13) ---- */
+/* Reuses .inv-play-area/.inv-canvas (dark canvas frame classes — fully
+   covered by the table's own light background, same reasoning as Sky
+   Slingshot's sky) and .pop-legend/.pop-game-layout/.pop-sidebar for
+   setup-screen and in-game chrome, same shared-component pattern as
+   every other game stage. */
+
+.billiards-legend-swatch{
+  width:32px; height:32px; border-radius:50%; display:block;
+  box-shadow:0 3px 8px rgba(0,0,0,0.2);
+}
+.billiards-legend-swatch.cue{ background:radial-gradient(circle at 36% 30%, #ffffff, #DCE8F0); }
+.billiards-legend-swatch.object{ background:radial-gradient(circle at 36% 30%, #FFD9A8, #4C5FD5 70%); }
+
+#billiardsPlayArea #billiardsBeginTurnBtn{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+}
+.inv-play-area:not(.idle) #billiardsBeginTurnBtn{ display:none; }
+
+.billiards-hint{
+  position:absolute; top:clamp(10px,2vh,20px); left:50%; transform:translateX(-50%);
+  z-index:22; margin:0; padding:8px 18px; border-radius:20px;
+  background:rgba(10,8,32,0.65); color:#fff; font-size:clamp(13px,1.8vh,16px); font-weight:600;
+  pointer-events:none;
+}

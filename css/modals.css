@@ -1,0 +1,154 @@
+  /* ---- Modals (Ball Pop question / result) ---- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(33,38,45,0.55);
+    display:flex; align-items:center; justify-content:center; padding:20px; z-index:60;
+  }
+  /* Every overlay (question/result/confirm — all 8 team games plus the
+     shared confirm dialog funnel through this one shared rule) used to
+     just snap into view via the .hidden toggle with no acknowledgment,
+     while several elements INSIDE these modals already had their own
+     entrance animations (.modal-q-badge, .result-pill, etc.) — the
+     frame around them was the one piece with no motion. Same
+     no-JS-needed technique as the stage fade-in: the animation only
+     lives on the "visible" rule, so removing .hidden always (re)starts
+     it fresh. */
+  .overlay:not(.hidden){ animation: overlayFadeIn 0.2s ease; }
+  .overlay:not(.hidden) .modal{ animation: modalPopIn 0.32s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes overlayFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes modalPopIn{
+    0%{ transform:scale(0.92) translateY(10px); opacity:0; }
+    100%{ transform:scale(1) translateY(0); opacity:1; }
+  }
+  .modal{
+    position:relative; background:var(--surface); border-radius:var(--radius); padding:36px;
+    max-width:480px; width:100%; text-align:center; border:1px solid var(--line);
+  }
+  .modal h3{ font-size:24px; line-height:1.5; margin-bottom:20px; font-family:var(--font-body); font-weight:700; color:var(--ink); }
+  .modal-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .modal-actions .btn{ flex:1; min-width:150px; }
+  .modal .modal-result-sub{ color:var(--muted); font-size:16px; margin-bottom:20px; }
+
+  /* ---- Turn-result standings (all 8 team-based games) ----
+     Same colored-pill visual language as the in-game team scoreboard
+     (.pop-team-list — color-mix background tint driven by --tc, a bold
+     team-colored score) — just compact and horizontal so several fit
+     side by side in the result modal. This is deliberately the ENTIRE
+     result modal body now (plus the Continue button) — per feedback
+     that a "Turn result" tag + a big +N number on top felt cluttered,
+     the team scores themselves are the whole point of this screen. */
+  #popResultBody{ max-width:560px; }
+  .result-standings{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:12px;
+    margin:6px 0 26px;
+  }
+  /* Score-first, name-second — the reverse of the sidebar scoreboard's
+     order, on purpose: this is a celebratory reveal, so the big exciting
+     number leads and the "whose score is this" label follows underneath.
+     Sized up and given a bolder border/tint per feedback that the pills
+     needed to be "much more visible" — a bigger, sturdier card instead
+     of a slim horizontal chip. */
+  .result-pill{
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    min-width:92px; padding:12px 18px 10px; border-radius:16px;
+    border:3px solid var(--tc, var(--line));
+    background:color-mix(in srgb, var(--tc, var(--line)) 20%, var(--surface));
+    animation: resultPillIn 0.4s cubic-bezier(.34,1.56,.64,1) backwards;
+  }
+  .result-pill:nth-child(1){ animation-delay:0.16s; }
+  .result-pill:nth-child(2){ animation-delay:0.23s; }
+  .result-pill:nth-child(3){ animation-delay:0.30s; }
+  .result-pill:nth-child(4){ animation-delay:0.37s; }
+  .result-pill.active{
+    box-shadow:0 0 0 3px var(--tc, var(--primary)), 0 0 18px color-mix(in srgb, var(--tc, var(--primary)) 55%, transparent);
+    transform:scale(1.06);
+  }
+  .result-pill-score{
+    font-family:var(--font-display); font-weight:800; font-size:32px; line-height:1.1;
+    color:var(--tc, var(--primary));
+  }
+  .result-pill-name{
+    display:flex; align-items:center; gap:6px;
+    font-weight:600; font-size:14px; color:var(--ink);
+  }
+  .result-pill-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .result-pill-lead{
+    font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;
+    color:#fff; background:var(--tc, var(--primary));
+    padding:3px 7px; border-radius:6px;
+  }
+  @keyframes resultPillIn{
+    0%{ transform:scale(0.7) translateY(6px); opacity:0; }
+    100%{ transform:scale(1) translateY(0); opacity:1; }
+  }
+
+  /* ---- Confirm dialog (replaces native confirm()) ---- */
+  #confirmBody{ max-width:380px; padding:30px; }
+  .confirm-message{ font-size:17px; font-weight:600; color:var(--ink); line-height:1.5; margin-bottom:22px; }
+
+  /* ---- "modal-question" variant — the one shared warm-up-question flow
+     every team-based game uses (see showQuestionModal in utils.js):
+     big readable question -> Check answer -> big answer reveal -> a
+     large tick/cross pair the student marks themselves with. Sized up
+     substantially from the rest of the modal system on purpose — this
+     is the one screen every student in the room needs to read clearly
+     from across a classroom, not a small confirmation dialog. */
+  .modal.modal-question{
+    max-width:640px; padding:56px 44px 40px;
+    background:
+      radial-gradient(ellipse 120% 60% at 50% -10%, color-mix(in srgb, var(--primary) 10%, transparent), transparent),
+      var(--surface);
+  }
+  .modal-question .modal-q-badge{
+    position:absolute; top:-26px; left:50%; transform:translateX(-50%);
+    width:54px; height:54px; border-radius:50%;
+    background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color:#fff; font-family:var(--font-display); font-weight:800; font-size:24px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 0 5px var(--surface);
+    animation: modalBadgePop 0.35s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes modalBadgePop{
+    0%{ transform:translateX(-50%) scale(0.4); opacity:0; }
+    100%{ transform:translateX(-50%) scale(1); opacity:1; }
+  }
+  .modal-question .modal-q-text{
+    font-family:var(--font-display); font-size:clamp(28px,4.2vh,38px); font-weight:800;
+    line-height:1.35; margin-bottom:30px; color:var(--ink);
+  }
+  .modal-check-row{ display:flex; justify-content:center; }
+  .btn-check-answer{ font-size:19px; padding:16px 40px; }
+
+  .modal-answer-block{ animation: modalAnswerIn 0.3s ease; }
+  .modal-answer-word{
+    font-family:var(--font-display); font-weight:800; font-size:clamp(30px,4.6vh,44px);
+    color:var(--primary); background:var(--success-bg); border-radius:16px;
+    padding:18px 20px; margin-bottom:16px; word-break:break-word;
+  }
+  @keyframes modalAnswerIn{
+    0%{ transform:scale(0.94) translateY(-6px); opacity:0; }
+    100%{ transform:scale(1) translateY(0); opacity:1; }
+  }
+  .modal-followup-text{
+    color:var(--muted); font-size:16px; margin-bottom:24px;
+  }
+  .modal-followup-text strong{ color:var(--ink); font-weight:700; }
+
+  /* The self-marking tick/cross pair — deliberately the biggest, most
+     tactile controls in the whole modal system (see icons.js for the
+     custom SVGs; a plain checkbox or text button wouldn't carry the
+     same "big satisfying decision" weight the redesign asked for). */
+  .modal-judge-row{ display:flex; gap:28px; justify-content:center; }
+  .judge-btn{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    background:none; border:none; cursor:pointer; padding:6px;
+    font-family:var(--font-display); font-weight:700; font-size:14px;
+    color:var(--muted);
+    transition: transform 0.32s cubic-bezier(.34,1.56,.64,1), color 0.2s ease;
+  }
+  .judge-btn svg{ filter:drop-shadow(0 5px 12px rgba(0,0,0,0.2)); transition: filter 0.25s ease; }
+  .judge-btn:hover{ transform:scale(1.14) translateY(-3px); }
+  .judge-btn:hover svg{ filter:drop-shadow(0 8px 18px rgba(0,0,0,0.28)); }
+  .judge-btn:active{ transform:scale(0.95); }
+  .judge-btn:focus-visible{ outline:2px solid var(--primary); outline-offset:4px; border-radius:8px; }
+  .judge-correct{ color:var(--success); }
+  .judge-wrong{ color:var(--error); }

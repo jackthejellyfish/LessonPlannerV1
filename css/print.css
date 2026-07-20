@@ -1,0 +1,48 @@
+  /* ---- Print stylesheet ----
+     #printableRules is invisible on screen and only ever shown when
+     printing. Everything else (the whole interactive app) is hidden
+     for print, so the teacher gets a clean A4 reference sheet instead
+     of a screenshot of the app with buttons and a stepper on it. */
+  #printableRules{ display:none; }
+  #printableWorksheet{ display:none; }
+
+  @media print{
+    /* The active print target is whichever element has .active-print set
+       — either rules (from stage 2) or the worksheet (from stage 9). */
+    body > *:not(.active-print){ display:none !important; }
+    body{
+      background:white !important; animation:none !important;
+      height:auto !important; overflow:visible !important; padding:0 !important;
+      display:block !important;
+    }
+    .active-print{
+      display:block !important; color:#1a1a1a; font-family:Georgia, 'Times New Roman', serif;
+      padding:14mm 16mm;
+    }
+    #printableRules h1, #printableWorksheet h1{
+      font-family:Georgia, serif; font-size:20pt; text-align:center; margin-bottom:3mm;
+    }
+    #printableRules .print-subtitle, #printableWorksheet .print-subtitle{
+      text-align:center; font-size:10pt; color:#555; margin-bottom:10mm;
+    }
+    #printableRules .print-rule{
+      border:1px solid #999; border-left:4px solid var(--print-accent, #555);
+      border-radius:4px; padding:5mm 7mm; margin-bottom:6mm;
+      page-break-inside:avoid;
+    }
+    #printableRules .print-rule h2{ font-size:14pt; margin-bottom:1.5mm; color:var(--print-accent, #333); }
+    #printableRules .print-formula{ font-size:10.5pt; color:#555; margin-bottom:3mm; font-style:italic; }
+    #printableRules .print-example{ font-size:12.5pt; margin-bottom:1.5mm; }
+    #printableRules .print-example .arrow{ color:#777; margin:0 4px; }
+    #printableRules .print-example .suffix{ font-weight:700; }
+    #printableRules .print-footer, #printableWorksheet .print-footer{ text-align:center; font-size:9pt; color:#888; margin-top:8mm; }
+    /* Worksheet print styles */
+    #printableWorksheet .ws-set-title{ font-size:14pt; font-weight:700; margin:6mm 0 2mm; border-bottom:1px solid #aaa; padding-bottom:1mm; }
+    #printableWorksheet .ws-set-label{ font-size:9pt; color:#666; margin-bottom:4mm; }
+    #printableWorksheet .ws-q{ margin-bottom:5mm; page-break-inside:avoid; }
+    #printableWorksheet .ws-q-prompt{ font-size:11pt; margin-bottom:2mm; }
+    #printableWorksheet .ws-answer-line{ border-bottom:1px solid #999; height:7mm; margin:0 0 1mm; width:80%; }
+    #printableWorksheet .answer-key{ margin-top:10mm; border-top:2px solid #333; padding-top:4mm; }
+    #printableWorksheet .answer-key h3{ font-size:11pt; margin-bottom:3mm; }
+    #printableWorksheet .answer-key ol{ font-size:10pt; columns:2; column-gap:10mm; }
+  }

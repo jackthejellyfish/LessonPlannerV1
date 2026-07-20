@@ -1,0 +1,93 @@
+  /* ---- Free practice (Stage 4) ---- */
+  .free-intro{ font-size:clamp(15px,2.4vh,22px); font-weight:700; color:var(--ink); text-align:center; margin-bottom:clamp(8px,1.8vh,20px); flex-shrink:0; }
+  .free-layout{ display:flex; gap:clamp(12px,2.2vw,24px); flex-wrap:wrap; align-items:stretch; flex-shrink:0; }
+
+  /* Each section of Free Practice gets its own bordered card with a
+     colored top stripe, reusing the same accent colors used for the
+     four grammar rules — this separates "sentence starters" from
+     "word bank" at a glance instead of everything running together. */
+  .free-card{
+    background:var(--surface); border:1.5px solid var(--line); border-radius:12px;
+    border-top:4px solid var(--card-accent, var(--primary));
+    padding: clamp(10px,1.8vh,18px) clamp(12px,2vw,20px);
+  }
+  #sentenceStartersCard{ --card-accent:var(--rule-a); flex:2; min-width:260px; }
+
+  /* The word bank is what students actually keep glancing back at
+     while they talk — it gets more width, a bolder border, a tinted
+     background, and bigger chip text so it visually leads the page. */
+  #wordBankCard.prominent{
+    --card-accent:var(--rule-d);
+    border-width:2.5px; background:#FBF6EC;
+    flex:3; min-width:300px;
+    padding: clamp(14px,2.4vh,24px) clamp(14px,2.4vw,24px);
+  }
+  #wordBankCard.prominent h3{ font-size:15px; color:var(--timer); }
+
+  .free-card h3{
+    font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted);
+    margin-bottom:clamp(6px,1.2vh,14px); font-family:var(--font-body); font-weight:700; text-align:center;
+  }
+  .scaffold-list{ display:flex; flex-direction:column; gap:clamp(5px,1vh,10px); }
+  .scaffold-list .frame{
+    background:var(--paper); border-radius:10px; padding:clamp(6px,1.3vh,13px) 18px;
+    font-size:clamp(14px,2vh,19px); color:var(--ink); text-align:center;
+  }
+  .scaffold-list .frame .blank{ color:var(--primary); font-weight:700; }
+
+  .word-bank-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+  .wordbank-chip{
+    background:var(--surface); border:1.5px solid var(--line); border-radius:20px;
+    padding:8px 18px; font-size:clamp(14px,2vh,17px); color:var(--muted); white-space:nowrap;
+  }
+  .wordbank-chip strong{ color:var(--primary); font-weight:700; margin-left:6px; }
+
+
+  /* ---- Minimalist countdown timer (Free practice) ---- */
+  .stopwatch{
+    width:260px; margin:0 auto clamp(10px,2vh,24px); text-align:center;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:clamp(12px,2vh,22px) 20px;
+    flex-shrink:0;
+  }
+  .stopwatch-display{
+    display:flex; align-items:center; justify-content:center; gap:2px;
+    margin-bottom:clamp(6px,1.2vh,14px);
+  }
+  .stopwatch-display .colon{
+    font-family:var(--font-display); font-size:40px; font-weight:700;
+    color:var(--ink); line-height:1; padding:0 3px;
+  }
+  /* The inputs ARE the display — same font/size/color as the old
+     read-only digits, just editable in place. Browser chrome (border,
+     background, spinner arrows) is stripped so they look like plain text.
+     Width is a fixed px value rather than ch units — ch is based on a
+     single "0" character and was too narrow for two bold digits, which
+     is what caused the overlapping/clipped digits. */
+  .stopwatch-display input{
+    font-family:var(--font-display); font-size:40px; font-weight:700;
+    color:var(--ink); font-variant-numeric: tabular-nums;
+    width:56px; border:none; background:none; padding:0; text-align:center;
+    -moz-appearance:textfield;
+  }
+  .stopwatch-display input::-webkit-outer-spin-button,
+  .stopwatch-display input::-webkit-inner-spin-button{
+    -webkit-appearance:none; margin:0;
+  }
+  .stopwatch-display input:disabled{ color:var(--ink); opacity:1; } /* stays readable while running */
+  .stopwatch-display input:focus{
+    outline:none; border-radius:6px; box-shadow:0 0 0 2px var(--primary);
+  }
+  .stopwatch-adjust{ display:flex; gap:12px; justify-content:center; margin-bottom:18px; }
+  .stopwatch-adjust .adjust-btn{
+    width:30px; height:30px; border-radius:50%; padding:0;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    font-size:16px; font-weight:700; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 0.28s cubic-bezier(.34,1.56,.64,1), box-shadow 0.28s ease, border-color 0.22s ease, color 0.22s ease;
+  }
+  .stopwatch-adjust .adjust-btn:hover{
+    border-color:var(--primary); color:var(--primary); transform:scale(1.15);
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+  }
+  .stopwatch-controls{ display:flex; gap:8px; justify-content:center; }
+  .stopwatch-controls .btn{ padding:8px 18px; font-size:14px; min-width:84px; }

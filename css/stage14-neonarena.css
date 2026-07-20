@@ -1,0 +1,68 @@
+  /* ---- Neon Arena (Stage 14) ----
+     Reuses .inv-play-area/.inv-canvas/.inv-lives + the life-lost
+     keyframes directly from stage7-stardefender.css — same shared
+     "dark canvas game chrome" every physics/action game since Plinko
+     builds on. Only legend swatches + the hint text are stage-specific. */
+  .neon-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  }
+  .neon-legend-swatch.drifter{
+    width:22px; height:22px;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    background: radial-gradient(circle at 40% 35%, #FF9AC9, #FF3EA5 60%, #B01560);
+    box-shadow:0 0 10px rgba(255,62,165,0.7);
+  }
+  .neon-legend-swatch.zapper{
+    width:12px; height:28px;
+    clip-path: polygon(50% 0%, 100% 45%, 65% 55%, 65% 100%, 35% 100%, 35% 55%, 0% 45%);
+    background: radial-gradient(circle at 40% 35%, #B6FBFF, #00E5FF 60%, #0090A8);
+    box-shadow:0 0 10px rgba(0,229,255,0.7);
+  }
+  .neon-legend-swatch.juggernaut{
+    width:34px; height:34px;
+    clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+    background: radial-gradient(circle at 40% 35%, #C7B6FF, #7B5CFF 60%, #4A2FAA);
+    box-shadow:0 0 10px rgba(123,92,255,0.7);
+  }
+  .neon-legend-swatch.warden{
+    width:32px; height:32px;
+    clip-path: polygon(50% 0%, 60% 36%, 98% 38%, 70% 60%, 80% 98%, 50% 74%, 20% 98%, 30% 60%, 2% 38%, 40% 36%);
+    background: radial-gradient(circle at 40% 35%, #FFC08F, #FF7A18 60%, #B04E00);
+    box-shadow:0 0 10px rgba(255,122,24,0.7);
+  }
+  .neon-legend-swatch.power{
+    width:24px; height:24px;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    background: radial-gradient(circle at 40% 30%, #FFFAD6, #FFE94A 60%, #C9A400);
+    box-shadow:0 0 10px rgba(255,233,74,0.7);
+  }
+  .neon-legend-swatch.overdrive{
+    width:22px; height:26px;
+    clip-path: polygon(40% 0%, 100% 40%, 60% 45%, 80% 100%, 0% 55%, 45% 50%);
+    background: linear-gradient(160deg, #C7EFFF, #3EC1FF 60%, #0A6CA8);
+    box-shadow:0 0 10px rgba(62,193,255,0.7);
+  }
+  .neon-legend-swatch.spread{
+    width:26px; height:26px; border-radius:50%; position:relative;
+    background: radial-gradient(circle at 40% 30%, #FFE1FC, #FF5CF4 60%, #B01BA0);
+    box-shadow:0 0 10px rgba(255,92,244,0.7);
+  }
+  .neon-legend-swatch.bomb{
+    width:24px; height:24px; border-radius:50%;
+    background: radial-gradient(circle at 40% 30%, #FFB0A8, #FF3B3B 60%, #8E0000);
+    box-shadow:0 0 10px rgba(255,59,59,0.7);
+  }
+
+  #neonPlayArea #neonBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .inv-play-area:not(.idle) #neonBeginTurnBtn{ display:none; }
+
+  .neon-hint{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    z-index:22; margin:0; padding:8px 18px; border-radius:999px;
+    background:rgba(10,6,25,0.72); color:#E7FFC2; font-size:clamp(12px,1.6vh,15px);
+    box-shadow:0 4px 14px rgba(0,0,0,0.35); pointer-events:none;
+  }

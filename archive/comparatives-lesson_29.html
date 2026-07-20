@@ -1,0 +1,4273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparative Adjectives — Interactive Lesson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F5F6F4;
+    --surface: #FFFFFF;
+    --ink: #333B3C;
+    --muted: #6E7A78;
+    --line: #E1E6E3;
+    --primary: #5C8A82;
+    --primary-dark: #4A726B;
+    --rule-a: #5C8A82;
+    --rule-b: #8577A8;
+    --rule-c: #C97B6C;
+    --rule-d: #BF9A54;
+    --success: #5C9C7C;
+    --success-bg: #E9F3EC;
+    --error: #C1665C;
+    --error-bg: #F8ECEA;
+    --timer: #C97A3D;
+    --radius: 16px;
+    --font-display: 'Bricolage Grotesque', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html, body{ height:100%; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(92,138,130,0.12), transparent 45%),
+      radial-gradient(circle at 80% 75%, rgba(133,119,168,0.12), transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(191,154,84,0.08), transparent 50%),
+      var(--paper);
+    background-size: 200% 200%;
+    animation: driftBg 26s ease-in-out infinite alternate;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: clamp(15px, 2vh, 21px);
+    line-height:1.5;
+    height:100dvh; /* fixes mobile browser address-bar resize jumping */
+    overflow:hidden; /* the whole page never scrolls — see .stage-body for the one workable exception */
+    display:flex; flex-direction:column;
+    padding: clamp(8px, 1.5vh, 20px) clamp(10px, 2vw, 20px);
+  }
+  @keyframes driftBg{
+    0%{ background-position: 0% 0%, 100% 100%, 50% 100%; }
+    100%{ background-position: 30% 25%, 70% 65%, 60% 80%; }
+  }
+  h1,h2,h3{font-family:var(--font-display); margin:0;}
+  .wrap{
+    max-width:1500px; margin:0 auto; position:relative; width:100%;
+    flex:1; min-height:0; display:flex; flex-direction:column;
+  }
+
+  /* ---- Lesson header ---- */
+  .lesson-header{text-align:center; margin-bottom:clamp(10px, 2vh, 28px);}
+  .lesson-header h1{font-size:clamp(26px, 5vh, 44px); font-weight:800;}
+  .lesson-header .objective{
+    color:var(--ink); font-weight:600; font-size:clamp(15px, 2.2vh, 21px); margin-top:14px; max-width:640px;
+    margin-left:auto; margin-right:auto;
+  }
+
+  /* Example sentences of the target language — deliberately styled in
+     a distinct, high-contrast color (not the muted body-text ink) so
+     they read as "this is the important bit", used consistently on
+     both the Aim page and the Learn the Rule page. */
+  .example-sentence{
+    font-size:clamp(15px,2.2vh,19px); font-weight:700; color:var(--rule-b);
+    line-height:1.4; margin:0;
+  }
+  .example-sentence .hl{ color:var(--rule-c); font-weight:800; }
+
+  .aim-examples{
+    display:flex; gap:clamp(10px,2vw,20px); flex-wrap:wrap; justify-content:center;
+    margin-top:clamp(14px,2.5vh,28px);
+  }
+  .aim-example{
+    flex:1; min-width:160px; max-width:230px;
+    background:var(--paper); border-radius:12px; padding:clamp(10px,1.8vh,18px);
+    text-align:center;
+  }
+  .aim-example-svg{ width:65%; height:auto; margin:0 auto 10px; display:block; }
+
+  /* ---- Stepper ---- */
+  .stepper{
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    gap:0; margin: 0 auto clamp(10px, 2vh, 24px); max-width:640px; width:100%;
+  }
+  .step{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    flex:1; position:relative; cursor:pointer; background:none; border:none;
+    font-family:var(--font-body); padding:0;
+  }
+  .step .circle{
+    width:clamp(28px, 4vh, 38px); height:clamp(28px, 4vh, 38px); border-radius:50%;
+    background:var(--surface); border:2px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:14px;
+    color:var(--muted); transition: all 0.15s ease; z-index:1;
+  }
+  .step.active .circle{ background:var(--primary); border-color:var(--primary); color:white; }
+  .step.done .circle{ background:var(--success); border-color:var(--success); color:white; }
+  .step .step-label{ font-size:12px; color:var(--muted); text-align:center; max-width:90px; line-height:1.2; }
+  .step.active .step-label{ color:var(--ink); font-weight:600; }
+  .step-line{
+    position:absolute; top:clamp(14px,2vh,17px); left:-50%; width:100%; height:2px;
+    background:var(--line); z-index:0;
+  }
+  .step:first-child .step-line{ display:none; }
+  .step.done .step-line, .step.active .step-line{ background:var(--primary); }
+
+  /* ---- Stage panels ----
+     Each stage fills all remaining vertical space after the stepper.
+     Internally it's h2 (fixed) + .stage-body (flexible, the part that
+     actually varies in size per stage) + .stage-footer (fixed, pinned
+     to the bottom by the flexible body taking up whatever space is left). */
+  .stage{
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: clamp(14px, 2.5vh, 40px) clamp(16px, 3vw, 48px);
+    position: relative;
+    overflow: hidden;
+    flex:1; min-height:0;
+    display:flex; flex-direction:column;
+  }
+  .stage h2{ font-size:clamp(20px, 3.2vh, 30px); margin-bottom:clamp(8px, 1.8vh, 20px); text-align:center; flex-shrink:0; }
+  .stage-body{
+    flex:1; min-height:0; display:flex; flex-direction:column;
+    justify-content:flex-start; overflow:hidden;
+  }
+
+  button{ font-family:var(--font-body); cursor:pointer; }
+
+  /* ---- Particle burst (gamified feedback) ---- */
+  .particle{
+    position:absolute; width:9px; height:9px; border-radius:50%;
+    pointer-events:none; transform:translate(-50%,-50%); z-index:20;
+    transition: transform 0.6s cubic-bezier(.2,.7,.4,1), opacity 0.6s ease;
+  }
+
+  /* ---- Sound toggle ---- */
+  .mute-toggle{
+    position:fixed; top:20px; right:20px; z-index:40;
+    background:var(--surface); border:1px solid var(--line); border-radius:50%;
+    width:44px; height:44px; font-size:18px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  }
+  .mute-toggle:hover{ border-color:var(--primary); }
+
+  /* ---- Circular countdown timer (Controlled / Guided practice)
+     Deliberately small and shape-distinct from the straight
+     progress bar below it — a ring that depletes as time runs out,
+     the reverse of a typical "loading" fill animation. ---- */
+  .timer-row{ display:flex; justify-content:center; margin-bottom:20px; }
+  .timer-circle{ position:relative; width:56px; height:56px; }
+  .timer-circle svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .timer-circle .timer-track{ fill:none; stroke:var(--line); stroke-width:5; }
+  .timer-circle .timer-arc{
+    fill:none; stroke:var(--timer); stroke-width:5; stroke-linecap:round;
+    transition: stroke 0.2s ease;
+  }
+  .timer-circle .timer-arc.urgent{ stroke:var(--error); }
+  .timer-circle-num{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--ink);
+  }
+
+  /* ---- Minimalist countdown timer (Free practice) ---- */
+  .stopwatch{
+    width:260px; margin:0 auto clamp(10px,2vh,24px); text-align:center;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:clamp(12px,2vh,22px) 20px;
+    flex-shrink:0;
+  }
+  .stopwatch-display{
+    display:flex; align-items:center; justify-content:center; gap:2px;
+    margin-bottom:clamp(6px,1.2vh,14px);
+  }
+  .stopwatch-display .colon{
+    font-family:var(--font-display); font-size:40px; font-weight:700;
+    color:var(--ink); line-height:1; padding:0 3px;
+  }
+  /* The inputs ARE the display — same font/size/color as the old
+     read-only digits, just editable in place. Browser chrome (border,
+     background, spinner arrows) is stripped so they look like plain text.
+     Width is a fixed px value rather than ch units — ch is based on a
+     single "0" character and was too narrow for two bold digits, which
+     is what caused the overlapping/clipped digits. */
+  .stopwatch-display input{
+    font-family:var(--font-display); font-size:40px; font-weight:700;
+    color:var(--ink); font-variant-numeric: tabular-nums;
+    width:56px; border:none; background:none; padding:0; text-align:center;
+    -moz-appearance:textfield;
+  }
+  .stopwatch-display input::-webkit-outer-spin-button,
+  .stopwatch-display input::-webkit-inner-spin-button{
+    -webkit-appearance:none; margin:0;
+  }
+  .stopwatch-display input:disabled{ color:var(--ink); opacity:1; } /* stays readable while running */
+  .stopwatch-display input:focus{
+    outline:none; border-radius:6px; box-shadow:0 0 0 2px var(--primary);
+  }
+  .stopwatch-adjust{ display:flex; gap:12px; justify-content:center; margin-bottom:18px; }
+  .stopwatch-adjust .adjust-btn{
+    width:30px; height:30px; border-radius:50%; padding:0;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    font-size:16px; font-weight:700; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stopwatch-adjust .adjust-btn:hover{ border-color:var(--primary); color:var(--primary); }
+  .stopwatch-controls{ display:flex; gap:8px; justify-content:center; }
+  .stopwatch-controls .btn{ padding:8px 18px; font-size:14px; min-width:84px; }
+
+  /* ---- Rule accordion (Stage 1) ---- */
+  .rule-list{ display:grid; grid-template-columns:repeat(auto-fit, minmax(340px,1fr)); gap:clamp(6px,1.2vh,12px); margin-bottom:clamp(6px,1.4vh,16px); max-width:820px; margin-left:auto; margin-right:auto; width:100%; align-items:start; }
+  .rule-row{
+    border-radius:12px; border:2px solid var(--line); background:var(--paper);
+    overflow:hidden; transition: border-color 0.15s ease; flex-shrink:0;
+  }
+  .rule-row.open{ border-color: var(--card-color); }
+  .rule-toggle{
+    width:100%; display:flex; align-items:center; justify-content:space-between;
+    background:none; border:none; text-align:left; padding:clamp(10px,1.8vh,18px) clamp(14px,2vw,22px);
+    font-family:var(--font-display); font-weight:700; font-size:clamp(16px,2.6vh,22px); color:var(--card-color);
+  }
+  .rule-toggle .chevron{ font-size:16px; color:var(--muted); transition: transform 0.15s ease; }
+  .rule-row.open .rule-toggle .chevron{ transform:rotate(180deg); }
+  .rule-body{ padding:0 clamp(14px,2vw,20px) clamp(6px,1.2vh,14px); }
+  .rule-formula{ font-size:clamp(13px,1.8vh,17px); color:var(--muted); margin-bottom:clamp(4px,1vh,12px); text-align:center; }
+  .rule-example{ font-size:clamp(15px,2.4vh,21px); font-weight:600; display:flex; align-items:baseline; justify-content:center; gap:4px; margin-bottom:clamp(1px,0.5vh,6px); }
+  .rule-example .suffix{ color:var(--card-color); }
+  .rule-example .arrow{ color:var(--muted); font-weight:400; margin:0 4px; font-size:15px; }
+
+  /* ---- Comparison bar demo (signature element) ---- */
+  .compare-demo{
+    background: var(--paper); border-radius:12px; padding:clamp(10px,1.8vh,22px) clamp(16px,2.5vw,30px);
+    max-width:820px; margin:clamp(4px,1vh,10px) auto; width:100%; flex-shrink:0;
+  }
+  .compare-icons{
+    display:flex; align-items:flex-end; justify-content:center;
+    gap:clamp(14px,3vw,32px); margin-bottom:clamp(6px,1.2vh,14px);
+  }
+  .compare-icon-box{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .compare-icon-frame{
+    height:64px; display:flex; align-items:flex-end; justify-content:center;
+  }
+  .compare-icon-frame svg{ display:block; }
+  .compare-vs{
+    font-family:var(--font-display); font-weight:700; color:var(--muted);
+    font-size:13px; text-transform:uppercase; padding-bottom:22px;
+  }
+  .bar-label{ font-size:15px; font-weight:600; color:var(--ink); }
+  .compare-caption{ font-size:clamp(15px,2.2vh,21px); font-weight:700; color:var(--rule-b); margin-top:clamp(4px,1vh,10px); text-align:center; }
+  .compare-caption .hl{ color:var(--rule-c); font-weight:800; }
+  .demo-nav{ display:flex; justify-content:center; gap:8px; margin-top:clamp(6px,1.4vh,18px); }
+  .demo-dot{ width:10px; height:10px; border-radius:50%; background:var(--line); border:none; padding:0; }
+  .demo-dot.active{ background:var(--primary); }
+
+  /* ---- Controlled practice (Stage 2) ---- */
+  .score-row{ display:flex; justify-content:center; margin-bottom:clamp(8px,1.6vh,16px); flex-shrink:0; }
+  .progress-line{ display:flex; align-items:center; justify-content:space-between; margin-bottom:clamp(10px, 2vh, 24px); flex-shrink:0; }
+  .score{
+    font-family:var(--font-display); font-weight:800; font-size:clamp(22px, 4vh, 34px); color:var(--primary);
+    display:inline-block;
+    background:var(--success-bg); padding:5px 20px; border-radius:20px;
+  }
+  /* A single keyframe animation (rather than a JS-timed transition)
+     handles the whole "correct answer" feel in one smooth motion:
+     grow, glow outward, settle back — the browser interpolates the
+     entire sequence itself instead of two separate style changes
+     fighting to stay in sync. */
+  .score.pop{ animation: scorePop 0.7s cubic-bezier(.22,.9,.32,1); }
+  @keyframes scorePop{
+    0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(92,156,124,0.55); }
+    35%{ transform:scale(1.32); box-shadow:0 0 0 10px rgba(92,156,124,0.25); }
+    70%{ transform:scale(1.05); box-shadow:0 0 0 16px rgba(92,156,124,0); }
+    100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(92,156,124,0); }
+  }
+  .progress-track{ height:7px; background:var(--line); border-radius:4px; overflow:hidden; flex:1; margin:0 16px; }
+  .progress-fill{ height:100%; background:var(--primary); transition: width 0.3s ease; }
+
+  .mc-question{ font-size:clamp(20px,3.6vh,30px); font-weight:800; color:var(--ink); margin-bottom:clamp(10px,2.2vh,28px); text-align:center; flex-shrink:0; }
+  .mc-options{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:clamp(8px,1.4vh,14px); max-width:720px; margin:0 auto; width:100%; flex-shrink:0; }
+  .mc-option{
+    background:var(--paper); border:2px solid var(--line); border-radius:10px;
+    padding:clamp(10px,1.8vh,18px); font-size:clamp(15px,2.2vh,20px); font-weight:600; color:var(--ink);
+    transition: all 0.12s ease;
+  }
+  .mc-option:hover:not(:disabled){ border-color:var(--primary); }
+  .mc-option.correct{ background:var(--success-bg); border-color:var(--success); color:var(--success); animation: correctPulse 0.45s ease; }
+  .mc-option.incorrect{ background:var(--error-bg); border-color:var(--error); color:var(--error); animation: shakeWrong 0.45s ease; }
+  .mc-option:disabled{ cursor:default; }
+  .mc-feedback{ text-align:center; margin-top:clamp(8px,1.6vh,20px); font-size:clamp(14px,2vh,19px); font-weight:600; color:var(--muted); min-height:24px; flex-shrink:0; }
+
+  @keyframes correctPulse{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(1.07); }
+    100%{ transform:scale(1); }
+  }
+  @keyframes shakeWrong{
+    0%, 100%{ transform:translateX(0); }
+    20%{ transform:translateX(-7px); }
+    40%{ transform:translateX(7px); }
+    60%{ transform:translateX(-5px); }
+    80%{ transform:translateX(5px); }
+  }
+
+  /* ---- Guided / semi-controlled practice (Stage 3) ---- */
+  .sentence-strip{
+    min-height:clamp(48px,8vh,70px); background:var(--paper); border:2px dashed var(--line); border-radius:10px;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; padding:clamp(8px,1.5vh,14px) 18px; margin-bottom:clamp(8px,1.6vh,20px);
+    max-width:820px; margin-left:auto; margin-right:auto; width:100%; flex-shrink:0;
+  }
+  .sentence-strip.empty::before{ content:"Click the words below in order to build the sentence."; color:var(--muted); font-size:clamp(14px,2vh,18px); font-weight:600; font-style:italic; }
+  .sentence-strip.correct{ border-style:solid; border-color:var(--success); background:var(--success-bg); animation: correctPulse 0.45s ease; }
+  .sentence-strip.incorrect{ border-style:solid; border-color:var(--error); background:var(--error-bg); animation: shakeWrong 0.45s ease; }
+  .chip{
+    background:var(--surface); border:2px solid var(--line); border-radius:8px;
+    padding:clamp(7px,1.3vh,11px) 18px; font-size:clamp(15px,2.2vh,20px); font-weight:600; color:var(--ink);
+  }
+  .chip.answer-chip{ background:var(--primary); border-color:var(--primary); color:white; }
+  .chip-bank{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:clamp(10px,2vh,24px); max-width:820px; margin-left:auto; margin-right:auto; width:100%; flex-shrink:0; }
+  .chip-bank .chip:hover{ border-color:var(--primary); }
+  .semi-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:8px; flex-shrink:0; }
+  .semi-feedback{ text-align:center; font-size:clamp(14px,2vh,19px); font-weight:600; min-height:24px; margin-top:clamp(6px,1.4vh,14px); flex-shrink:0; }
+  .semi-feedback.correct{ color:var(--success); }
+  .semi-feedback.incorrect{ color:var(--error); }
+  .semi-counter{ text-align:center; font-size:13px; color:var(--muted); margin-bottom:clamp(8px,1.8vh,22px); text-transform:uppercase; letter-spacing:0.06em; flex-shrink:0; }
+
+  /* ---- Free practice (Stage 4) ---- */
+  .free-intro{ font-size:clamp(15px,2.4vh,22px); font-weight:700; color:var(--ink); text-align:center; margin-bottom:clamp(8px,1.8vh,20px); flex-shrink:0; }
+  .free-layout{ display:flex; gap:clamp(12px,2.2vw,24px); flex-wrap:wrap; align-items:stretch; flex-shrink:0; }
+
+  /* Each section of Free Practice gets its own bordered card with a
+     colored top stripe, reusing the same accent colors used for the
+     four grammar rules — this separates "sentence starters" from
+     "word bank" at a glance instead of everything running together. */
+  .free-card{
+    background:var(--surface); border:1.5px solid var(--line); border-radius:12px;
+    border-top:4px solid var(--card-accent, var(--primary));
+    padding: clamp(10px,1.8vh,18px) clamp(12px,2vw,20px);
+  }
+  #sentenceStartersCard{ --card-accent:var(--rule-a); flex:2; min-width:260px; }
+
+  /* The word bank is what students actually keep glancing back at
+     while they talk — it gets more width, a bolder border, a tinted
+     background, and bigger chip text so it visually leads the page. */
+  #wordBankCard.prominent{
+    --card-accent:var(--rule-d);
+    border-width:2.5px; background:#FBF6EC;
+    flex:3; min-width:300px;
+    padding: clamp(14px,2.4vh,24px) clamp(14px,2.4vw,24px);
+  }
+  #wordBankCard.prominent h3{ font-size:15px; color:var(--timer); }
+
+  .free-card h3{
+    font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted);
+    margin-bottom:clamp(6px,1.2vh,14px); font-family:var(--font-body); font-weight:700; text-align:center;
+  }
+  .scaffold-list{ display:flex; flex-direction:column; gap:clamp(5px,1vh,10px); }
+  .scaffold-list .frame{
+    background:var(--paper); border-radius:10px; padding:clamp(6px,1.3vh,13px) 18px;
+    font-size:clamp(14px,2vh,19px); color:var(--ink); text-align:center;
+  }
+  .scaffold-list .frame .blank{ color:var(--primary); font-weight:700; }
+
+  .word-bank-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+  .wordbank-chip{
+    background:var(--surface); border:1.5px solid var(--line); border-radius:20px;
+    padding:8px 18px; font-size:clamp(14px,2vh,17px); color:var(--muted); white-space:nowrap;
+  }
+  .wordbank-chip strong{ color:var(--primary); font-weight:700; margin-left:6px; }
+
+  /* ---- Stage footer nav ---- */
+  .stage-footer{
+    display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
+    margin-top:clamp(8px, 1.5vh, 20px); padding-top:clamp(8px, 1.5vh, 18px); border-top:1px solid var(--line);
+  }
+  .btn{
+    font-weight:700; font-size:clamp(13px, 1.8vh, 16px); border-radius:8px; padding:clamp(8px,1.3vh,12px) clamp(14px,2vw,22px); border:none;
+    transition: transform 0.08s ease, filter 0.15s ease;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn:disabled{ opacity:0.4; cursor:default; }
+  .btn-primary{ background:var(--primary); color:white; }
+  .btn-primary:hover:not(:disabled){ background:var(--primary-dark); }
+  .btn-ghost{ background:none; color:var(--muted); border:1px solid var(--line); }
+  .btn-ghost:hover{ border-color:var(--ink); color:var(--ink); }
+
+  .hidden{ display:none !important; }
+
+  /* ---- Modals (Ball Pop question / result) ---- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(33,38,45,0.55);
+    display:flex; align-items:center; justify-content:center; padding:20px; z-index:60;
+  }
+  .modal{
+    background:var(--surface); border-radius:var(--radius); padding:36px;
+    max-width:480px; width:100%; text-align:center; border:1px solid var(--line);
+  }
+  .modal .modal-tag{
+    display:inline-block; font-size:13px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.08em; padding:5px 14px; border-radius:20px; margin-bottom:18px;
+    background:rgba(92,138,130,0.14); color:var(--primary);
+  }
+  .modal h3{ font-size:24px; line-height:1.5; margin-bottom:20px; font-family:var(--font-body); font-weight:700; color:var(--ink); }
+  .modal .modal-answer{
+    background:rgba(201,122,61,0.14); color:var(--timer); padding:12px 16px;
+    border-radius:8px; font-weight:700; font-size:19px; margin-bottom:12px;
+  }
+  .modal .modal-followup{
+    color:var(--muted); font-size:15px; margin-bottom:20px; font-style:italic;
+  }
+  .modal .modal-followup strong{ color:var(--ink); font-style:normal; font-weight:700; }
+  .modal-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .modal-actions .btn{ flex:1; min-width:150px; }
+  .modal .modal-result-big{ font-family:var(--font-display); font-size:34px; color:var(--primary); margin:10px 0 6px; }
+  .modal .modal-result-sub{ color:var(--muted); font-size:16px; margin-bottom:20px; }
+
+  /* ---- Ball Pop Challenge (Stage 6) ---- */
+  .pop-team-inputs{ max-width:440px; margin:0 auto 20px; display:flex; flex-direction:column; gap:12px; }
+  .pop-team-row{ display:flex; align-items:center; gap:12px; }
+  .pop-team-row .dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+  .pop-team-row input{
+    flex:1; background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    padding:11px 16px; font-family:var(--font-body); font-size:18px; color:var(--ink);
+  }
+  .pop-team-row input:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+  .pop-setup-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+  /* Legend reuses the exact same colors/gradients as the real balls in
+     play, so it doubles as an accurate preview rather than a separate
+     illustration that could drift out of sync with the game itself. */
+  .pop-legend{
+    display:flex; gap:clamp(16px,3vw,32px); justify-content:center; flex-wrap:wrap;
+    margin-bottom:clamp(14px,2.4vh,26px);
+  }
+  .pop-legend-item{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .pop-legend-swatch-box{
+    width:48px; height:48px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .pop-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; box-shadow:0 3px 8px rgba(0,0,0,0.2);
+  }
+  .pop-legend-swatch.normal{
+    width:38px; height:38px; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #FF6B6B 0%, #FF6B6B 55%, #C24A4A 100%);
+  }
+  .pop-legend-swatch.special{
+    width:30px; height:30px; border-radius:50%;
+    background: radial-gradient(circle at 36% 30%, #FFF9E0 0%, #FFD23F 50%, #B8791F 100%);
+    box-shadow:0 0 10px rgba(255,210,63,0.6);
+  }
+  .pop-legend-swatch.gem{
+    width:22px; height:22px; border-radius:50%;
+    background:linear-gradient(135deg, #FF3E9A 0%, #B266FF 55%, #31E6E0 100%);
+  }
+  .pop-legend-swatch.bomb{
+    width:34px; height:34px;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    background-image: repeating-linear-gradient(135deg, #E4574B 0, #E4574B 18%, #241010 18%, #241010 36%);
+    font-size:15px;
+  }
+  .pop-legend-points{ font-family:var(--font-display); font-weight:700; font-size:14px; color:var(--ink); }
+  .pop-legend-points.gem-points{ color:#B266FF; }
+  .pop-legend-points.bomb-points{ color:var(--error); }
+
+  /* Teams now sit in a side panel next to the play area (not stacked
+     above it), and every score is deliberately oversized — this is the
+     number students actually care about round to round. */
+  .pop-game-layout{
+    display:flex; gap:clamp(12px, 2vw, 28px); flex:1; min-height:0;
+  }
+  .pop-sidebar{
+    flex:0 0 clamp(160px, 18vw, 230px);
+    display:flex; flex-direction:column; justify-content:center; gap:clamp(8px, 1.4vh, 14px);
+    min-height:0; overflow-y:auto;
+  }
+  .pop-team-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:clamp(6px, 1.2vh, 10px); }
+  .pop-team-list li{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    padding:clamp(8px, 1.6vh, 16px) 8px; border-radius:12px;
+    border:2.5px solid var(--tc, var(--line));
+    background:color-mix(in srgb, var(--tc, var(--line)) 14%, var(--surface));
+  }
+  .pop-team-list li.active{
+    background:color-mix(in srgb, var(--tc, var(--primary)) 28%, var(--surface));
+    box-shadow:0 0 0 2px var(--tc, var(--primary)), 0 0 16px color-mix(in srgb, var(--tc, var(--primary)) 50%, transparent);
+  }
+  .pop-team-list .name{
+    display:flex; align-items:center; gap:6px; font-weight:600;
+    font-size:clamp(12px, 1.6vh, 15px); color:var(--ink);
+  }
+  .pop-team-list .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .pop-team-list .pop-score{
+    font-family:var(--font-display); font-weight:800;
+    color:var(--tc, var(--primary));
+    font-size:clamp(28px, 5.5vh, 44px); line-height:1;
+  }
+
+  .pop-turn-box{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding-top:clamp(6px,1vh,12px); border-top:1px solid var(--line); text-align:center;
+  }
+  .pop-turn-box span{ font-size:clamp(13px, 1.7vh, 16px); font-weight:600; color:var(--ink); }
+
+  .pop-sidebar-reset{
+    font-size:11px; color:var(--muted); text-decoration:underline;
+    background:none; border:none; cursor:pointer; padding:0; font-family:var(--font-body);
+  }
+  .pop-sidebar-reset:hover{ color:var(--error); }
+
+  .pop-main{
+    flex:1; min-height:0; display:flex; flex-direction:column; align-items:stretch;
+    gap:clamp(6px,1vh,10px);
+  }
+  .pop-hud{ display:flex; justify-content:center; gap:clamp(30px, 6vw, 70px); flex-shrink:0; }
+  .pop-hud-label{ font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); display:block; text-align:center; }
+  .pop-hud-num{
+    font-family:var(--font-display); font-size:clamp(26px, 4.5vh, 36px); font-weight:700; color:var(--ink);
+    display:block; text-align:center; transition: transform 0.15s ease;
+  }
+
+  .timer-bar-track{ width:100%; max-width:440px; height:8px; background:var(--line); border-radius:6px; overflow:hidden; flex-shrink:0; margin:0 auto; }
+  .timer-bar-fill{ height:100%; background:var(--timer); border-radius:6px; transition: width 0.2s linear; }
+
+  /* Play area — now fills the available space in pop-main rather than
+     being capped at 720 px, giving a noticeably larger battlefield. */
+  .pop-play-area{
+    position:relative; flex:1; min-height:0; width:100%;
+    border-radius:16px; overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 75%, rgba(178,102,255,0.28) 0%, transparent 40%),
+      radial-gradient(circle at 80% 25%, rgba(49,230,224,0.22) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(255,210,63,0.12) 0%, transparent 55%),
+      linear-gradient(160deg, #F2F0FA, #E8F2EF);
+    box-shadow: inset 0 0 0 3px var(--line);
+  }
+  /* Begin Turn lives centered inside the canvas itself — visible only
+     while idle (between turns), hidden the instant a round is live. */
+  #popPlayArea #popBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .pop-play-area:not(.idle) #popBeginTurnBtn{ display:none; }
+
+  .pop-particle-canvas{
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:20;
+  }
+  .pop-ball-layer{
+    position:absolute; inset:0; z-index:21;
+  }
+
+  .pop-play-area.shake{ animation: shakeWrong 0.4s ease; }
+
+  .pop-ball{
+    position:absolute; width:15%; aspect-ratio:1/1; border-radius:50%;
+    cursor:pointer; border:none; padding:0;
+    display:flex; align-items:center; justify-content:center; font-size:1.7rem;
+    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    /* transform/opacity are set every frame by JS (see updatePopBallAnims),
+       not by a CSS animation — this gives the organic ease-in-and-settle
+       feel from the reference game instead of a fixed-duration curve. */
+  }
+  /* Back to a circle (the star silhouette didn't land) — smaller than
+     a normal ball, carrying its "special" identity purely through a
+     distinct rich gold gradient and glow instead of shape. */
+  .pop-ball.special{
+    width:12%;
+    border-radius:50%;
+    background: radial-gradient(circle at 36% 30%, #FFF9E0 0%, #FFD23F 50%, #B8791F 100%) !important;
+    box-shadow:0 0 16px rgba(255,210,63,0.7);
+    animation: starGlow 0.7s ease-in-out infinite alternate;
+  }
+  @keyframes starGlow{
+    0%{ filter:brightness(1) saturate(1); }
+    100%{ filter:brightness(1.4) saturate(1.3); }
+  }
+  /* The 4 balls a special ball bursts into are deliberately smaller
+     than a normal single-spawn ball too — visually distinct as "the
+     bonus swarm" rather than 4 regular balls. */
+  .pop-ball.swarm{ width:11%; }
+  /* The bomb reads as genuinely dangerous, not just "a red ball":
+     hazard-stripe fill, an octagon (stop-sign) silhouette instead of
+     a circle, and its own faster pulse — shape and motion carry the
+     warning, not just color. */
+  .pop-ball.bomb{
+    font-size:1.1rem; font-weight:800; color:#FFF3D6;
+    border-radius:0;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    background-image: repeating-linear-gradient(135deg, #E4574B 0, #E4574B 18%, #241010 18%, #241010 36%) !important;
+    box-shadow:0 4px 18px rgba(0,0,0,0.5);
+    animation: bombPulse 0.5s ease-in-out infinite;
+  }
+  @keyframes bombPulse{
+    0%, 100%{ filter:brightness(1); }
+    50%{ filter:brightness(1.4) saturate(1.3); }
+  }
+
+  /* The gem: tiny, high-value, and visually distinct from everything
+     else — a shimmering two-tone gradient rather than a flat fill,
+     with its own fast glow so it reads as "grab this immediately". */
+  .pop-ball.gem{
+    width:7%;
+    background: linear-gradient(135deg, #FF3E9A 0%, #B266FF 55%, #31E6E0 100%) !important;
+    box-shadow:0 2px 10px rgba(0,0,0,0.3);
+    animation: gemGlow 0.45s ease-in-out infinite alternate;
+  }
+  @keyframes gemGlow{
+    0%{ filter:brightness(1) saturate(1); }
+    100%{ filter:brightness(1.45) saturate(1.4); }
+  }
+
+  /* ---- Star Defender (Stage 7) ----
+     The play area itself goes deep-space dark — everything else on
+     this page lives on a soft paper background, but a starfield
+     battlefield genuinely calls for its own register. Sidebar/HUD
+     chrome around it stays consistent with the rest of the lesson. */
+  .inv-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  }
+  .inv-legend-swatch.scout{
+    width:22px; height:22px;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    background: radial-gradient(circle at 40% 35%, #6FE3D6, #2F9E8F);
+  }
+  .inv-legend-swatch.brute{
+    width:34px; height:34px;
+    clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+    background: radial-gradient(circle at 40% 35%, #C77DFF, #7B4FA0);
+  }
+  .inv-legend-swatch.dart{
+    width:12px; height:28px;
+    clip-path: polygon(50% 0%, 100% 45%, 65% 55%, 65% 100%, 35% 100%, 35% 55%, 0% 45%);
+    background: radial-gradient(circle at 40% 35%, #A8FFCF, #7DFFB3 60%, #38C170);
+  }
+  .inv-legend-swatch.boss{
+    width:32px; height:32px;
+    clip-path: polygon(50% 0%, 60% 36%, 98% 38%, 70% 60%, 80% 98%, 50% 74%, 20% 98%, 30% 60%, 2% 38%, 40% 36%);
+    background: radial-gradient(circle at 40% 35%, #FF8FA0, #FF4E6A 60%, #B01040);
+    box-shadow:0 0 10px rgba(255,78,106,0.7);
+  }
+  .inv-legend-swatch.pickup{
+    width:24px; height:24px; border-radius:50%;
+    background: radial-gradient(circle at 40% 30%, #FFF7D6, #FFD23F 60%, #D98E2B);
+    box-shadow:0 0 10px rgba(255,210,63,0.7);
+  }
+  .inv-legend-swatch.machinegun{
+    width:28px; height:18px;
+    background: linear-gradient(90deg, #FF8C42, #FF5A00);
+    border-radius:3px;
+    box-shadow:0 0 8px rgba(255,140,66,0.7);
+  }
+  .inv-legend-swatch.heart{
+    width:26px; height:26px; color:#FF6B8B; font-size:20px; box-shadow:none;
+  }
+
+  .inv-lives{
+    display:flex; gap:6px; justify-content:center;
+    font-size:clamp(22px,3.5vh,30px); /* much larger ♥ icons */
+  }
+  .inv-lives .lost{ opacity:0.2; }
+  .inv-lives.pulse{ animation: livesLost 0.7s ease-out; }
+  @keyframes livesLost{
+    0%{ filter:drop-shadow(0 0 0 #E4574B); }
+    30%{ filter:drop-shadow(0 0 14px #E4574B) saturate(1.6); }
+    100%{ filter:none; }
+  }
+
+  .inv-play-area{
+    position:relative; flex:1; min-height:0; width:100%;
+    border-radius:16px; overflow:hidden;
+    background: radial-gradient(ellipse at 50% 20%, #1B1440 0%, #0A0820 70%);
+    box-shadow: inset 0 0 0 3px #2E2860;
+    transition: box-shadow 0.1s ease;
+  }
+  .inv-play-area.life-lost{
+    animation: invLifeLost 0.6s ease-out;
+  }
+  @keyframes invLifeLost{
+    0%{ box-shadow:inset 0 0 0 3px #2E2860; }
+    20%{ box-shadow:inset 0 0 0 6px #E4574B, 0 0 24px rgba(228,87,75,0.6); }
+    50%{ box-shadow:inset 0 0 0 4px #E4574B, 0 0 12px rgba(228,87,75,0.3); }
+    100%{ box-shadow:inset 0 0 0 3px #2E2860; }
+  }
+  .inv-play-area.idle::after{
+    content: 'Click Begin turn to start.'; position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color:#9C96D8; font-size:clamp(14px,2vh,18px); font-weight:600; text-align:center; padding:20px; z-index:5;
+  }
+  .inv-canvas{ position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; }
+  #invPlayArea #invBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .inv-play-area:not(.idle) #invBeginTurnBtn{ display:none; }
+
+  /* Expanding ring that fires from the click point on every pop —
+     colored green-ish for a correct pop, red for a bad-ball miss. */
+  .pop-shockwave{
+    position:absolute; width:20%; aspect-ratio:1/1; border-radius:50%;
+    border:3px solid var(--ring-color, #fff); transform:translate(-50%,-50%) scale(0.3);
+    opacity:0.9; pointer-events:none; z-index:15;
+    transition: transform 0.45s ease-out, opacity 0.45s ease-out;
+  }
+
+  /* Floating "+1" / "−1" combat-text style feedback */
+  .pop-float-text{
+    position:absolute; transform:translate(-50%,-50%) scale(1); opacity:1;
+    font-family:var(--font-display); font-weight:800; font-size:28px;
+    pointer-events:none; z-index:25; text-shadow:0 2px 6px rgba(0,0,0,0.25);
+    transition: transform 0.6s cubic-bezier(.2,.7,.4,1), opacity 0.6s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
+  /* ---- Print stylesheet ----
+     #printableRules is invisible on screen and only ever shown when
+     printing. Everything else (the whole interactive app) is hidden
+     for print, so the teacher gets a clean A4 reference sheet instead
+     of a screenshot of the app with buttons and a stepper on it. */
+  #printableRules{ display:none; }
+  #printableWorksheet{ display:none; }
+
+  @media print{
+    /* The active print target is whichever element has .active-print set
+       — either rules (from stage 2) or the worksheet (from stage 9). */
+    body > *:not(.active-print){ display:none !important; }
+    body{
+      background:white !important; animation:none !important;
+      height:auto !important; overflow:visible !important; padding:0 !important;
+      display:block !important;
+    }
+    .active-print{
+      display:block !important; color:#1a1a1a; font-family:Georgia, 'Times New Roman', serif;
+      padding:14mm 16mm;
+    }
+    #printableRules h1, #printableWorksheet h1{
+      font-family:Georgia, serif; font-size:20pt; text-align:center; margin-bottom:3mm;
+    }
+    #printableRules .print-subtitle, #printableWorksheet .print-subtitle{
+      text-align:center; font-size:10pt; color:#555; margin-bottom:10mm;
+    }
+    #printableRules .print-rule{
+      border:1px solid #999; border-left:4px solid var(--print-accent, #555);
+      border-radius:4px; padding:5mm 7mm; margin-bottom:6mm;
+      page-break-inside:avoid;
+    }
+    #printableRules .print-rule h2{ font-size:14pt; margin-bottom:1.5mm; color:var(--print-accent, #333); }
+    #printableRules .print-formula{ font-size:10.5pt; color:#555; margin-bottom:3mm; font-style:italic; }
+    #printableRules .print-example{ font-size:12.5pt; margin-bottom:1.5mm; }
+    #printableRules .print-example .arrow{ color:#777; margin:0 4px; }
+    #printableRules .print-example .suffix{ font-weight:700; }
+    #printableRules .print-footer, #printableWorksheet .print-footer{ text-align:center; font-size:9pt; color:#888; margin-top:8mm; }
+    /* Worksheet print styles */
+    #printableWorksheet .ws-set-title{ font-size:14pt; font-weight:700; margin:6mm 0 2mm; border-bottom:1px solid #aaa; padding-bottom:1mm; }
+    #printableWorksheet .ws-set-label{ font-size:9pt; color:#666; margin-bottom:4mm; }
+    #printableWorksheet .ws-q{ margin-bottom:5mm; page-break-inside:avoid; }
+    #printableWorksheet .ws-q-prompt{ font-size:11pt; margin-bottom:2mm; }
+    #printableWorksheet .ws-answer-line{ border-bottom:1px solid #999; height:7mm; margin:0 0 1mm; width:80%; }
+    #printableWorksheet .answer-key{ margin-top:10mm; border-top:2px solid #333; padding-top:4mm; }
+    #printableWorksheet .answer-key h3{ font-size:11pt; margin-bottom:3mm; }
+    #printableWorksheet .answer-key ol{ font-size:10pt; columns:2; column-gap:10mm; }
+  }
+
+  /* ---- Bamboozle (Stage 8) ---- */
+  .bz-game-layout{ display:flex; gap:clamp(12px,2vw,28px); flex:1; min-height:0; }
+  .bz-grid{
+    display:grid; grid-template-columns:repeat(5, 1fr);
+    gap:clamp(8px,1.4vh,14px); flex:1; min-height:0; align-content:start;
+  }
+  .bz-tile{
+    aspect-ratio:1.4/1; border-radius:12px; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:800; font-size:clamp(18px,3vh,28px);
+    transition: transform 0.12s ease, box-shadow 0.15s ease;
+    position:relative; overflow:hidden;
+  }
+  .bz-tile:not(.revealed):not(.used):hover{
+    transform:scale(1.06); box-shadow:0 8px 24px rgba(0,0,0,0.18);
+  }
+  .bz-tile.revealed{ cursor:default; transform:scale(1.04); }
+  .bz-tile.used{ opacity:0.35; cursor:default; }
+  .bz-tile .bz-tile-label{
+    font-size:11px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.7;
+    position:absolute; bottom:6px; left:0; right:0; text-align:center;
+  }
+  .bz-play-again{ display:block; margin:20px auto 0; }
+
+  /* ---- Practice Questions (Stage 9) ---- */
+  .qs-layout{ display:flex; flex-direction:column; gap:clamp(10px,1.8vh,20px); flex:1; min-height:0; }
+  .qs-controls{ flex-shrink:0; }
+  .qs-set-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:clamp(8px,1.6vh,16px); }
+  .qs-tab{
+    padding:7px 18px; border-radius:20px; border:1.5px solid var(--line);
+    background:var(--surface); font-family:var(--font-body); font-weight:600;
+    font-size:14px; cursor:pointer; transition: all 0.12s ease;
+  }
+  .qs-tab.active{ background:var(--primary); color:white; border-color:var(--primary); }
+  .qs-tab.completed{ background:var(--success-bg); border-color:var(--success); color:var(--success); }
+  .qs-progress-row{ display:flex; align-items:center; gap:12px; }
+  .qs-question-area{
+    flex:1; min-height:0; background:var(--paper); border-radius:12px;
+    padding:clamp(14px,2.4vh,28px) clamp(16px,2.4vw,28px);
+    display:flex; flex-direction:column; justify-content:center;
+    overflow-y:auto;
+  }
+  .qs-prompt{ font-size:clamp(16px,2.6vh,22px); font-weight:700; color:var(--ink); margin-bottom:clamp(10px,2vh,20px); }
+  .qs-gap-fill{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:clamp(16px,2.4vh,21px); }
+  .qs-gap{ border:none; border-bottom:2.5px solid var(--primary); background:none;
+    font-family:var(--font-body); font-size:clamp(16px,2.4vh,21px); font-weight:700;
+    color:var(--primary); width:140px; text-align:center; outline:none; }
+  .qs-gap.correct{ border-color:var(--success); color:var(--success); background:var(--success-bg); border-radius:6px 6px 0 0; }
+  .qs-gap.incorrect{ border-color:var(--error); color:var(--error); background:var(--error-bg); border-radius:6px 6px 0 0; }
+  .qs-gap.revealed{ border-color:var(--timer); color:var(--timer); }
+  .qs-scramble-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .qs-chosen-strip{
+    min-height:52px; border:2px dashed var(--line); border-radius:10px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px;
+    margin-bottom:12px;
+  }
+  .qs-chosen-strip.correct{ border-color:var(--success); background:var(--success-bg); border-style:solid; }
+  .qs-chosen-strip.incorrect{ border-color:var(--error); background:var(--error-bg); border-style:solid; }
+  .qs-free-textarea{
+    width:100%; border:2px solid var(--line); border-radius:10px;
+    padding:14px; font-family:var(--font-body); font-size:clamp(15px,2.2vh,19px);
+    color:var(--ink); resize:vertical; min-height:100px; background:var(--surface);
+  }
+  .qs-free-textarea:focus{ outline:none; border-color:var(--primary); }
+  .qs-actions{ display:flex; gap:10px; flex-shrink:0; }
+  .qs-feedback{
+    flex-shrink:0; font-size:clamp(14px,2vh,18px); font-weight:700;
+    padding:10px 18px; border-radius:8px; text-align:center;
+  }
+  .qs-feedback.correct{ background:var(--success-bg); color:var(--success); }
+  .qs-feedback.incorrect{ background:var(--error-bg); color:var(--error); }
+  .qs-feedback.info{ background:rgba(92,138,130,0.12); color:var(--primary); }
+</style>
+</head>
+<body>
+<button class="mute-toggle" id="muteBtn" type="button" aria-label="Toggle sound">🔊</button>
+
+<!-- Only rendered when printing — the active-print class decides which one shows. -->
+<div id="printableRules"></div>
+<div id="printableWorksheet"></div>
+
+<div class="wrap">
+
+  <nav class="stepper" id="stepper"></nav>
+
+  <!-- STAGE 1: LESSON AIM -->
+  <section class="stage" id="stage1">
+    <div class="stage-body">
+      <div class="lesson-header">
+        <h1>Comparative Adjectives</h1>
+        <p class="objective">By the end of this lesson, you will be able to form comparative adjectives correctly and use them to compare two things.</p>
+      </div>
+
+      <div class="aim-examples">
+        <div class="aim-example">
+          <svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+            <circle cx="34" cy="42" r="26" fill="var(--rule-a)"/>
+            <circle cx="80" cy="54" r="9" fill="var(--muted)"/>
+          </svg>
+          <p class="example-sentence">The elephant is <span class="hl">bigger</span> than the mouse.</p>
+        </div>
+        <div class="aim-example">
+          <svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+            <polygon points="10,55 40,10 70,55" fill="var(--rule-c)"/>
+            <polygon points="55,55 78,28 100,55" fill="var(--muted)"/>
+          </svg>
+          <p class="example-sentence">The mountain is <span class="hl">taller</span> than the hill.</p>
+        </div>
+        <div class="aim-example">
+          <svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+            <path d="M8 20 L48 20 M8 34 L60 34 M8 48 L38 48" stroke="var(--rule-b)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M70 34 L92 34" stroke="var(--muted)" stroke-width="6" stroke-linecap="round"/>
+            <polygon points="92,28 92,40 100,34" fill="var(--muted)"/>
+          </svg>
+          <p class="example-sentence">The cheetah is <span class="hl">faster</span> than the tortoise.</p>
+        </div>
+      </div>
+    </div>
+    <div class="stage-footer">
+      <span></span>
+      <button class="btn btn-primary" id="aimNextBtn">Start lesson →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 2: PRESENTATION -->
+  <section class="stage hidden" id="stage2">
+    <h2>Learn the rule</h2>
+    <div class="stage-body">
+      <div class="rule-list" id="ruleGrid"></div>
+
+      <div class="compare-demo" id="compareDemo">
+        <div class="compare-icons">
+          <div class="compare-icon-box">
+            <div class="compare-icon-frame" id="demoIconA"></div>
+            <span class="bar-label" id="demoLabelA"></span>
+          </div>
+          <div class="compare-vs">vs</div>
+          <div class="compare-icon-box">
+            <div class="compare-icon-frame" id="demoIconB"></div>
+            <span class="bar-label" id="demoLabelB"></span>
+          </div>
+        </div>
+        <p class="compare-caption" id="demoCaption"></p>
+        <div class="demo-nav" id="demoNav"></div>
+      </div>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="learnBackBtn">← Back</button>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost" id="printRulesBtn" type="button">🖨️ Print rules</button>
+        <button class="btn btn-primary" id="learnNextBtn">Next: Controlled practice →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 3: CONTROLLED PRACTICE -->
+  <section class="stage hidden" id="stage3">
+    <h2>Controlled practice</h2>
+    <div class="stage-body">
+      <div class="timer-row">
+        <div class="timer-circle">
+          <svg viewBox="0 0 44 44">
+            <circle class="timer-track" cx="22" cy="22" r="18"></circle>
+            <circle class="timer-arc" id="mcTimerArc" cx="22" cy="22" r="18"></circle>
+          </svg>
+          <span class="timer-circle-num" id="mcTimerNum"></span>
+        </div>
+      </div>
+      <div class="score-row"><span class="score" id="mcScore"></span></div>
+
+      <div class="progress-line">
+        <span id="mcCounter" style="font-size:14px; color:var(--muted);"></span>
+        <div class="progress-track"><div class="progress-fill" id="mcProgressFill"></div></div>
+      </div>
+
+      <p class="mc-question" id="mcQuestion"></p>
+      <div class="mc-options" id="mcOptions"></div>
+      <p class="mc-feedback" id="mcFeedback"></p>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="controlledBackBtn">← Back</button>
+      <button class="btn btn-primary" id="controlledNextBtn">Next: Guided practice →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 4: SEMI-CONTROLLED / GUIDED PRACTICE -->
+  <section class="stage hidden" id="stage4">
+    <h2>Guided practice</h2>
+    <div class="stage-body">
+      <div class="timer-row">
+        <div class="timer-circle">
+          <svg viewBox="0 0 44 44">
+            <circle class="timer-track" cx="22" cy="22" r="18"></circle>
+            <circle class="timer-arc" id="semiTimerArc" cx="22" cy="22" r="18"></circle>
+          </svg>
+          <span class="timer-circle-num" id="semiTimerNum"></span>
+        </div>
+      </div>
+      <div class="score-row"><span class="score" id="semiScoreDisplay"></span></div>
+
+      <div class="progress-line">
+        <span id="semiCounter" style="font-size:14px; color:var(--muted);"></span>
+        <div class="progress-track"><div class="progress-fill" id="semiProgressFill"></div></div>
+      </div>
+
+      <div class="sentence-strip empty" id="answerStrip"></div>
+      <div class="chip-bank" id="chipBank"></div>
+
+      <div class="semi-actions">
+        <button class="btn btn-ghost" id="semiReset">Clear</button>
+        <button class="btn btn-primary" id="semiCheck">Check sentence</button>
+        <button class="btn btn-primary hidden" id="semiNext">Next sentence →</button>
+      </div>
+      <p class="semi-feedback" id="semiFeedback"></p>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="guidedBackBtn">← Back</button>
+      <button class="btn btn-primary" id="guidedNextBtn">Next: Free practice →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 5: FREE PRACTICE -->
+  <section class="stage hidden" id="stage5">
+    <h2>Free practice</h2>
+    <div class="stage-body">
+      <div class="stopwatch" id="stopwatch">
+        <div class="stopwatch-display">
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" id="stopwatchMin" value="03" aria-label="Minutes">
+          <span class="colon">:</span>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" id="stopwatchSec" value="00" aria-label="Seconds">
+        </div>
+        <div class="stopwatch-adjust">
+          <button class="adjust-btn" id="stopwatchMinus" type="button" aria-label="Subtract one minute">−</button>
+          <button class="adjust-btn" id="stopwatchPlus" type="button" aria-label="Add one minute">+</button>
+        </div>
+        <div class="stopwatch-controls">
+          <button class="btn btn-primary" id="stopwatchToggle" type="button">Start</button>
+          <button class="btn btn-ghost" id="stopwatchReset" type="button">Reset</button>
+        </div>
+      </div>
+
+      <p class="free-intro">Think of two people, animals, or things you know. Say or write five sentences comparing them, out loud with a partner.</p>
+
+      <div class="free-layout">
+        <div class="free-card" id="sentenceStartersCard">
+          <h3>Sentence starters</h3>
+          <div class="scaffold-list" id="scaffoldList"></div>
+        </div>
+
+        <div class="free-card prominent" id="wordBankCard">
+          <h3>Word bank</h3>
+          <div class="word-bank-row" id="wordBank"></div>
+        </div>
+      </div>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="freeBackBtn">← Back</button>
+      <button class="btn btn-primary" id="freeNextBtn">Next: Ball Pop →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 6: BALL POP CHALLENGE -->
+  <section class="stage hidden" id="stage6">
+    <h2>Ball Pop Challenge</h2>
+    <div class="stage-body">
+      <div id="popSetup">
+        <p class="free-intro">Pop as many balls as you can in 10 seconds.</p>
+
+        <div class="pop-legend">
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="pop-legend-swatch normal"></span></div>
+            <span class="pop-legend-points">+1</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="pop-legend-swatch special"></span></div>
+            <span class="pop-legend-points">→ 4 balls</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="pop-legend-swatch gem"></span></div>
+            <span class="pop-legend-points gem-points">+3</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="pop-legend-swatch bomb">💣</span></div>
+            <span class="pop-legend-points bomb-points">−1</span>
+          </div>
+        </div>
+
+        <div class="pop-team-inputs" id="popTeamInputs"></div>
+        <div class="pop-setup-actions">
+          <button class="btn btn-ghost" id="popAddTeamBtn" type="button">+ Add team</button>
+          <button class="btn btn-primary" id="popStartBtn" type="button">Start game</button>
+        </div>
+      </div>
+
+      <div id="popGame" class="hidden pop-game-layout">
+        <div class="pop-sidebar">
+          <ul class="pop-team-list" id="popTeamList"></ul>
+          <div class="pop-turn-box">
+            <span id="popTurnBanner"></span>
+            <button class="pop-sidebar-reset" id="popResetScoresBtn" type="button">Reset scores</button>
+          </div>
+        </div>
+
+        <div class="pop-main">
+          <div class="pop-hud">
+            <div><span class="pop-hud-label">Time left</span><span class="pop-hud-num" id="popTimeDisplay">--</span></div>
+            <div><span class="pop-hud-label">Pops</span><span class="pop-hud-num" id="popPopsDisplay">0</span></div>
+          </div>
+          <div class="timer-bar-track"><div class="timer-bar-fill" id="popTimerFill"></div></div>
+
+          <div id="popPlayArea" class="pop-play-area idle">
+            <canvas id="popParticleCanvas" class="pop-particle-canvas"></canvas>
+            <div id="popBallLayer" class="pop-ball-layer"></div>
+            <button class="btn btn-primary" id="popBeginTurnBtn" type="button">Begin turn</button>
+          </div>
+
+          <button class="btn btn-primary hidden" id="popPlayAgainBtn" type="button">Play again</button>
+        </div>
+      </div>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="popBackBtn">← Back</button>
+      <button class="btn btn-primary" id="popNextBtn">Next: Star Defender →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 7: STAR DEFENDER -->
+  <section class="stage hidden" id="stage7">
+    <h2>Star Defender</h2>
+    <div class="stage-body">
+      <div id="invSetup">
+        <p class="free-intro">Answer a question, then defend for 20 seconds. Click anywhere on the battlefield to move and fire.</p>
+
+        <div class="pop-legend">
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="inv-legend-swatch scout"></span></div>
+            <span class="pop-legend-points">1 hit · +1</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="inv-legend-swatch brute"></span></div>
+            <span class="pop-legend-points">3 hits · +3</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="inv-legend-swatch dart"></span></div>
+            <span class="pop-legend-points">Fast · +2</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="inv-legend-swatch boss"></span></div>
+            <span class="pop-legend-points bomb-points">Boss · +15</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="inv-legend-swatch pickup"></span></div>
+            <span class="pop-legend-points gem-points">Rapid fire</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="inv-legend-swatch machinegun"></span></div>
+            <span class="pop-legend-points gem-points">Machine gun</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="pop-legend-swatch-box"><span class="inv-legend-swatch heart">♥</span></div>
+            <span class="pop-legend-points">Shield</span>
+          </div>
+        </div>
+
+        <div class="pop-team-inputs" id="invTeamInputs"></div>
+        <div class="pop-setup-actions">
+          <button class="btn btn-ghost" id="invAddTeamBtn" type="button">+ Add team</button>
+          <button class="btn btn-primary" id="invStartBtn" type="button">Start game</button>
+        </div>
+      </div>
+
+      <div id="invGame" class="hidden pop-game-layout">
+        <div class="pop-sidebar">
+          <ul class="pop-team-list" id="invTeamList"></ul>
+          <div class="pop-turn-box">
+            <span id="invTurnBanner"></span>
+            <div class="inv-lives" id="invLivesDisplay"></div>
+            <button class="pop-sidebar-reset" id="invResetScoresBtn" type="button">Reset scores</button>
+          </div>
+        </div>
+
+        <div class="pop-main">
+          <div class="pop-hud">
+            <div><span class="pop-hud-label">Time left</span><span class="pop-hud-num" id="invTimeDisplay">--</span></div>
+            <div><span class="pop-hud-label">Score</span><span class="pop-hud-num" id="invScoreDisplay">0</span></div>
+          </div>
+          <div class="timer-bar-track"><div class="timer-bar-fill" id="invTimerFill"></div></div>
+
+          <div id="invPlayArea" class="inv-play-area idle">
+            <canvas id="invCanvas" class="inv-canvas"></canvas>
+            <button class="btn btn-primary" id="invBeginTurnBtn" type="button">Begin turn</button>
+          </div>
+
+          <button class="btn btn-primary hidden" id="invPlayAgainBtn" type="button">Play again</button>
+        </div>
+      </div>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="invBackBtn">← Back</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" id="restartLesson">↺ Restart</button>
+        <button class="btn btn-primary" id="invNextBtn">Next: Bamboozle →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 8: BAMBOOZLE CLONE -->
+  <section class="stage hidden" id="stage8">
+    <h2>Bamboozle!</h2>
+    <div class="stage-body">
+      <div id="bzSetup">
+        <p class="free-intro">Click a tile to reveal a question. Answer correctly to choose your reward!</p>
+        <div class="pop-team-inputs" id="bzTeamInputs"></div>
+        <div class="pop-setup-actions">
+          <button class="btn btn-ghost" id="bzAddTeamBtn" type="button">+ Add team</button>
+          <button class="btn btn-primary" id="bzStartBtn" type="button">Start game</button>
+        </div>
+      </div>
+
+      <div id="bzGame" class="hidden bz-game-layout">
+        <div class="pop-sidebar">
+          <ul class="pop-team-list" id="bzTeamList"></ul>
+          <div class="pop-turn-box">
+            <span id="bzTurnBanner"></span>
+            <button class="pop-sidebar-reset" id="bzResetScoresBtn" type="button">Reset scores</button>
+          </div>
+        </div>
+        <div class="pop-main">
+          <div class="bz-grid" id="bzGrid"></div>
+          <button class="btn btn-ghost bz-play-again hidden" id="bzPlayAgainBtn" type="button">Play again</button>
+        </div>
+      </div>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="bzBackBtn">← Back</button>
+      <button class="btn btn-primary" id="bzNextBtn">Next: Practice Questions →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 9: PRACTICE QUESTIONS + WORKSHEET -->
+  <section class="stage hidden" id="stage9">
+    <h2>Practice Questions</h2>
+    <div class="stage-body">
+      <div class="qs-layout">
+        <div class="qs-controls">
+          <div class="qs-set-tabs" id="qsSetTabs"></div>
+          <div class="qs-progress-row">
+            <div class="progress-track" style="flex:1"><div class="progress-fill" id="qsProgressFill"></div></div>
+            <span class="score" id="qsScore"></span>
+          </div>
+        </div>
+        <div class="qs-question-area" id="qsQuestionArea"></div>
+        <div class="qs-actions">
+          <button class="btn btn-ghost" id="qsCheckBtn" type="button">Check answers</button>
+          <button class="btn btn-primary hidden" id="qsNextBtn" type="button">Next question →</button>
+        </div>
+        <div class="qs-feedback hidden" id="qsFeedback"></div>
+      </div>
+    </div>
+    <div class="stage-footer">
+      <button class="btn btn-ghost" id="qsBackBtn">← Back</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" id="qsPrintBtn" type="button">🖨️ Print worksheet</button>
+        <button class="btn btn-ghost" id="restartLesson2">↺ Restart lesson</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- BALL POP: QUESTION MODAL -->
+<div class="overlay hidden" id="popQuestionOverlay">
+  <div class="modal" id="popQuestionBody" role="dialog" aria-modal="true"></div>
+</div>
+
+<!-- BALL POP: TURN RESULT MODAL -->
+<div class="overlay hidden" id="popResultOverlay">
+  <div class="modal" id="popResultBody" role="dialog" aria-modal="true"></div>
+</div>
+
+<script>
+/* =========================================================
+   CONTENT DATA
+   Every stage reads from one of these arrays. Editing a
+   lesson later just means editing this data — none of the
+   rendering or interaction code below needs to change.
+========================================================= */
+const RULES = [
+  { name: "Add -er", formula: "adjective + er", color: "var(--rule-a)",
+    examples: [["tall","er"],["small","er"],["long","er"]] },
+  { name: "Add -r", formula: "ends in e, so just + r", color: "var(--rule-b)",
+    examples: [["nice","r"],["large","r"],["safe","r"]] },
+  { name: "Double + -er", formula: "short vowel + consonant: double it, + er", color: "var(--rule-c)",
+    examples: [["big","ger"],["hot","ter"],["thin","ner"]] },
+  { name: "y → ier", formula: "consonant + y: change y to i, + er", color: "var(--rule-d)",
+    examples: [["happ","ier"],["eas","ier"],["bus","ier"]] }
+];
+
+// Presentation demo: simple SVG icon comparisons that anchor the
+// meaning of each comparative before students have to produce one
+// themselves. Icon size (not an abstract bar) is what visually carries
+// "bigger/taller/faster/heavier" — see buildCompareIcon below.
+const COMPARE_DEMOS = [
+  { labelA: "Tower A", labelB: "Tower B", valueA: 85, valueB: 45, icon: "tower",
+    caption: 'Tower A is <span class="hl">taller</span> than Tower B.' },
+  { labelA: "Car A", labelB: "Car B", valueA: 55, valueB: 95, icon: "car",
+    caption: 'Car B is <span class="hl">faster</span> than Car A.' },
+  { labelA: "Bag A", labelB: "Bag B", valueA: 30, valueB: 75, icon: "bag",
+    caption: 'Bag B is <span class="hl">heavier</span> than Bag A.' },
+  { labelA: "Path A", labelB: "Path B", valueA: 90, valueB: 60, icon: "path",
+    caption: 'Path A is <span class="hl">longer</span> than Path B.' }
+];
+const COMPARE_ICON_COLORS = { tower: "var(--rule-a)", car: "var(--rule-b)", bag: "var(--rule-c)", path: "var(--rule-d)" };
+
+// One small function that draws four different themed icons, each
+// sized by `valuePct` (0-100) — the same data that used to drive a
+// bar's width now drives an icon's size instead. Keeping this as one
+// parametrized function (rather than 8 hardcoded SVGs) means adding a
+// 5th comparison later is just one more data entry, not new markup.
+function buildCompareIcon(type, valuePct, color){
+  const scale = 0.4 + (valuePct / 100) * 0.6; // keep a visible minimum size even at low values
+
+  if(type === 'tower'){
+    const h = 34 * scale, w = 20 * scale;
+    return `<svg viewBox="0 0 40 60" width="40" height="60">
+      <rect x="${20 - w/2}" y="${60 - h}" width="${w}" height="${h}" rx="2" fill="${color}"/>
+      <polygon points="${20 - w/2},${60 - h} ${20 + w/2},${60 - h} 20,${60 - h - 10*scale}" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'car'){
+    const lineLen = 8 + valuePct * 0.32;
+    return `<svg viewBox="0 0 90 50" width="90" height="50">
+      <rect x="30" y="24" width="34" height="14" rx="6" fill="${color}"/>
+      <rect x="38" y="14" width="18" height="12" rx="4" fill="${color}"/>
+      <circle cx="38" cy="40" r="5" fill="#33393b"/>
+      <circle cx="58" cy="40" r="5" fill="#33393b"/>
+      <line x1="${26 - lineLen}" y1="24" x2="24" y2="24" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+      <line x1="${26 - lineLen * 0.7}" y1="31" x2="24" y2="31" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'bag'){
+    const s = 20 + valuePct * 0.28;
+    return `<svg viewBox="0 0 70 60" width="70" height="60">
+      <path d="M ${35 - s*0.22} ${60 - s} q 0 -14 ${s*0.22} -14 q ${s*0.22} 0 ${s*0.22} 14" fill="none" stroke="${color}" stroke-width="4"/>
+      <rect x="${35 - s/2}" y="${60 - s*0.72}" width="${s}" height="${s*0.72}" rx="6" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'path'){
+    const len = 18 + valuePct * 0.55;
+    return `<svg viewBox="0 0 90 20" width="90" height="20">
+      <line x1="5" y1="10" x2="${5 + len}" y2="10" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="9 6"/>
+    </svg>`;
+  }
+  return '';
+}
+
+// Controlled practice: multiple choice, one clear correct answer each time.
+const MC_TIME_LIMIT = 10;   // seconds per controlled-practice question
+const SEMI_TIME_LIMIT = 30; // seconds per guided-practice sentence
+
+const MC_QUESTIONS = [
+  { word: "tall", correct: "taller", options: ["taller", "more tall", "tallier"] },
+  { word: "big", correct: "bigger", options: ["biger", "bigger", "more big"] },
+  { word: "nice", correct: "nicer", options: ["nicer", "niceer", "more nice"] },
+  { word: "happy", correct: "happier", options: ["happyer", "happier", "more happy"] },
+  { word: "hot", correct: "hotter", options: ["hoter", "hotter", "more hot"] },
+  { word: "easy", correct: "easier", options: ["easyer", "easier", "more easy"] },
+  { word: "safe", correct: "safer", options: ["safeer", "safer", "more safe"] },
+  { word: "thin", correct: "thinner", options: ["thiner", "thinner", "more thin"] },
+  { word: "good", correct: "better", options: ["gooder", "better", "more good"] },
+  { word: "bad", correct: "worse", options: ["badder", "worse", "more bad"] }
+];
+
+// Guided practice: build the sentence by clicking word chips in order.
+const SEMI_ITEMS = [
+  { chips: ["The robot", "is", "faster", "than", "the golf cart"] },
+  { chips: ["The mountain", "is", "taller", "than", "the hill"] },
+  { chips: ["The puppy", "is", "smaller", "than", "the horse"] },
+  { chips: ["The diamond", "is", "shinier", "than", "the pebble"] },
+  { chips: ["My backpack", "is", "heavier", "than", "your bag"] },
+  { chips: ["The bear", "is", "bigger", "than", "the wolf"] },
+  { chips: ["The vault", "is", "safer", "than", "the drawer"] },
+  { chips: ["This lesson", "is", "easier", "than", "the last one"] },
+  { chips: ["The ocean", "is", "colder", "than", "the pool"] },
+  { chips: ["Your idea", "is", "better", "than", "my idea"] }
+];
+
+// Reference list shown during free practice — every comparative
+// introduced somewhere earlier in the lesson.
+const WORD_BANK = [
+  ["tall","taller"], ["small","smaller"], ["big","bigger"], ["hot","hotter"],
+  ["nice","nicer"], ["safe","safer"], ["happy","happier"], ["easy","easier"],
+  ["busy","busier"], ["good","better"], ["bad","worse"], ["fast","faster"],
+  ["heavy","heavier"], ["shiny","shinier"]
+];
+
+// Sentence frames for weaker students to lean on during free practice —
+// just fill in the gaps rather than building a sentence from nothing.
+const SCAFFOLD_FRAMES = [
+  '<span class="blank">___</span> is <span class="blank">___er</span> than <span class="blank">___</span>.',
+  'My <span class="blank">___</span> is <span class="blank">___er</span> than my <span class="blank">___</span>.',
+  'I think <span class="blank">___</span> is <span class="blank">___er</span> than <span class="blank">___</span>, but my partner disagrees!',
+  'In my family, <span class="blank">___</span> is <span class="blank">___er</span> than <span class="blank">___</span>.',
+  '<span class="blank">___</span> is <span class="blank">___er</span> than <span class="blank">___</span>, but not as <span class="blank">___</span> as <span class="blank">___</span>.'
+];
+
+// Ball Pop Challenge (Stage 6): exactly 10 questions — the game ends
+// once all 10 have been used, no matter how many teams are playing.
+const POP_QUESTIONS = [
+  { prompt: "What is the comparative of 'tall'?", answer: "taller" },
+  { prompt: "What is the comparative of 'big'?", answer: "bigger" },
+  { prompt: "What is the comparative of 'nice'?", answer: "nicer" },
+  { prompt: "What is the comparative of 'hot'?", answer: "hotter" },
+  { prompt: "What is the comparative of 'happy'?", answer: "happier" },
+  { prompt: "What is the comparative of 'safe'?", answer: "safer" },
+  { prompt: "What is the comparative of 'easy'?", answer: "easier" },
+  { prompt: "What is the comparative of 'busy'?", answer: "busier" },
+  { prompt: "What is the comparative of 'good'? (it's irregular!)", answer: "better" },
+  { prompt: "What is the comparative of 'bad'? (it's irregular!)", answer: "worse" }
+];
+const POP_BALL_COLORS = ["#FF6B6B", "#4C5FD5", "#3DB88D", "#F2B705", "#B266FF"];
+const POP_TEAM_COLORS = ["#C97A3D", "#5C8A82", "#8577A8", "#C1665C"];
+const POP_ROUND_SECONDS = 10;
+
+const STAGE_LABELS = ["Aim", "Learn", "Controlled", "Guided", "Free practice", "Ball Pop", "Star Defender", "Bamboozle", "Questions"];
+
+/* =========================================================
+   STATE
+========================================================= */
+let state = {
+  currentStage: 1,
+  completedStages: new Set(),
+  expandedRules: new Set(),  // indices of currently open rule rows — any number can be open at once
+  demoIndex: 0,
+  mcIndex: 0,
+  mcScore: 0,
+  mcAnswered: false,
+  mcTimerRAF: null,
+  mcStarted: false,   // becomes true the first time the learner actually reaches stage 3
+  semiIndex: 0,
+  semiScore: 0,
+  semiBank: [],     // chips still available to click, in shuffled order
+  semiAnswer: [],   // chips clicked so far, in the order clicked
+  semiChecked: false,
+  semiTimerRAF: null,
+  semiStarted: false, // becomes true the first time the learner actually reaches stage 4
+  popTeams: [],
+  popCurrentTeam: 0,
+  popQuestionOrder: [],  // shuffled indices into POP_QUESTIONS, one consumed per turn
+  popTurnsPlayed: 0,
+  popScore: 0,           // pops scored in the round currently in progress
+  popRoundActive: false,
+  popRoundRAF: null,
+  popParticles: [],       // live particle data: {x, y, vx, vy, alpha, decay, size, color}
+  popParticleRAF: null,   // the continuous rendering loop's requestAnimationFrame id
+  popBallAnims: [],       // every currently-live ball's {el, xPct, yPct, color, scale, alpha, special}
+  popSpecialUsedThisRound: false,
+  popSwarmRemaining: 0,   // balls still to clear from the special-ball swarm, if one is in progress
+  popBgBlobs: [],         // animated background bokeh blobs for the Ball Pop canvas
+  popBombTimeouts: [],    // scheduled setTimeout ids for bombs not yet spawned this round
+  popActiveBombs: [],     // currently live bombs: { bomb, anim, fuseInterval, expireTimeout }
+  popGemTimeouts: [],     // scheduled setTimeout ids for gems not yet spawned this round
+  popActiveGems: [],      // currently live gems: { gem, anim, expireTimeout }
+  invTeams: [],
+  invCurrentTeam: 0,
+  invQuestionOrder: [],
+  invTurnsPlayed: 0,
+  invScore: 0,
+  invLives: 3,
+  invRoundActive: false,
+  invRoundRAF: null,
+  invShip: { x: 50, targetX: 50 },
+  invProjectiles: [],
+  invEnemies: [],
+  invPickups: [],
+  invParticles: [],
+  invStars: [],           // starfield background positions, generated once on first render
+  invRapidFireUntil: 0,
+  invMachineGunUntil: 0,
+  invLastAutoFireAt: 0,
+  invLastShotAt: 0,
+  invBossSpawnedThisRound: false,
+  invBossTimeout: null,
+  bzTeams: [],
+  bzCurrentTeam: 0,
+  bzFreezeNext: false,
+  bzTileData: [],
+  muted: false
+};
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function shuffle(array){
+  const arr = array.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* =========================================================
+   SOUND EFFECTS
+   Synthesised with the Web Audio API — no audio files to load,
+   so it works instantly and offline. The AudioContext is only
+   created on first use because browsers block audio until a
+   user has interacted with the page at least once.
+========================================================= */
+let audioCtx = null;
+function ensureAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function beep(freq, duration = 0.15, type = 'sine', volume = 0.15, when = 0){
+  if(state.muted) return;
+  const ctx = ensureAudio();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.value = volume;
+  osc.connect(gain).connect(ctx.destination);
+  const start = ctx.currentTime + when;
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  osc.start(start);
+  osc.stop(start + duration + 0.02);
+}
+function sfxCorrect(){ [700, 950].forEach((f, i) => beep(f, 0.16, 'triangle', 0.18, i * 0.09)); }
+function sfxIncorrect(){ beep(160, 0.28, 'sawtooth', 0.2); }
+function sfxTick(){ beep(900, 0.045, 'square', 0.05); }
+function sfxTimeUp(){ beep(120, 0.35, 'sawtooth', 0.22); }
+
+document.getElementById('muteBtn').addEventListener('click', () => {
+  state.muted = !state.muted;
+  document.getElementById('muteBtn').textContent = state.muted ? '🔇' : '🔊';
+});
+
+/* =========================================================
+   PARTICLE BURST
+   A small celebratory effect for correct answers — plain DOM
+   elements animated with a transition, not canvas. Each
+   particle is appended to `container` (which must be
+   position:relative) and flies outward from (xPct, yPct),
+   expressed as a percentage of that container's own size.
+========================================================= */
+function burstParticles(container, xPct, yPct, color){
+  const count = 12;
+  for(let i = 0; i < count; i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.background = color;
+    p.style.left = xPct + '%';
+    p.style.top = yPct + '%';
+    container.appendChild(p);
+
+    const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
+    const distance = 45 + Math.random() * 55;
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance;
+
+    // Wrapped in rAF so the browser registers the starting position
+    // before the transition target changes — otherwise both states
+    // land in the same paint and nothing appears to animate.
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      p.style.opacity = '0';
+    });
+    setTimeout(() => p.remove(), 650);
+  }
+}
+
+// Convenience wrapper: burst outward from the center of a specific
+// element (e.g. the button just clicked), relative to some ancestor
+// container that particles get appended into.
+function burstFromElement(el, container, color){
+  const elRect = el.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  const xPct = ((elRect.left + elRect.width / 2) - containerRect.left) / containerRect.width * 100;
+  const yPct = ((elRect.top + elRect.height / 2) - containerRect.top) / containerRect.height * 100;
+  burstParticles(container, xPct, yPct, color);
+}
+
+// Both countdown rings use the same radius (set in the SVG markup),
+// so the circumference math is shared rather than repeated per timer.
+const TIMER_RING_RADIUS = 18;
+const TIMER_RING_CIRCUMFERENCE = 2 * Math.PI * TIMER_RING_RADIUS;
+
+// Updates a countdown ring's drawn arc length to reflect the fraction
+// of time remaining — this is the "reverse loading circle" effect:
+// stroke-dasharray is set to the full circumference, and increasing
+// stroke-dashoffset shortens how much of that circle is actually drawn.
+function setTimerRing(arcEl, numEl, remaining, total){
+  const fraction = Math.max(0, remaining / total);
+  arcEl.style.strokeDasharray = TIMER_RING_CIRCUMFERENCE;
+  arcEl.style.strokeDashoffset = TIMER_RING_CIRCUMFERENCE * (1 - fraction);
+  arcEl.classList.toggle('urgent', remaining <= 5);
+  numEl.textContent = Math.ceil(remaining);
+}
+
+/* =========================================================
+   STEPPER
+========================================================= */
+function renderStepper(){
+  const stepper = document.getElementById('stepper');
+  stepper.innerHTML = STAGE_LABELS.map((label, i) => {
+    const num = i + 1;
+    const isActive = num === state.currentStage;
+    const isDone = state.completedStages.has(num) && !isActive;
+    return `
+      <button class="step ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}" data-stage="${num}">
+        <div class="step-line"></div>
+        <span class="circle">${isDone ? '✓' : num}</span>
+        <span class="step-label">${label}</span>
+      </button>
+    `;
+  }).join('');
+
+  stepper.querySelectorAll('.step').forEach(btn => {
+    btn.addEventListener('click', () => goToStage(Number(btn.dataset.stage)));
+  });
+}
+
+function goToStage(num){
+  // Pause whichever gamified timer might still be running when we
+  // leave — without this, a requestAnimationFrame loop keeps counting
+  // down even while its stage is hidden, and can silently time out
+  // in the background before the learner ever comes back to it.
+  cancelMcTimer();
+  cancelSemiTimer();
+  cancelPopRound();
+  stopPopParticleLoop();
+  cancelInvRound();
+
+  state.completedStages.add(state.currentStage);
+  state.currentStage = num;
+  document.querySelectorAll('.stage').forEach(s => s.classList.add('hidden'));
+  document.getElementById('stage' + num).classList.remove('hidden');
+  renderStepper();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if(num === 3){
+    if(!state.mcStarted){ state.mcStarted = true; renderMcQuestion(); }
+    else if(!state.mcAnswered){ startMcTimer(); }
+  }
+  if(num === 4){
+    if(!state.semiStarted){ state.semiStarted = true; loadSemiItem(); }
+    else if(!state.semiChecked){ startSemiTimer(); }
+  }
+  if(num === 6 && state.popTeams.length > 0){
+    resizePopCanvas();
+    startPopParticleLoop();
+  }
+  if(num === 9){ initQs(); }
+}
+
+/* =========================================================
+   STAGE 1 — PRESENTATION
+========================================================= */
+function renderRuleCards(){
+  const list = document.getElementById('ruleGrid');
+  list.innerHTML = RULES.map((rule, i) => {
+    const isOpen = state.expandedRules.has(i);
+    return `
+      <div class="rule-row ${isOpen ? 'open' : ''}" style="--card-color:${rule.color}">
+        <button class="rule-toggle" data-i="${i}">
+          <span>${rule.name}</span>
+          <span class="chevron">⌄</span>
+        </button>
+        ${isOpen ? `
+          <div class="rule-body">
+            <div class="rule-formula">${rule.formula}</div>
+            ${rule.examples.map(([base, suffix]) => `
+              <div class="rule-example">${base}<span class="arrow">→</span>${base}<span class="suffix">${suffix}</span></div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  // Each rule toggles independently — opening one doesn't close the
+  // others, so students can compare two or more spelling rules side by
+  // side instead of only ever seeing one at a time.
+  list.querySelectorAll('.rule-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.i);
+      if(state.expandedRules.has(i)) state.expandedRules.delete(i);
+      else state.expandedRules.add(i);
+      renderRuleCards();
+    });
+  });
+}
+
+function renderCompareDemo(){
+  const demo = COMPARE_DEMOS[state.demoIndex];
+  const color = COMPARE_ICON_COLORS[demo.icon];
+  document.getElementById('demoLabelA').textContent = demo.labelA;
+  document.getElementById('demoLabelB').textContent = demo.labelB;
+  document.getElementById('demoIconA').innerHTML = buildCompareIcon(demo.icon, demo.valueA, color);
+  document.getElementById('demoIconB').innerHTML = buildCompareIcon(demo.icon, demo.valueB, color);
+  document.getElementById('demoCaption').innerHTML = demo.caption;
+
+  const nav = document.getElementById('demoNav');
+  nav.innerHTML = COMPARE_DEMOS.map((_, i) =>
+    `<button class="demo-dot ${i === state.demoIndex ? 'active' : ''}" data-i="${i}" aria-label="Example ${i+1}"></button>`
+  ).join('');
+  nav.querySelectorAll('.demo-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      state.demoIndex = Number(dot.dataset.i);
+      renderCompareDemo();
+    });
+  });
+}
+
+document.getElementById('aimNextBtn').addEventListener('click', () => goToStage(2));
+
+/* =========================================================
+   STAGE 2 — CONTROLLED PRACTICE (multiple choice)
+   Each question now runs against a countdown timer. Running
+   out of time counts as a miss (no score), same as a wrong
+   answer, and both funnel into finishMcQuestion() to advance.
+========================================================= */
+function startMcTimer(){
+  cancelMcTimer();
+  const arc = document.getElementById('mcTimerArc');
+  const num = document.getElementById('mcTimerNum');
+  setTimerRing(arc, num, MC_TIME_LIMIT, MC_TIME_LIMIT);
+
+  const start = performance.now();
+  let lastWhole = MC_TIME_LIMIT;
+
+  function tick(now){
+    const elapsed = (now - start) / 1000;
+    const remaining = Math.max(0, MC_TIME_LIMIT - elapsed);
+    const wholeSecond = Math.ceil(remaining);
+
+    setTimerRing(arc, num, remaining, MC_TIME_LIMIT);
+
+    if(wholeSecond !== lastWhole){
+      lastWhole = wholeSecond;
+      if(wholeSecond > 0 && wholeSecond <= 5) sfxTick();
+    }
+
+    if(remaining <= 0){
+      handleMcTimeout();
+      return;
+    }
+    state.mcTimerRAF = requestAnimationFrame(tick);
+  }
+  state.mcTimerRAF = requestAnimationFrame(tick);
+}
+
+function cancelMcTimer(){
+  if(state.mcTimerRAF) cancelAnimationFrame(state.mcTimerRAF);
+  state.mcTimerRAF = null;
+}
+
+function renderMcQuestion(){
+  state.mcAnswered = false;
+  const q = MC_QUESTIONS[state.mcIndex];
+  document.getElementById('mcCounter').textContent = `Question ${state.mcIndex + 1} of ${MC_QUESTIONS.length}`;
+  document.getElementById('mcScore').textContent = `Score: ${state.mcScore}`;
+  document.getElementById('mcProgressFill').style.width = (state.mcIndex / MC_QUESTIONS.length * 100) + '%';
+  document.getElementById('mcQuestion').textContent = `What is the comparative of '${q.word}'?`;
+  document.getElementById('mcFeedback').textContent = '';
+  document.getElementById('mcFeedback').style.color = 'var(--muted)';
+
+  const optionsEl = document.getElementById('mcOptions');
+  optionsEl.innerHTML = shuffle(q.options).map(opt => `<button class="mc-option" data-opt="${escapeHtml(opt)}">${escapeHtml(opt)}</button>`).join('');
+  optionsEl.querySelectorAll('.mc-option').forEach(btn => {
+    btn.addEventListener('click', () => handleMcAnswer(btn, q));
+  });
+
+  startMcTimer();
+}
+
+function bumpMcScore(){
+  const el = document.getElementById('mcScore');
+  el.textContent = `Score: ${state.mcScore}`;
+  el.classList.remove('pop');
+  void el.offsetWidth; // force reflow so the animation can retrigger on back-to-back correct answers
+  el.classList.add('pop');
+}
+
+function handleMcAnswer(btn, q){
+  if(state.mcAnswered) return;
+  state.mcAnswered = true;
+  cancelMcTimer();
+
+  const chosen = btn.dataset.opt;
+  const isCorrect = chosen === q.correct;
+
+  if(isCorrect){
+    state.mcScore += 10;
+    sfxCorrect();
+    burstFromElement(btn, document.getElementById('stage3'), '#5C9C7C');
+  } else {
+    sfxIncorrect();
+  }
+
+  document.querySelectorAll('.mc-option').forEach(el => {
+    el.disabled = true;
+    if(el.dataset.opt === q.correct){
+      el.classList.add('correct');
+      el.textContent = '✓ ' + el.textContent;
+    } else if(el === btn){
+      el.classList.add('incorrect');
+      el.textContent = '✗ ' + el.textContent;
+    }
+  });
+
+  const feedback = document.getElementById('mcFeedback');
+  feedback.textContent = isCorrect ? '✓ Correct!' : `✗ Not quite — the answer is '${q.correct}'.`;
+  feedback.style.color = isCorrect ? 'var(--success)' : 'var(--error)';
+  bumpMcScore();
+
+  finishMcQuestion();
+}
+
+function handleMcTimeout(){
+  if(state.mcAnswered) return;
+  state.mcAnswered = true;
+  const q = MC_QUESTIONS[state.mcIndex];
+
+  document.querySelectorAll('.mc-option').forEach(el => {
+    el.disabled = true;
+    if(el.dataset.opt === q.correct){
+      el.classList.add('correct');
+      el.textContent = '✓ ' + el.textContent;
+    }
+  });
+
+  const feedback = document.getElementById('mcFeedback');
+  feedback.textContent = `⏰ Time's up! The answer was '${q.correct}'.`;
+  feedback.style.color = 'var(--error)';
+  sfxTimeUp();
+
+  finishMcQuestion();
+}
+
+function finishMcQuestion(){
+  setTimeout(() => {
+    if(state.mcIndex < MC_QUESTIONS.length - 1){
+      state.mcIndex++;
+      renderMcQuestion();
+    } else {
+      cancelMcTimer();
+      document.getElementById('mcProgressFill').style.width = '100%';
+      document.getElementById('mcTimerArc').style.strokeDashoffset = TIMER_RING_CIRCUMFERENCE;
+      document.getElementById('mcTimerNum').textContent = '';
+      document.getElementById('mcQuestion').textContent = `All done! Final score: ${state.mcScore} points`;
+      document.getElementById('mcOptions').innerHTML = '';
+      document.getElementById('mcFeedback').style.color = 'var(--muted)';
+      document.getElementById('mcFeedback').textContent = 'Click "Next: Guided practice" when you\'re ready.';
+    }
+  }, 1100);
+}
+
+document.getElementById('learnBackBtn').addEventListener('click', () => goToStage(1));
+document.getElementById('learnNextBtn').addEventListener('click', () => goToStage(3));
+
+// Renders a static, always-fully-expanded version of the rules into
+// the hidden #printableRules container — completely independent of
+// which rules happen to be open in the interactive accordion, since a
+// printout should always show everything.
+function renderPrintableRules(){
+  const container = document.getElementById('printableRules');
+  container.innerHTML = `
+    <h1>Comparative Adjectives — Rules Reference</h1>
+    <p class="print-subtitle">Spelling rules for forming comparative adjectives</p>
+    ${RULES.map(rule => `
+      <div class="print-rule" style="--print-accent:${rule.color}">
+        <h2>${rule.name}</h2>
+        <div class="print-formula">${rule.formula}</div>
+        ${rule.examples.map(([base, suffix]) => `
+          <div class="print-example">${base}<span class="arrow">→</span>${base}<span class="suffix">${suffix}</span></div>
+        `).join('')}
+      </div>
+    `).join('')}
+    <p class="print-footer">Comparative Adjectives — Interactive Lesson</p>
+  `;
+}
+
+document.getElementById('printRulesBtn').addEventListener('click', () => {
+  document.getElementById('printableRules').classList.add('active-print');
+  document.getElementById('printableWorksheet').classList.remove('active-print');
+  window.print();
+  setTimeout(() => document.getElementById('printableRules').classList.remove('active-print'), 500);
+});
+
+/* =========================================================
+   STAGE 3 — GUIDED (SEMI-CONTROLLED) PRACTICE
+   Students reconstruct a sentence by clicking word chips in
+   order. Reliable to auto-check because it's a fixed word
+   order, unlike free-typed text. Now also timed and scored.
+========================================================= */
+function startSemiTimer(){
+  cancelSemiTimer();
+  const arc = document.getElementById('semiTimerArc');
+  const num = document.getElementById('semiTimerNum');
+  setTimerRing(arc, num, SEMI_TIME_LIMIT, SEMI_TIME_LIMIT);
+
+  const start = performance.now();
+  let lastWhole = SEMI_TIME_LIMIT;
+
+  function tick(now){
+    const elapsed = (now - start) / 1000;
+    const remaining = Math.max(0, SEMI_TIME_LIMIT - elapsed);
+    const wholeSecond = Math.ceil(remaining);
+
+    setTimerRing(arc, num, remaining, SEMI_TIME_LIMIT);
+
+    if(wholeSecond !== lastWhole){
+      lastWhole = wholeSecond;
+      if(wholeSecond > 0 && wholeSecond <= 5) sfxTick();
+    }
+
+    if(remaining <= 0){
+      handleSemiTimeout();
+      return;
+    }
+    state.semiTimerRAF = requestAnimationFrame(tick);
+  }
+  state.semiTimerRAF = requestAnimationFrame(tick);
+}
+
+function cancelSemiTimer(){
+  if(state.semiTimerRAF) cancelAnimationFrame(state.semiTimerRAF);
+  state.semiTimerRAF = null;
+}
+
+function bumpSemiScore(){
+  const el = document.getElementById('semiScoreDisplay');
+  el.textContent = `Score: ${state.semiScore}`;
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
+function loadSemiItem(){
+  const item = SEMI_ITEMS[state.semiIndex];
+  state.semiBank = shuffle(item.chips.map((text, i) => ({ text, id: i })));
+  state.semiAnswer = [];
+  state.semiChecked = false;
+  document.getElementById('semiCounter').textContent = `Sentence ${state.semiIndex + 1} of ${SEMI_ITEMS.length}`;
+  document.getElementById('semiProgressFill').style.width = (state.semiIndex / SEMI_ITEMS.length * 100) + '%';
+  document.getElementById('semiScoreDisplay').textContent = `Score: ${state.semiScore}`;
+  document.getElementById('semiFeedback').textContent = '';
+  document.getElementById('semiFeedback').className = 'semi-feedback';
+  document.getElementById('semiNext').classList.add('hidden');
+  document.getElementById('answerStrip').classList.remove('correct', 'incorrect');
+  renderSemi();
+  startSemiTimer();
+}
+
+function renderSemi(){
+  const item = SEMI_ITEMS[state.semiIndex];
+
+  const strip = document.getElementById('answerStrip');
+  strip.classList.toggle('empty', state.semiAnswer.length === 0);
+  strip.innerHTML = state.semiAnswer.map(chip =>
+    `<button class="chip answer-chip" data-id="${chip.id}">${escapeHtml(chip.text)}</button>`
+  ).join('');
+  strip.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(state.semiChecked) return;
+      const id = Number(btn.dataset.id);
+      const chip = state.semiAnswer.find(c => c.id === id);
+      state.semiAnswer = state.semiAnswer.filter(c => c.id !== id);
+      state.semiBank.push(chip);
+      renderSemi();
+    });
+  });
+
+  const bank = document.getElementById('chipBank');
+  bank.innerHTML = state.semiBank.map(chip =>
+    `<button class="chip" data-id="${chip.id}">${escapeHtml(chip.text)}</button>`
+  ).join('');
+  bank.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(state.semiChecked) return;
+      const id = Number(btn.dataset.id);
+      const chip = state.semiBank.find(c => c.id === id);
+      state.semiBank = state.semiBank.filter(c => c.id !== id);
+      state.semiAnswer.push(chip);
+      renderSemi();
+    });
+  });
+}
+
+document.getElementById('semiReset').addEventListener('click', () => {
+  if(state.semiChecked) return;
+  loadSemiItem();
+});
+
+document.getElementById('semiCheck').addEventListener('click', () => {
+  if(state.semiChecked) return;
+  const item = SEMI_ITEMS[state.semiIndex];
+  const built = state.semiAnswer.map(c => c.text).join(' ');
+  const target = item.chips.join(' ');
+  const feedback = document.getElementById('semiFeedback');
+  const strip = document.getElementById('answerStrip');
+
+  // Retrigger the animation even if the same class was just applied,
+  // by removing it, forcing a reflow, then re-adding it.
+  strip.classList.remove('correct', 'incorrect');
+  void strip.offsetWidth;
+
+  if(built === target){
+    cancelSemiTimer();
+    state.semiScore += 10;
+    sfxCorrect();
+    burstFromElement(strip, document.getElementById('stage4'), '#5C9C7C');
+    bumpSemiScore();
+
+    feedback.textContent = '✓ Correct — nice work!';
+    feedback.className = 'semi-feedback correct';
+    strip.classList.add('correct');
+    state.semiChecked = true;
+    document.getElementById('semiNext').classList.remove('hidden');
+  } else {
+    sfxIncorrect();
+    feedback.textContent = '✗ Not quite the right order yet — keep trying.';
+    feedback.className = 'semi-feedback incorrect';
+    strip.classList.add('incorrect');
+    setTimeout(() => strip.classList.remove('incorrect'), 500);
+  }
+});
+
+function handleSemiTimeout(){
+  if(state.semiChecked) return;
+  state.semiChecked = true;
+  const item = SEMI_ITEMS[state.semiIndex];
+  const strip = document.getElementById('answerStrip');
+  const feedback = document.getElementById('semiFeedback');
+
+  strip.classList.add('incorrect');
+  feedback.textContent = `⏰ Time's up! The sentence was: "${item.chips.join(' ')}"`;
+  feedback.className = 'semi-feedback incorrect';
+  sfxTimeUp();
+  document.getElementById('semiNext').classList.remove('hidden');
+}
+
+document.getElementById('semiNext').addEventListener('click', () => {
+  if(state.semiIndex < SEMI_ITEMS.length - 1){
+    state.semiIndex++;
+    loadSemiItem();
+  } else {
+    cancelSemiTimer();
+    document.getElementById('semiTimerArc').style.strokeDashoffset = TIMER_RING_CIRCUMFERENCE;
+    document.getElementById('semiTimerNum').textContent = '';
+    document.getElementById('semiProgressFill').style.width = '100%';
+    document.getElementById('semiCounter').textContent = 'All sentences complete!';
+    document.getElementById('chipBank').innerHTML = '';
+    document.getElementById('semiFeedback').textContent = `Final score: ${state.semiScore} points. Click "Next: Free practice" when you're ready.`;
+    document.getElementById('semiFeedback').className = 'semi-feedback correct';
+    document.querySelector('#stage4 .semi-actions').classList.add('hidden');
+  }
+});
+
+document.getElementById('controlledBackBtn').addEventListener('click', () => goToStage(2));
+document.getElementById('controlledNextBtn').addEventListener('click', () => goToStage(4));
+
+/* =========================================================
+   STAGE 4 — FREE PRACTICE
+========================================================= */
+function renderWordBank(){
+  document.getElementById('wordBank').innerHTML = WORD_BANK.map(([base, comp]) => `
+    <span class="wordbank-chip">${escapeHtml(base)} → <strong>${escapeHtml(comp)}</strong></span>
+  `).join('');
+}
+
+function renderScaffoldList(){
+  document.getElementById('scaffoldList').innerHTML = SCAFFOLD_FRAMES.map(frame => `
+    <div class="frame">${frame}</div>
+  `).join('');
+}
+
+/* =========================================================
+   MINIMALIST COUNTDOWN TIMER (Free practice)
+   The minutes/seconds inputs ARE the display — there's no
+   separate read-only element. While stopped they're plain
+   editable fields; while running they're disabled but still
+   show the live countdown, styled identically either way.
+   Anchored to a start timestamp and recomputed from real
+   elapsed time each tick, like the other timers on this page,
+   so it can't drift even if the browser is briefly busy.
+========================================================= */
+let stopwatch = { running: false, remainingMs: 0, startRemainingMs: 0, startTs: null, intervalId: null };
+
+function padTwo(n){ return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
+
+// Reads the two inputs and returns the configured duration in ms.
+function getConfiguredStopwatchMs(){
+  const min = Math.max(0, Math.min(59, parseInt(document.getElementById('stopwatchMin').value, 10) || 0));
+  const sec = Math.max(0, Math.min(59, parseInt(document.getElementById('stopwatchSec').value, 10) || 0));
+  return (min * 60 + sec) * 1000;
+}
+
+// Forces both inputs into a valid, zero-padded two-digit state —
+// called on blur and right before starting, so stray/partial typing
+// never breaks the countdown.
+function sanitizeStopwatchInputs(){
+  const minEl = document.getElementById('stopwatchMin');
+  const secEl = document.getElementById('stopwatchSec');
+  minEl.value = padTwo(Math.min(59, parseInt(minEl.value, 10) || 0));
+  secEl.value = padTwo(Math.min(59, parseInt(secEl.value, 10) || 0));
+}
+
+function updateStopwatchDisplay(){
+  const remaining = stopwatch.running
+    ? Math.max(0, stopwatch.startRemainingMs - (performance.now() - stopwatch.startTs))
+    : stopwatch.remainingMs;
+  const totalSeconds = Math.ceil(remaining / 1000);
+  document.getElementById('stopwatchMin').value = padTwo(Math.floor(totalSeconds / 60));
+  document.getElementById('stopwatchSec').value = padTwo(totalSeconds % 60);
+
+  if(stopwatch.running && remaining <= 0){
+    stopwatch.remainingMs = 0;
+    stopwatch.running = false;
+    clearInterval(stopwatch.intervalId);
+    document.getElementById('stopwatchToggle').textContent = 'Start';
+    document.getElementById('stopwatchMin').disabled = false;
+    document.getElementById('stopwatchSec').disabled = false;
+    sfxTimeUp();
+  }
+}
+
+document.getElementById('stopwatchToggle').addEventListener('click', () => {
+  const btn = document.getElementById('stopwatchToggle');
+  if(!stopwatch.running){
+    sanitizeStopwatchInputs();
+    if(stopwatch.remainingMs <= 0) stopwatch.remainingMs = getConfiguredStopwatchMs();
+    if(stopwatch.remainingMs <= 0) return; // nothing to count down from
+
+    stopwatch.running = true;
+    stopwatch.startRemainingMs = stopwatch.remainingMs;
+    stopwatch.startTs = performance.now();
+    stopwatch.intervalId = setInterval(updateStopwatchDisplay, 200);
+    document.getElementById('stopwatchMin').disabled = true;
+    document.getElementById('stopwatchSec').disabled = true;
+    btn.textContent = 'Pause';
+  } else {
+    stopwatch.running = false;
+    stopwatch.remainingMs = Math.max(0, stopwatch.startRemainingMs - (performance.now() - stopwatch.startTs));
+    clearInterval(stopwatch.intervalId);
+    btn.textContent = 'Start';
+  }
+});
+
+['stopwatchMin', 'stopwatchSec'].forEach(id => {
+  const el = document.getElementById(id);
+  // While typing: strip anything non-numeric and cap at 2 digits,
+  // and keep remainingMs in sync so Start picks up the new value.
+  el.addEventListener('input', () => {
+    if(stopwatch.running) return;
+    el.value = el.value.replace(/[^0-9]/g, '').slice(0, 2);
+    stopwatch.remainingMs = getConfiguredStopwatchMs();
+  });
+  // On leaving the field: snap back to a clean zero-padded value.
+  el.addEventListener('blur', () => {
+    if(stopwatch.running) return;
+    sanitizeStopwatchInputs();
+  });
+});
+
+document.getElementById('stopwatchReset').addEventListener('click', () => {
+  resetStopwatch();
+});
+
+function resetStopwatch(){
+  stopwatch.running = false;
+  clearInterval(stopwatch.intervalId);
+  document.getElementById('stopwatchMin').disabled = false;
+  document.getElementById('stopwatchSec').disabled = false;
+  sanitizeStopwatchInputs();
+  stopwatch.remainingMs = getConfiguredStopwatchMs();
+  document.getElementById('stopwatchToggle').textContent = 'Start';
+}
+
+const STOPWATCH_MAX_MS = (59 * 60 + 59) * 1000; // matches the 2-digit min/sec inputs
+
+// Adds or subtracts one minute — works whether the countdown is running
+// (nudges the live remaining time) or stopped (nudges the configured
+// starting value and refreshes the two inputs to show it).
+function adjustStopwatchMinutes(deltaMinutes){
+  const deltaMs = deltaMinutes * 60000;
+  if(stopwatch.running){
+    stopwatch.startRemainingMs = Math.max(0, Math.min(STOPWATCH_MAX_MS, stopwatch.startRemainingMs + deltaMs));
+    updateStopwatchDisplay();
+  } else {
+    stopwatch.remainingMs = Math.max(0, Math.min(STOPWATCH_MAX_MS, stopwatch.remainingMs + deltaMs));
+    const totalSeconds = Math.ceil(stopwatch.remainingMs / 1000);
+    document.getElementById('stopwatchMin').value = padTwo(Math.floor(totalSeconds / 60));
+    document.getElementById('stopwatchSec').value = padTwo(totalSeconds % 60);
+  }
+}
+
+document.getElementById('stopwatchPlus').addEventListener('click', () => adjustStopwatchMinutes(1));
+document.getElementById('stopwatchMinus').addEventListener('click', () => adjustStopwatchMinutes(-1));
+
+document.getElementById('guidedBackBtn').addEventListener('click', () => goToStage(3));
+document.getElementById('guidedNextBtn').addEventListener('click', () => goToStage(5));
+document.getElementById('freeBackBtn').addEventListener('click', () => goToStage(4));
+document.getElementById('freeNextBtn').addEventListener('click', () => goToStage(6));
+
+/* =========================================================
+   STAGE 5 — BALL POP CHALLENGE
+   Teams take turns: answer a question, then pop as many balls
+   as possible in 10 seconds. Only one ball lives on screen at
+   a time — popping it scores a point, bursts particles, and
+   immediately spawns a new one elsewhere. The round itself is
+   a plain requestAnimationFrame loop (like the timers in
+   Controlled/Guided practice), not a Promise, specifically so
+   goToStage() can cancel it cleanly if the teacher navigates
+   away mid-round.
+========================================================= */
+function renderPopTeamInputs(count){
+  const wrap = document.getElementById('popTeamInputs');
+  wrap.innerHTML = '';
+  for(let i = 0; i < count; i++){
+    const row = document.createElement('div');
+    row.className = 'pop-team-row';
+    row.innerHTML = `
+      <span class="dot" style="background:${POP_TEAM_COLORS[i]}"></span>
+      <input type="text" value="Team ${i+1}" maxlength="16" aria-label="Name for team ${i+1}">
+    `;
+    wrap.appendChild(row);
+  }
+  document.getElementById('popAddTeamBtn').disabled = count >= 4;
+}
+renderPopTeamInputs(2);
+
+document.getElementById('popAddTeamBtn').addEventListener('click', () => {
+  const current = document.querySelectorAll('#popTeamInputs input').length;
+  if(current >= 4) return;
+  const names = Array.from(document.querySelectorAll('#popTeamInputs input')).map(i => i.value);
+  renderPopTeamInputs(current + 1);
+  document.querySelectorAll('#popTeamInputs input').forEach((input, i) => { if(names[i]) input.value = names[i]; });
+});
+
+document.getElementById('popStartBtn').addEventListener('click', () => {
+  const names = Array.from(document.querySelectorAll('#popTeamInputs input')).map(i => i.value.trim() || 'Team');
+  state.popTeams = names.map((name, i) => ({ name, color: POP_TEAM_COLORS[i], total: 0 }));
+  state.popCurrentTeam = 0;
+  state.popTurnsPlayed = 0;
+  state.popQuestionOrder = shuffle(POP_QUESTIONS.map((_, i) => i));
+
+  document.getElementById('popSetup').classList.add('hidden');
+  document.getElementById('popGame').classList.remove('hidden');
+  resizePopCanvas();
+  startPopParticleLoop();
+  renderPopScoreboard();
+  renderPopTurnBanner();
+});
+
+function renderPopScoreboard(){
+  document.getElementById('popTeamList').innerHTML = state.popTeams.map((t, i) => `
+    <li class="${i === state.popCurrentTeam ? 'active' : ''}" style="--tc:${t.color}">
+      <span class="name"><span class="dot" style="background:${t.color}"></span>${escapeHtml(t.name)}</span>
+      <span class="pop-score">${t.total}</span>
+    </li>
+  `).join('');
+}
+
+function renderPopTurnBanner(){
+  document.getElementById('popTurnBanner').innerHTML =
+    `<strong>${escapeHtml(state.popTeams[state.popCurrentTeam].name)}</strong>'s turn — question ${state.popTurnsPlayed + 1} of ${POP_QUESTIONS.length}`;
+}
+
+function askPopQuestion(){
+  return new Promise(resolve => {
+    const qIndex = state.popQuestionOrder[state.popTurnsPlayed];
+    const q = POP_QUESTIONS[qIndex];
+    document.getElementById('popQuestionBody').innerHTML = `
+      <span class="modal-tag">Warm-up question</span>
+      <h3>${escapeHtml(q.prompt)}</h3>
+      <div class="modal-answer hidden" id="popAnswerReveal">${escapeHtml(q.answer)}</div>
+      <p class="modal-followup hidden" id="popFollowup">Now make a sentence using <strong>${escapeHtml(q.answer)}</strong>.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="popCheckBtn" type="button">Check answer</button>
+        <button class="btn btn-primary hidden" id="popContinueBtn" type="button">Got it — start popping!</button>
+      </div>
+    `;
+    document.getElementById('popQuestionOverlay').classList.remove('hidden');
+
+    // Two-step on purpose: the answer only appears once the student has
+    // actually committed to checking, and only then does the option to
+    // move on appear — no skipping straight past the question. The
+    // follow-up sentence prompt appears at the same time as the answer,
+    // since it needs the revealed word to build on.
+    document.getElementById('popCheckBtn').addEventListener('click', () => {
+      document.getElementById('popAnswerReveal').classList.remove('hidden');
+      document.getElementById('popFollowup').classList.remove('hidden');
+      document.getElementById('popCheckBtn').classList.add('hidden');
+      document.getElementById('popContinueBtn').classList.remove('hidden');
+    });
+    document.getElementById('popContinueBtn').addEventListener('click', () => {
+      document.getElementById('popQuestionOverlay').classList.add('hidden');
+      resolve();
+    });
+  });
+}
+
+document.getElementById('popBeginTurnBtn').addEventListener('click', beginPopTurn);
+
+async function beginPopTurn(){
+  document.getElementById('popBeginTurnBtn').disabled = true;
+  await askPopQuestion();
+  startPopRound();
+}
+
+// A quick rising-pitch blip for each pop — pitch climbs slightly with
+// streak length so a fast run of pops sounds like it's "climbing".
+function sfxPop(streak){
+  if(state.muted) return;
+  const ctx = ensureAudio();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'triangle';
+  const base = 500 + Math.min(streak, 10) * 25;
+  osc.frequency.setValueAtTime(base, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(base * 1.8, ctx.currentTime + 0.08);
+  gain.gain.value = 0.18;
+  osc.connect(gain).connect(ctx.destination);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.12);
+}
+
+// A quick sparkly ascending arpeggio for gem pickups — distinct from
+// the single-note pop, since a gem is worth 3x and should feel like it.
+function sfxGem(){
+  if(state.muted) return;
+  [880, 1108, 1318, 1568].forEach((f, i) => beep(f, 0.14, 'triangle', 0.16, i * 0.06));
+}
+
+// Expanding ring fired from the click point — colored to match the
+// outcome (ball color for a correct pop, red for a bad-ball miss).
+function spawnShockwave(container, xPct, yPct, color){
+  const ring = document.createElement('div');
+  ring.className = 'pop-shockwave';
+  ring.style.left = xPct + '%';
+  ring.style.top = yPct + '%';
+  ring.style.borderColor = color;
+  container.appendChild(ring);
+  requestAnimationFrame(() => {
+    ring.style.transform = 'translate(-50%,-50%) scale(2.6)';
+    ring.style.opacity = '0';
+  });
+  setTimeout(() => ring.remove(), 470);
+}
+
+// Floating "+1" / "−1" combat-text, rising and fading at the click point.
+function showFloatingText(container, xPct, yPct, text, color){
+  const el = document.createElement('div');
+  el.className = 'pop-float-text';
+  el.textContent = text;
+  el.style.left = xPct + '%';
+  el.style.top = yPct + '%';
+  el.style.color = color;
+  container.appendChild(el);
+  requestAnimationFrame(() => {
+    el.style.transform = 'translate(-50%, -160%) scale(1.3)';
+    el.style.opacity = '0';
+  });
+  setTimeout(() => el.remove(), 700);
+}
+
+/* =========================================================
+   PARTICLE SYSTEM (canvas-based)
+   Ported from the reference "Tap Game": instead of animating
+   individual DOM elements with CSS transitions, particles are
+   plain data objects with real physics (gravity, drag, decay)
+   updated every frame and painted onto a <canvas> with glow.
+   This is a genuinely different technique from the CSS-based
+   .particle bursts used elsewhere on this page — canvas suits
+   "lots of small moving things" far better, since drawing 40
+   circles costs one clear+loop, not 40 separate DOM nodes each
+   carrying their own animation.
+========================================================= */
+function resizePopCanvas(){
+  const canvas = document.getElementById('popParticleCanvas');
+  const playArea = document.getElementById('popPlayArea');
+  if(!canvas || !playArea) return;
+  canvas.width = playArea.clientWidth;
+  canvas.height = playArea.clientHeight;
+}
+
+let popResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(popResizeTimer);
+  popResizeTimer = setTimeout(resizePopCanvas, 100);
+});
+
+function spawnPopParticles(xPx, yPx, count = 40){
+  for(let i = 0; i < count; i++){
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 12 + 2.5;
+    const hue = Math.floor(Math.random() * 360);
+    state.popParticles.push({
+      x: xPx, y: yPx,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1.5,
+      alpha: 1,
+      decay: Math.random() * 0.016 + 0.01,
+      size: Math.random() * 10 + 3,
+      color: `hsl(${hue}, 100%, ${58 + Math.floor(Math.random() * 18)}%)`
+    });
+  }
+}
+
+// How quickly each ball eases toward full size/opacity per frame —
+// same technique as the reference game's `ballScale += (1-ballScale)*spd`.
+// Higher = snappier settle; lower = slower, more floaty growth.
+const POP_BALL_EASE_SPEED = 0.18;
+
+// Chance, each time a normal ball is about to spawn, that a special
+// golden ball appears instead — capped at once per round regardless of
+// how many times the dice gets rolled (see popSpecialUsedThisRound).
+const POP_SPECIAL_CHANCE = 0.18;
+const POP_SPECIAL_COLOR = "#FFD23F";
+
+// Bombs spawn independently of the normal ball cycle — 1 or 2 per
+// round, at random moments, each ticking down for 3 seconds before
+// vanishing on its own if nobody pops it.
+const POP_BOMB_FUSE_MS = 3000;
+const POP_BOMB_COLOR = "#E4574B";
+const POP_BOMB_MIN_GAP_MS = 2200; // minimum time between two bombs spawning in the same round
+
+// Gems: tiny, high-value, fast-expiring bonus balls — exactly 3 per
+// round, each worth 3 points, gone after 2 seconds if not popped.
+const POP_GEM_COUNT = 3;
+const POP_GEM_FUSE_MS = 2000;
+const POP_GEM_POINTS = 3;
+const POP_GEM_COLOR = "#B266FF";
+const POP_GEM_MIN_GAP_MS = 1600;
+
+function updatePopBallAnims(){
+  for(const anim of state.popBallAnims){
+    anim.scale += (1 - anim.scale) * POP_BALL_EASE_SPEED;
+    anim.alpha += (1 - anim.alpha) * POP_BALL_EASE_SPEED;
+    anim.el.style.transform = `translate(-50%,-50%) scale(${anim.scale})`;
+    anim.el.style.opacity = anim.alpha;
+  }
+}
+
+function updatePopParticles(){
+  for(const p of state.popParticles){
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.2;      // gravity — a constant downward pull each frame
+    p.vx *= 0.983;    // drag — horizontal speed bleeds off gradually
+    p.alpha -= p.decay;
+    p.size *= 0.974;  // gentle continuous shrink
+  }
+  state.popParticles = state.popParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+}
+
+function renderPopCanvas(){
+  const canvas = document.getElementById('popParticleCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Animated background: slow-floating bokeh blobs — large,
+  // semi-transparent, coloured circles that give the canvas visual
+  // depth without competing with the actual game content. Seeded from
+  // a fixed-length array so they're consistent within a round.
+  if(!state.popBgBlobs || state.popBgBlobs.length === 0){
+    state.popBgBlobs = Array.from({ length: 8 }, (_, i) => ({
+      x: Math.random(), y: Math.random(),
+      r: 0.08 + Math.random() * 0.12,
+      vx: (Math.random() - 0.5) * 0.00018,
+      vy: (Math.random() - 0.5) * 0.00012,
+      color: ['rgba(178,102,255,', 'rgba(49,230,224,', 'rgba(255,210,63,', 'rgba(255,107,107,'][i % 4],
+      phase: Math.random() * Math.PI * 2
+    }));
+  }
+  for(const b of state.popBgBlobs){
+    b.x += b.vx; b.y += b.vy;
+    if(b.x < -b.r) b.x = 1 + b.r;
+    if(b.x > 1 + b.r) b.x = -b.r;
+    if(b.y < -b.r) b.y = 1 + b.r;
+    if(b.y > 1 + b.r) b.y = -b.r;
+    const alpha = 0.06 + 0.04 * Math.sin(Date.now() / 1800 + b.phase);
+    const x = b.x * canvas.width, y = b.y * canvas.height, r = b.r * canvas.width;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, b.color + alpha + ')');
+    grad.addColorStop(1, b.color + '0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Pulsing glow ring behind every live ball — same idea as the
+  // reference game's canvas-drawn glow (shadowBlur + a sine pulse),
+  // rather than a CSS drop-shadow animation. Works for any number of
+  // balls at once, which is what the 4-ball swarm needs. Bombs and
+  // gems pulse noticeably faster than normal balls — speed itself
+  // signals "this one's on a clock".
+  for(const anim of state.popBallAnims){
+    if(anim.alpha <= 0.01) continue;
+    const xPx = (anim.xPct / 100) * canvas.width;
+    const yPx = (anim.yPct / 100) * canvas.height;
+
+    // Each factor matches that ball type's real CSS width (radius =
+    // half of it) — deliberately derived from the actual size rather
+    // than guessed, since a mismatch here is exactly what caused the
+    // gem's ring-too-big misclick bug earlier.
+    let radiusFactor = 0.075;               // normal ball: 15% wide
+    if(anim.special) radiusFactor = 0.06;    // special ball: 12% wide
+    if(anim.swarm) radiusFactor = 0.055;     // swarm ball: 11% wide
+    if(anim.gem) radiusFactor = 0.035;       // gem: 7% wide
+    const radius = canvas.width * radiusFactor * anim.scale;
+    const ringPadding = (anim.gem || anim.special || anim.swarm) ? 1.5 : 5;
+
+    const pulsePeriod = (anim.bomb || anim.gem) ? 120 : 220;
+    const glowPulse = 0.7 + 0.3 * Math.sin(Date.now() / pulsePeriod);
+
+    ctx.save();
+    ctx.globalAlpha = anim.alpha * glowPulse;
+    ctx.shadowColor = anim.color;
+    ctx.shadowBlur = anim.special ? 20 : (anim.gem || anim.swarm ? 16 : 26);
+    ctx.strokeStyle = anim.color;
+    ctx.lineWidth = (anim.gem || anim.special || anim.swarm) ? 2 : 3;
+    ctx.beginPath();
+    ctx.arc(xPx, yPx, radius + ringPadding, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for(const p of state.popParticles){
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.alpha);
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function startPopParticleLoop(){
+  if(state.popParticleRAF) return; // already running
+  function frame(){
+    updatePopBallAnims();
+    updatePopParticles();
+    renderPopCanvas();
+    state.popParticleRAF = requestAnimationFrame(frame);
+  }
+  state.popParticleRAF = requestAnimationFrame(frame);
+}
+
+function stopPopParticleLoop(){
+  if(state.popParticleRAF) cancelAnimationFrame(state.popParticleRAF);
+  state.popParticleRAF = null;
+  state.popParticles = [];
+  state.popBallAnims = [];
+  clearAllBombs();
+  clearAllGems();
+  const canvas = document.getElementById('popParticleCanvas');
+  if(canvas){
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+// Builds one ball element + registers its animation entry. Doesn't wire
+// up a click handler itself — callers do that, since normal balls,
+// the special ball, and the 4-ball swarm each need different behavior
+// when clicked.
+// Picks a random spot inside the play area that isn't too close to
+// anything already on screen (other balls, the special ball, or a
+// live bomb) — plain rejection sampling: try a few random spots, keep
+// the first one that clears the minimum distance from everything in
+// popBallAnims, or just fall back to the last attempt if unlucky.
+function getNonCollidingPosition(minDistancePct = 18){
+  for(let attempt = 0; attempt < 20; attempt++){
+    const xPct = 10 + Math.random() * 80;
+    const yPct = 12 + Math.random() * 76;
+    const collides = state.popBallAnims.some(a => {
+      const dx = a.xPct - xPct;
+      const dy = (a.yPct - yPct) * (4 / 3); // rough correction for the 4:3 play area
+      return Math.sqrt(dx * dx + dy * dy) < minDistancePct;
+    });
+    if(!collides) return { xPct, yPct };
+  }
+  return { xPct: 10 + Math.random() * 80, yPct: 12 + Math.random() * 76 };
+}
+
+function createPopBall({ special = false, swarm = false, xPct = null, yPct = null } = {}){
+  const ballLayer = document.getElementById('popBallLayer');
+
+  const ball = document.createElement('button');
+  ball.className = 'pop-ball' + (special ? ' special' : '') + (swarm ? ' swarm' : '');
+  ball.type = 'button';
+
+  // A specific position is passed in when spawning several balls at
+  // once (see getSwarmPositions) so they can't land on top of each
+  // other — otherwise, find a spot that doesn't collide with anything
+  // currently on screen (including any live bomb).
+  const pos = (xPct !== null && yPct !== null) ? { xPct, yPct } : getNonCollidingPosition();
+  const finalX = pos.xPct;
+  const finalY = pos.yPct;
+  ball.style.left = finalX + '%';
+  ball.style.top = finalY + '%';
+
+  const color = special
+    ? POP_SPECIAL_COLOR
+    : POP_BALL_COLORS[Math.floor(Math.random() * POP_BALL_COLORS.length)];
+
+  // A light two-stop gradient for a touch of depth without the heavy
+  // glossy-bevel "balloon" look — the glow ring (drawn on canvas, see
+  // renderPopCanvas) is what carries most of the visual energy now.
+  // Special balls skip this — their star gradient lives entirely in
+  // CSS (.pop-ball.special), so setting an inline background here
+  // would just override it.
+  if(!special){
+    ball.style.background = `radial-gradient(circle at 38% 32%, ${color} 0%, ${color} 55%, ${shadeColor(color, -18)} 100%)`;
+  }
+
+  if(special){
+    ball.setAttribute('aria-label', 'Special ball — pops into four more balls!');
+  } else {
+    ball.setAttribute('aria-label', 'Pop the ball');
+  }
+
+  // Start fully shrunk/transparent — the shared per-frame loop eases
+  // these toward 1, rather than a fixed-duration CSS animation.
+  ball.style.transform = 'translate(-50%,-50%) scale(0)';
+  ball.style.opacity = '0';
+
+  const anim = { el: ball, xPct: finalX, yPct: finalY, color, scale: 0, alpha: 0, special, swarm };
+  state.popBallAnims.push(anim);
+  ballLayer.appendChild(ball);
+
+  return { ball, anim, ballLayer, xPct: finalX, yPct: finalY, color };
+}
+
+function removePopBall(ball, anim){
+  state.popBallAnims = state.popBallAnims.filter(a => a !== anim);
+  ball.remove();
+}
+
+// The shared "you popped something" feedback — shockwave, particles,
+// floating text, score bump. Used by every ball type.
+function popBallFeedback(ballLayer, xPct, yPct, color){
+  spawnShockwave(ballLayer, xPct, yPct, color);
+
+  const canvas = document.getElementById('popParticleCanvas');
+  const pxX = (xPct / 100) * canvas.width;
+  const pxY = (yPct / 100) * canvas.height;
+  spawnPopParticles(pxX, pxY);
+
+  showFloatingText(ballLayer, xPct, yPct, '+1', color);
+
+  const popsEl = document.getElementById('popPopsDisplay');
+  popsEl.textContent = state.popScore;
+  popsEl.style.transform = 'scale(1.3)';
+  setTimeout(() => { popsEl.style.transform = 'scale(1)'; }, 120);
+}
+
+// Normal single-ball cycle: pop one, spawn the next. Each time this
+// runs, there's a chance to spawn the special ball instead — unless
+// it's already been used this round.
+function spawnPopBall(){
+  if(!state.popSpecialUsedThisRound && Math.random() < POP_SPECIAL_CHANCE){
+    spawnSpecialPopBall();
+    return;
+  }
+
+  const { ball, anim, ballLayer, xPct, yPct, color } = createPopBall();
+
+  ball.addEventListener('click', () => {
+    if(!state.popRoundActive) return;
+    state.popScore++;
+    sfxPop(state.popScore);
+    popBallFeedback(ballLayer, xPct, yPct, color);
+    removePopBall(ball, anim);
+    spawnPopBall();
+  });
+}
+
+// The special ball: pops into a 4-ball swarm that must all be cleared
+// before normal single-ball spawning resumes. Limited to once per
+// round via popSpecialUsedThisRound, set the moment it's clicked.
+function spawnSpecialPopBall(){
+  const { ball, anim, ballLayer, xPct, yPct, color } = createPopBall({ special: true });
+
+  ball.addEventListener('click', () => {
+    if(!state.popRoundActive) return;
+    state.popSpecialUsedThisRound = true;
+    state.popScore++;
+    sfxCorrect(); // a brighter fanfare than a normal pop, since this one's a bonus
+    popBallFeedback(ballLayer, xPct, yPct, color);
+    removePopBall(ball, anim);
+    spawnPopSwarm(4);
+  });
+}
+
+// Spawns `count` normal balls simultaneously. All of them must be
+// popped before the game returns to the usual one-at-a-time spawning.
+// Splits the play area into a grid with at least `count` cells, shuffles
+// which cell each ball gets, then picks a random point safely inside
+// that cell (with margin). This is what stops the 4-ball swarm from
+// ever spawning two balls on top of each other — each one is
+// guaranteed its own region rather than a fully random, collision-prone
+// position.
+function getSwarmPositions(count){
+  const cols = Math.ceil(Math.sqrt(count));
+  const rows = Math.ceil(count / cols);
+  const cellW = 100 / cols;
+  const cellH = 100 / rows;
+
+  const cells = [];
+  for(let r = 0; r < rows; r++){
+    for(let c = 0; c < cols; c++){
+      cells.push({ r, c });
+    }
+  }
+  const shuffledCells = shuffle(cells);
+
+  const positions = [];
+  for(let i = 0; i < count; i++){
+    const cell = shuffledCells[i];
+    const marginX = cellW * 0.22;
+    const marginY = cellH * 0.22;
+    const rawX = cell.c * cellW + marginX + Math.random() * (cellW - 2 * marginX);
+    const rawY = cell.r * cellH + marginY + Math.random() * (cellH - 2 * marginY);
+    positions.push({
+      xPct: Math.max(10, Math.min(90, rawX)),
+      yPct: Math.max(12, Math.min(88, rawY))
+    });
+  }
+  return positions;
+}
+
+function spawnPopSwarm(count){
+  state.popSwarmRemaining = count;
+  const positions = getSwarmPositions(count);
+  for(let i = 0; i < count; i++){
+    const { ball, anim, ballLayer, xPct, yPct, color } = createPopBall({
+      swarm: true,
+      xPct: positions[i].xPct,
+      yPct: positions[i].yPct
+    });
+    ball.addEventListener('click', () => {
+      if(!state.popRoundActive) return;
+      state.popScore++;
+      sfxPop(state.popScore);
+      popBallFeedback(ballLayer, xPct, yPct, color);
+      removePopBall(ball, anim);
+      state.popSwarmRemaining--;
+      if(state.popSwarmRemaining <= 0) spawnPopBall();
+    });
+  }
+}
+
+/* =========================================================
+   BOMBS
+   Spawn independently of the normal ball cycle — 1 or 2 per
+   round, at random moments, alongside whatever ball is already
+   on screen. Each ticks down for 3 seconds and disappears on
+   its own if left alone; popping one costs a point. Scheduled
+   via setTimeout, so — like every other timer on this page —
+   anything pending or live MUST be cleared on round end/exit,
+   or it'll keep ticking in the background after the round is over.
+========================================================= */
+function scheduleBombsForRound(){
+  const count = Math.random() < 0.5 ? 1 : 2;
+  const roundMs = POP_ROUND_SECONDS * 1000;
+  const usedDelays = [];
+
+  for(let i = 0; i < count; i++){
+    let delay;
+    let attempts = 0;
+    do {
+      // Keep clear of the very start/end of the round, and space
+      // multiple bombs apart so they don't both land at once.
+      delay = 1200 + Math.random() * (roundMs - 1200 - POP_BOMB_FUSE_MS - 800);
+      attempts++;
+    } while(usedDelays.some(d => Math.abs(d - delay) < POP_BOMB_MIN_GAP_MS) && attempts < 10);
+    usedDelays.push(delay);
+
+    const timeoutId = setTimeout(spawnPopBomb, delay);
+    state.popBombTimeouts.push(timeoutId);
+  }
+}
+
+function spawnPopBomb(){
+  if(!state.popRoundActive) return;
+  const ballLayer = document.getElementById('popBallLayer');
+  const pos = getNonCollidingPosition(22); // extra clearance — bombs need to read as clearly separate
+
+  const bomb = document.createElement('button');
+  bomb.className = 'pop-ball bomb';
+  bomb.type = 'button';
+  bomb.setAttribute('aria-label', "Bomb — don't pop this one!");
+  bomb.style.left = pos.xPct + '%';
+  bomb.style.top = pos.yPct + '%';
+  bomb.style.transform = 'translate(-50%,-50%) scale(0)';
+  bomb.style.opacity = '0';
+
+  const anim = { el: bomb, xPct: pos.xPct, yPct: pos.yPct, color: POP_BOMB_COLOR, scale: 0, alpha: 0, bomb: true };
+  state.popBallAnims.push(anim);
+  ballLayer.appendChild(bomb);
+
+  let secondsLeft = Math.ceil(POP_BOMB_FUSE_MS / 1000);
+  bomb.textContent = `💣${secondsLeft}`;
+
+  const fuseInterval = setInterval(() => {
+    secondsLeft--;
+    if(secondsLeft > 0) bomb.textContent = `💣${secondsLeft}`;
+  }, 1000);
+
+  const expireTimeout = setTimeout(() => {
+    clearInterval(fuseInterval);
+    removeBomb(bomb, anim);
+  }, POP_BOMB_FUSE_MS);
+
+  bomb.addEventListener('click', () => {
+    if(!state.popRoundActive) return;
+    clearInterval(fuseInterval);
+    clearTimeout(expireTimeout);
+    state.popScore = Math.max(0, state.popScore - 1);
+    sfxIncorrect();
+    popBombFeedback(ballLayer, pos.xPct, pos.yPct);
+    removeBomb(bomb, anim);
+  });
+
+  state.popActiveBombs.push({ bomb, anim, fuseInterval, expireTimeout });
+}
+
+function removeBomb(bomb, anim){
+  state.popBallAnims = state.popBallAnims.filter(a => a !== anim);
+  state.popActiveBombs = state.popActiveBombs.filter(b => b.bomb !== bomb);
+  bomb.remove();
+}
+
+// Distinct from popBallFeedback — a bomb pop is a miss, so it gets a
+// red burst, a "−1", and a shake instead of the usual celebration.
+function popBombFeedback(ballLayer, xPct, yPct){
+  spawnShockwave(ballLayer, xPct, yPct, POP_BOMB_COLOR);
+  const canvas = document.getElementById('popParticleCanvas');
+  const pxX = (xPct / 100) * canvas.width;
+  const pxY = (yPct / 100) * canvas.height;
+  spawnPopParticles(pxX, pxY);
+  showFloatingText(ballLayer, xPct, yPct, '−1', POP_BOMB_COLOR);
+  shakePlayArea();
+
+  const popsEl = document.getElementById('popPopsDisplay');
+  popsEl.textContent = state.popScore;
+  popsEl.style.transform = 'scale(1.3)';
+  setTimeout(() => { popsEl.style.transform = 'scale(1)'; }, 120);
+}
+
+function shakePlayArea(){
+  const playArea = document.getElementById('popPlayArea');
+  playArea.classList.remove('shake');
+  void playArea.offsetWidth; // force reflow so the shake can retrigger on back-to-back bombs
+  playArea.classList.add('shake');
+  setTimeout(() => playArea.classList.remove('shake'), 400);
+}
+
+// Cancels every pending/live bomb — called whenever a round ends,
+// gets interrupted, or the stage is left, so nothing keeps ticking
+// (or, worse, spawning) once the round is actually over.
+function clearAllBombs(){
+  state.popBombTimeouts.forEach(id => clearTimeout(id));
+  state.popBombTimeouts = [];
+  state.popActiveBombs.forEach(b => {
+    clearInterval(b.fuseInterval);
+    clearTimeout(b.expireTimeout);
+    b.bomb.remove();
+    state.popBallAnims = state.popBallAnims.filter(a => a !== b.anim);
+  });
+  state.popActiveBombs = [];
+}
+
+/* =========================================================
+   GEMS
+   Same architecture as bombs — spawn on their own schedule,
+   independent of the normal ball cycle, each with its own expiry
+   timer — but a gem is a reward, not a hazard: worth 3 points,
+   fully vanishes with no penalty if left unclicked. Exactly 3
+   spawn per round, each with a 2-second fuse.
+========================================================= */
+function scheduleGemsForRound(){
+  const roundMs = POP_ROUND_SECONDS * 1000;
+  const usedDelays = [];
+
+  for(let i = 0; i < POP_GEM_COUNT; i++){
+    let delay;
+    let attempts = 0;
+    do {
+      delay = 900 + Math.random() * (roundMs - 900 - POP_GEM_FUSE_MS - 500);
+      attempts++;
+    } while(usedDelays.some(d => Math.abs(d - delay) < POP_GEM_MIN_GAP_MS) && attempts < 10);
+    usedDelays.push(delay);
+
+    const timeoutId = setTimeout(spawnPopGem, delay);
+    state.popGemTimeouts.push(timeoutId);
+  }
+}
+
+function spawnPopGem(){
+  if(!state.popRoundActive) return;
+  const ballLayer = document.getElementById('popBallLayer');
+  const pos = getNonCollidingPosition(14); // smaller footprint, so a tighter clearance is fine
+
+  const gem = document.createElement('button');
+  gem.className = 'pop-ball gem';
+  gem.type = 'button';
+  gem.setAttribute('aria-label', 'Bonus gem — worth 3 points!');
+  gem.style.left = pos.xPct + '%';
+  gem.style.top = pos.yPct + '%';
+  gem.style.transform = 'translate(-50%,-50%) scale(0)';
+  gem.style.opacity = '0';
+
+  const anim = { el: gem, xPct: pos.xPct, yPct: pos.yPct, color: POP_GEM_COLOR, scale: 0, alpha: 0, gem: true };
+  state.popBallAnims.push(anim);
+  ballLayer.appendChild(gem);
+
+  const expireTimeout = setTimeout(() => removeGem(gem, anim), POP_GEM_FUSE_MS);
+
+  gem.addEventListener('click', () => {
+    if(!state.popRoundActive) return;
+    clearTimeout(expireTimeout);
+    state.popScore += POP_GEM_POINTS;
+    sfxGem();
+    popGemFeedback(ballLayer, pos.xPct, pos.yPct);
+    removeGem(gem, anim);
+  });
+
+  state.popActiveGems.push({ gem, anim, expireTimeout });
+}
+
+function removeGem(gem, anim){
+  state.popBallAnims = state.popBallAnims.filter(a => a !== anim);
+  state.popActiveGems = state.popActiveGems.filter(g => g.gem !== gem);
+  gem.remove();
+}
+
+// A brighter, richer celebration than a normal pop — three colors of
+// particle burst plus a "+3" instead of "+1", since this one's worth
+// three times as much.
+function popGemFeedback(ballLayer, xPct, yPct){
+  spawnShockwave(ballLayer, xPct, yPct, POP_GEM_COLOR);
+  const canvas = document.getElementById('popParticleCanvas');
+  const pxX = (xPct / 100) * canvas.width;
+  const pxY = (yPct / 100) * canvas.height;
+  spawnPopParticles(pxX, pxY);
+  spawnPopParticles(pxX, pxY); // a second burst — a gem deserves more sparkle than a normal pop
+  showFloatingText(ballLayer, xPct, yPct, '+3', POP_GEM_COLOR);
+
+  const popsEl = document.getElementById('popPopsDisplay');
+  popsEl.textContent = state.popScore;
+  popsEl.style.transform = 'scale(1.3)';
+  setTimeout(() => { popsEl.style.transform = 'scale(1)'; }, 120);
+}
+
+function clearAllGems(){
+  state.popGemTimeouts.forEach(id => clearTimeout(id));
+  state.popGemTimeouts = [];
+  state.popActiveGems.forEach(g => {
+    clearTimeout(g.expireTimeout);
+    g.gem.remove();
+    state.popBallAnims = state.popBallAnims.filter(a => a !== g.anim);
+  });
+  state.popActiveGems = [];
+}
+
+// Darkens (negative percent) or lightens (positive) a hex color —
+// used to give the ball a subtle shaded edge instead of a bright
+// balloon-style highlight.
+function shadeColor(hex, percent){
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const r = Math.max(0, Math.min(255, (num >> 16) + amt));
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+  const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+  return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`;
+}
+
+function startPopRound(){
+  cancelPopRound();
+  state.popRoundActive = true;
+  state.popScore = 0;
+  state.popSpecialUsedThisRound = false;
+  state.popSwarmRemaining = 0;
+
+  document.getElementById('popPopsDisplay').textContent = '0';
+  document.getElementById('popTimeDisplay').textContent = POP_ROUND_SECONDS;
+  document.getElementById('popTimerFill').style.width = '100%';
+
+  const playArea = document.getElementById('popPlayArea');
+  playArea.classList.remove('idle');
+  document.getElementById('popBallLayer').innerHTML = '';
+  spawnPopBall();
+  scheduleBombsForRound();
+  scheduleGemsForRound();
+
+  const start = performance.now();
+  function tick(now){
+    const remaining = Math.max(0, POP_ROUND_SECONDS - (now - start) / 1000);
+    document.getElementById('popTimeDisplay').textContent = Math.ceil(remaining);
+    document.getElementById('popTimerFill').style.width = (remaining / POP_ROUND_SECONDS * 100) + '%';
+
+    if(remaining <= 0){
+      finishPopRound();
+      return;
+    }
+    state.popRoundRAF = requestAnimationFrame(tick);
+  }
+  state.popRoundRAF = requestAnimationFrame(tick);
+}
+
+// Cancels an in-progress round cleanly — called both when a round ends
+// naturally (time runs out) and when the teacher navigates away from
+// this stage mid-round. In the "navigated away" case there's no result
+// to show, so the UI just resets back to an idle "Begin turn" state
+// for the same team to retry.
+function cancelPopRound(){
+  if(state.popRoundRAF) cancelAnimationFrame(state.popRoundRAF);
+  state.popRoundRAF = null;
+  if(state.popRoundActive){
+    state.popRoundActive = false;
+    clearAllBombs();
+    clearAllGems();
+    const playArea = document.getElementById('popPlayArea');
+    if(playArea){
+      const ballLayer = document.getElementById('popBallLayer');
+      if(ballLayer) ballLayer.innerHTML = '';
+      state.popBallAnims = [];
+      state.popSwarmRemaining = 0;
+      playArea.classList.add('idle');
+    }
+    const beginBtn = document.getElementById('popBeginTurnBtn');
+    if(beginBtn) beginBtn.disabled = false;
+  }
+}
+
+function finishPopRound(){
+  state.popRoundActive = false;
+  state.popRoundRAF = null;
+  clearAllBombs();
+  clearAllGems();
+  sfxTimeUp();
+
+  const playArea = document.getElementById('popPlayArea');
+  document.getElementById('popBallLayer').innerHTML = '';
+  state.popBallAnims = [];
+  state.popSwarmRemaining = 0;
+  playArea.classList.add('idle');
+
+  const team = state.popTeams[state.popCurrentTeam];
+  team.total += state.popScore;
+  state.popTurnsPlayed++;
+  renderPopScoreboard();
+
+  showPopResult(team).then(() => {
+    if(state.popTurnsPlayed >= POP_QUESTIONS.length){
+      endPopGame();
+    } else {
+      state.popCurrentTeam = (state.popCurrentTeam + 1) % state.popTeams.length;
+      renderPopScoreboard();
+      renderPopTurnBanner();
+      document.getElementById('popBeginTurnBtn').disabled = false;
+      document.getElementById('popTimeDisplay').textContent = '--';
+      document.getElementById('popTimerFill').style.width = '100%';
+    }
+  });
+}
+
+function showPopResult(team){
+  return new Promise(resolve => {
+    document.getElementById('popResultBody').innerHTML = `
+      <span class="modal-tag">Turn result</span>
+      <div class="modal-result-big">${state.popScore} pop${state.popScore === 1 ? '' : 's'}!</div>
+      <div class="modal-result-sub">${escapeHtml(team.name)}'s new total: ${team.total}</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="popNextTeamBtn" type="button">Continue</button>
+      </div>
+    `;
+    document.getElementById('popResultOverlay').classList.remove('hidden');
+    document.getElementById('popNextTeamBtn').addEventListener('click', () => {
+      document.getElementById('popResultOverlay').classList.add('hidden');
+      resolve();
+    });
+  });
+}
+
+function endPopGame(){
+  sfxCorrect();
+  const maxScore = Math.max(...state.popTeams.map(t => t.total));
+  const winners = state.popTeams.filter(t => t.total === maxScore);
+  const winnerText = winners.length > 1
+    ? `It's a tie: ${winners.map(w => w.name).join(' & ')}!`
+    : `${winners[0].name} wins!`;
+
+  document.getElementById('popTurnBanner').innerHTML = `🎉 All 10 questions done — ${winnerText}`;
+  document.getElementById('popBeginTurnBtn').classList.add('hidden');
+  document.getElementById('popTimeDisplay').textContent = '--';
+  document.getElementById('popTimerFill').style.width = '0%';
+
+  const playArea = document.getElementById('popPlayArea');
+  playArea.classList.add('idle');
+
+  document.getElementById('popPlayAgainBtn').classList.remove('hidden');
+}
+
+document.getElementById('popResetScoresBtn').addEventListener('click', () => {
+  if(!confirm('Reset all team scores to 0?')) return;
+  state.popTeams.forEach(t => t.total = 0);
+  renderPopScoreboard();
+});
+
+document.getElementById('popPlayAgainBtn').addEventListener('click', () => {
+  stopPopParticleLoop();
+  document.getElementById('popGame').classList.add('hidden');
+  document.getElementById('popPlayAgainBtn').classList.add('hidden');
+  document.getElementById('popBeginTurnBtn').classList.remove('hidden');
+  document.getElementById('popBeginTurnBtn').disabled = false;
+  document.getElementById('popSetup').classList.remove('hidden');
+});
+
+document.getElementById('popBackBtn').addEventListener('click', () => goToStage(5));
+document.getElementById('popNextBtn').addEventListener('click', () => goToStage(7));
+document.getElementById('invBackBtn').addEventListener('click', () => goToStage(6));
+document.getElementById('invNextBtn').addEventListener('click', () => goToStage(8));
+document.getElementById('bzBackBtn').addEventListener('click', () => goToStage(7));
+document.getElementById('bzNextBtn').addEventListener('click', () => goToStage(9));
+document.getElementById('qsBackBtn').addEventListener('click', () => goToStage(8));
+
+/* =========================================================
+   STAGE 7 — STAR DEFENDER
+   Fully canvas-rendered (unlike Ball Pop, which uses real DOM
+   buttons for balls) because this game has many simultaneously
+   moving entities — ship, projectiles, enemies, pickups,
+   particles — and drawing that many DOM nodes every frame would
+   be far more expensive than one clearRect + a loop of draw
+   calls. Same team-turn/question-modal structure as Ball Pop,
+   reusing its modal overlays since only one is ever open at once.
+========================================================= */
+const INV_ROUND_SECONDS = 20;
+const INV_BOSS_COLOR = "#FF4E6A";
+const INV_DART_COLOR = "#7DFFB3";
+const INV_MACHINEGUN_COLOR = "#FF8C42";
+const INV_MAX_LIVES = 3;
+const INV_SCOUT_COLOR = "#6FE3D6";
+const INV_BRUTE_COLOR = "#C77DFF";
+const INV_PICKUP_COLOR = "#FFD23F";
+const INV_SHIELD_COLOR = "#FF6B8B";
+const INV_SHIP_COLOR = "#31E6E0";
+
+const INV_QUESTIONS = [
+  { prompt: "What is the comparative of 'fast'?", answer: "faster" },
+  { prompt: "What is the comparative of 'strong'?", answer: "stronger" },
+  { prompt: "What is the comparative of 'big'?", answer: "bigger" },
+  { prompt: "What is the comparative of 'brave'?", answer: "braver" },
+  { prompt: "What is the comparative of 'scary'?", answer: "scarier" },
+  { prompt: "What is the comparative of 'loud'?", answer: "louder" },
+  { prompt: "What is the comparative of 'hot'?", answer: "hotter" },
+  { prompt: "What is the comparative of 'clever'?", answer: "cleverer" },
+  { prompt: "What is the comparative of 'good'? (it's irregular!)", answer: "better" },
+  { prompt: "What is the comparative of 'bad'? (it's irregular!)", answer: "worse" }
+];
+
+/* ---- Sound effects (same synthesis approach as everywhere else on
+   this page — Web Audio oscillators/noise, no audio files) ---- */
+function sfxLaser(){
+  if(state.muted) return;
+  const ctx = ensureAudio();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(900, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.12);
+  gain.gain.value = 0.09;
+  osc.connect(gain).connect(ctx.destination);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.13);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.14);
+}
+function sfxEnemyHit(){ beep(320, 0.06, 'square', 0.12); }
+// Same noise-burst technique as the bowling pin crash from Strike Zone —
+// louder/brighter for the tougher enemy, quieter for the scout.
+function sfxEnemyDestroy(intensity){
+  if(state.muted) return;
+  const ctx = ensureAudio();
+  const duration = 0.22 + intensity * 0.15;
+  const bufferSize = Math.floor(ctx.sampleRate * duration);
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i = 0; i < bufferSize; i++){
+    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 900 + intensity * 1400;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.3 + intensity * 0.1;
+  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.start();
+}
+function sfxPickupCollect(){ [880, 1108, 1318].forEach((f, i) => beep(f, 0.13, 'triangle', 0.16, i * 0.06)); }
+function sfxShieldLost(){ beep(140, 0.32, 'sawtooth', 0.2); }
+
+/* ---- Setup / teams (same pattern as Ball Pop) ---- */
+function renderInvTeamInputs(count){
+  const wrap = document.getElementById('invTeamInputs');
+  wrap.innerHTML = '';
+  for(let i = 0; i < count; i++){
+    const row = document.createElement('div');
+    row.className = 'pop-team-row';
+    row.innerHTML = `
+      <span class="dot" style="background:${POP_TEAM_COLORS[i]}"></span>
+      <input type="text" value="Team ${i+1}" maxlength="16" aria-label="Name for team ${i+1}">
+    `;
+    wrap.appendChild(row);
+  }
+  document.getElementById('invAddTeamBtn').disabled = count >= 4;
+}
+renderInvTeamInputs(2);
+
+document.getElementById('invAddTeamBtn').addEventListener('click', () => {
+  const current = document.querySelectorAll('#invTeamInputs input').length;
+  if(current >= 4) return;
+  const names = Array.from(document.querySelectorAll('#invTeamInputs input')).map(i => i.value);
+  renderInvTeamInputs(current + 1);
+  document.querySelectorAll('#invTeamInputs input').forEach((input, i) => { if(names[i]) input.value = names[i]; });
+});
+
+document.getElementById('invStartBtn').addEventListener('click', () => {
+  const names = Array.from(document.querySelectorAll('#invTeamInputs input')).map(i => i.value.trim() || 'Team');
+  state.invTeams = names.map((name, i) => ({ name, color: POP_TEAM_COLORS[i], total: 0 }));
+  state.invCurrentTeam = 0;
+  state.invTurnsPlayed = 0;
+  state.invQuestionOrder = shuffle(INV_QUESTIONS.map((_, i) => i));
+  state.invLives = INV_MAX_LIVES;
+
+  document.getElementById('invSetup').classList.add('hidden');
+  document.getElementById('invGame').classList.remove('hidden');
+  renderInvScoreboard();
+  renderInvTurnBanner();
+  renderInvLives();
+});
+
+function renderInvScoreboard(){
+  document.getElementById('invTeamList').innerHTML = state.invTeams.map((t, i) => `
+    <li class="${i === state.invCurrentTeam ? 'active' : ''}" style="--tc:${t.color}">
+      <span class="name"><span class="dot" style="background:${t.color}"></span>${escapeHtml(t.name)}</span>
+      <span class="pop-score">${t.total}</span>
+    </li>
+  `).join('');
+}
+function renderInvTurnBanner(){
+  document.getElementById('invTurnBanner').innerHTML =
+    `<strong>${escapeHtml(state.invTeams[state.invCurrentTeam].name)}</strong>'s turn — question ${state.invTurnsPlayed + 1} of ${INV_QUESTIONS.length}`;
+}
+function renderInvLives(){
+  document.getElementById('invLivesDisplay').innerHTML = Array.from({ length: INV_MAX_LIVES }, (_, i) =>
+    `<span class="${i < state.invLives ? '' : 'lost'}">♥</span>`
+  ).join('');
+}
+
+/* ---- Question modal — reuses Ball Pop's overlay elements, since only
+   one modal is ever open at a time regardless of which stage it's for ---- */
+function askInvQuestion(){
+  return new Promise(resolve => {
+    const qIndex = state.invQuestionOrder[state.invTurnsPlayed];
+    const q = INV_QUESTIONS[qIndex];
+    document.getElementById('popQuestionBody').innerHTML = `
+      <span class="modal-tag">Warm-up question</span>
+      <h3>${escapeHtml(q.prompt)}</h3>
+      <div class="modal-answer hidden" id="popAnswerReveal">${escapeHtml(q.answer)}</div>
+      <p class="modal-followup hidden" id="popFollowup">Now make a sentence using <strong>${escapeHtml(q.answer)}</strong>.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="popCheckBtn" type="button">Check answer</button>
+        <button class="btn btn-primary hidden" id="popContinueBtn" type="button">Got it — defend!</button>
+      </div>
+    `;
+    document.getElementById('popQuestionOverlay').classList.remove('hidden');
+    document.getElementById('popCheckBtn').addEventListener('click', () => {
+      document.getElementById('popAnswerReveal').classList.remove('hidden');
+      document.getElementById('popFollowup').classList.remove('hidden');
+      document.getElementById('popCheckBtn').classList.add('hidden');
+      document.getElementById('popContinueBtn').classList.remove('hidden');
+    });
+    document.getElementById('popContinueBtn').addEventListener('click', () => {
+      document.getElementById('popQuestionOverlay').classList.add('hidden');
+      resolve();
+    });
+  });
+}
+
+function showInvResult(team, score){
+  return new Promise(resolve => {
+    document.getElementById('popResultBody').innerHTML = `
+      <span class="modal-tag">Turn result</span>
+      <div class="modal-result-big">${score} point${score === 1 ? '' : 's'}!</div>
+      <div class="modal-result-sub">${escapeHtml(team.name)}'s new total: ${team.total}</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="invNextTeamBtn" type="button">Continue</button>
+      </div>
+    `;
+    document.getElementById('popResultOverlay').classList.remove('hidden');
+    document.getElementById('invNextTeamBtn').addEventListener('click', () => {
+      document.getElementById('popResultOverlay').classList.add('hidden');
+      resolve();
+    });
+  });
+}
+
+document.getElementById('invBeginTurnBtn').addEventListener('click', beginInvTurn);
+async function beginInvTurn(){
+  document.getElementById('invBeginTurnBtn').disabled = true;
+  await askInvQuestion();
+  startInvRound();
+}
+
+/* ---- Canvas sizing ---- */
+function resizeInvCanvas(){
+  const canvas = document.getElementById('invCanvas');
+  const playArea = document.getElementById('invPlayArea');
+  if(!canvas || !playArea) return;
+  canvas.width = playArea.clientWidth;
+  canvas.height = playArea.clientHeight;
+}
+let invResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(invResizeTimer);
+  invResizeTimer = setTimeout(resizeInvCanvas, 100);
+});
+
+/* ---- Particles (same physics formulas as Ball Pop's — gravity, drag,
+   decay — kept as a separate array/canvas since this is a different
+   game with its own coordinate space) ---- */
+function spawnInvParticles(x, y, color, count){
+  for(let i = 0; i < count; i++){
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 8 + 2;
+    state.invParticles.push({
+      x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      alpha: 1, decay: Math.random() * 0.02 + 0.015, size: Math.random() * 6 + 2, color
+    });
+  }
+}
+function updateInvParticles(){
+  for(const p of state.invParticles){
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.15; p.vx *= 0.98;
+    p.alpha -= p.decay; p.size *= 0.97;
+  }
+  state.invParticles = state.invParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+}
+
+function spawnInvEnemy(){
+  // 15% dart (tiny/fast), 22% brute (slow/tanky), 63% scout (standard)
+  const roll = Math.random();
+  let type, radiusPct, hp, vy, points;
+  if(roll < 0.15){
+    type = 'dart'; radiusPct = 2.0; hp = 1; vy = 22 + Math.random() * 8; points = 2;
+  } else if(roll < 0.37){
+    type = 'brute'; radiusPct = 5.5; hp = 3; vy = 5 + Math.random() * 2; points = 3;
+  } else {
+    type = 'scout'; radiusPct = 3.6; hp = 1; vy = 11 + Math.random() * 5; points = 1;
+  }
+  state.invEnemies.push({
+    x: 8 + Math.random() * 84, y: -5, vy,
+    hp, maxHp: hp, type,
+    radiusPct, baseRadiusPct: radiusPct,
+    points, hitFlash: 0, dead: false
+  });
+}
+
+function spawnInvPickup(){
+  // Three pickups with equal probability
+  const r = Math.random();
+  const type = r < 0.33 ? 'rapid' : r < 0.66 ? 'shield' : 'machinegun';
+  state.invPickups.push({ x: 12 + Math.random() * 76, y: -5, collected: false, type });
+}
+
+function spawnInvBoss(){
+  if(!state.invRoundActive || state.invBossSpawnedThisRound) return;
+  state.invBossSpawnedThisRound = true;
+  const hp = 10;
+  const radiusPct = 11;
+  state.invEnemies.push({
+    x: 20 + Math.random() * 60, y: -12,
+    vy: 3 + Math.random() * 1.5,
+    hp, maxHp: hp, type: 'boss',
+    radiusPct, baseRadiusPct: radiusPct,
+    points: 15, hitFlash: 0, dead: false,
+    angle: 0  // used to animate the boss's rotating ring
+  });
+}
+
+function scheduleBossForRound(){
+  // ~40% chance a boss appears, at a random point in the middle of
+  // the round — early enough the player can actually engage it.
+  if(Math.random() > 0.40) return;
+  const delay = 3000 + Math.random() * (INV_ROUND_SECONDS * 1000 - 8000);
+  const id = setTimeout(spawnInvBoss, delay);
+  state.invBossTimeout = id;
+}
+
+function clearBossTimeout(){
+  if(state.invBossTimeout) clearTimeout(state.invBossTimeout);
+  state.invBossTimeout = null;
+}
+
+// Red border pulse + lives-icon glow when a life is lost — three
+// separate signals (border color, icon glow, sfx) so students at the
+// back of the room still notice something went wrong.
+function triggerLifeLostFeedback(){
+  const playArea = document.getElementById('invPlayArea');
+  const livesEl = document.getElementById('invLivesDisplay');
+  playArea.classList.remove('life-lost');
+  void playArea.offsetWidth;
+  playArea.classList.add('life-lost');
+  setTimeout(() => playArea.classList.remove('life-lost'), 620);
+  livesEl.classList.remove('pulse');
+  void livesEl.offsetWidth;
+  livesEl.classList.add('pulse');
+  setTimeout(() => livesEl.classList.remove('pulse'), 720);
+}
+
+/* ---- Fire on click: moves the ship toward the click X and fires
+   immediately from wherever the ship currently is — responsive
+   "move and shoot" rather than waiting for the ship to arrive. ---- */
+document.getElementById('invPlayArea').addEventListener('click', (e) => {
+  if(!state.invRoundActive) return;
+  const canvas = document.getElementById('invCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const clickXPct = ((e.clientX - rect.left) / rect.width) * 100;
+  state.invShip.targetX = Math.max(6, Math.min(94, clickXPct));
+
+  const now = performance.now();
+  const rapid = now < state.invRapidFireUntil;
+  const cooldown = rapid ? 90 : 220;
+  if(now - state.invLastShotAt < cooldown) return;
+  state.invLastShotAt = now;
+
+  sfxLaser();
+  const shots = rapid ? 3 : 1;
+  for(let i = 0; i < shots; i++){
+    state.invProjectiles.push({ x: state.invShip.x + (i - (shots - 1) / 2) * 4, y: 90, hit: false });
+  }
+});
+
+function updateInvGame(dt){
+  const dtSec = dt / 1000;
+
+  // Ship eases toward the click target — same lerp-toward-target
+  // technique used for the ball spawn-in ease elsewhere on this page.
+  state.invShip.x += (state.invShip.targetX - state.invShip.x) * 0.22;
+
+  state.invProjectiles.forEach(p => { p.y -= 150 * dtSec; });
+  state.invProjectiles = state.invProjectiles.filter(p => p.y > -5 && !p.hit);
+
+  state.invEnemies.forEach(e => {
+    e.y += e.vy * dtSec;
+    if(e.hitFlash > 0) e.hitFlash -= dtSec * 4;
+  });
+  const reachedBottom = state.invEnemies.filter(e => e.y >= 96);
+  if(reachedBottom.length > 0){
+    state.invLives = Math.max(0, state.invLives - reachedBottom.length);
+    renderInvLives();
+    triggerLifeLostFeedback();
+    if(state.invLives > 0) sfxShieldLost();
+  }
+  state.invEnemies = state.invEnemies.filter(e => e.y < 96 && !e.dead);
+
+  state.invPickups.forEach(p => { p.y += 22 * dtSec; });
+  state.invPickups = state.invPickups.filter(p => p.y < 105 && !p.collected);
+
+  // Collisions — projectile vs enemy
+  for(const proj of state.invProjectiles){
+    if(proj.hit) continue;
+    for(const enemy of state.invEnemies){
+      if(enemy.dead) continue;
+      const dx = proj.x - enemy.x, dy = proj.y - enemy.y;
+      if(Math.sqrt(dx * dx + dy * dy) < enemy.radiusPct + 2.5){
+        proj.hit = true;
+        enemy.hp--;
+        enemy.hitFlash = 1;
+        const canvas = document.getElementById('invCanvas');
+        if(enemy.hp <= 0){
+          enemy.dead = true;
+          state.invScore += enemy.points;
+          document.getElementById('invScoreDisplay').textContent = state.invScore;
+          const color = enemy.type === 'brute' ? INV_BRUTE_COLOR : INV_SCOUT_COLOR;
+          spawnInvParticles((enemy.x / 100) * canvas.width, (enemy.y / 100) * canvas.height, color, enemy.type === 'brute' ? 40 : 22);
+          sfxEnemyDestroy(enemy.type === 'brute' ? 1 : 0.5);
+        } else {
+          // A hit that doesn't destroy it still visibly wears it down —
+          // shrinks toward 60% of its original size as HP drops, so a
+          // damaged hexagon looks visibly smaller, not just flashed white.
+          enemy.radiusPct = enemy.baseRadiusPct * (0.6 + 0.4 * (enemy.hp / enemy.maxHp));
+          sfxEnemyHit();
+        }
+        break;
+      }
+    }
+  }
+
+  // Collisions — projectile vs pickup
+  for(const proj of state.invProjectiles){
+    if(proj.hit) continue;
+    for(const pu of state.invPickups){
+      if(pu.collected) continue;
+      const dx = proj.x - pu.x, dy = proj.y - pu.y;
+      if(Math.sqrt(dx * dx + dy * dy) < 6){
+        proj.hit = true;
+        pu.collected = true;
+        const canvas = document.getElementById('invCanvas');
+        const color = pu.type === 'shield' ? INV_SHIELD_COLOR : pu.type === 'machinegun' ? INV_MACHINEGUN_COLOR : INV_PICKUP_COLOR;
+        if(pu.type === 'shield'){
+          state.invLives = Math.min(INV_MAX_LIVES, state.invLives + 1);
+          renderInvLives();
+        } else if(pu.type === 'machinegun'){
+          state.invMachineGunUntil = performance.now() + 5000;
+        } else {
+          state.invRapidFireUntil = performance.now() + 4000;
+        }
+        sfxPickupCollect();
+        spawnInvParticles((pu.x / 100) * canvas.width, (pu.y / 100) * canvas.height, color, 26);
+        break;
+      }
+    }
+  }
+
+  state.invProjectiles = state.invProjectiles.filter(p => !p.hit);
+  state.invEnemies = state.invEnemies.filter(e => !e.dead);
+  state.invPickups = state.invPickups.filter(pu => !pu.collected);
+
+  updateInvParticles();
+}
+
+function drawInvShip(ctx, canvas){
+  const x = (state.invShip.x / 100) * canvas.width;
+  const y = canvas.height - 18;
+  ctx.save();
+  ctx.shadowColor = INV_SHIP_COLOR;
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = INV_SHIP_COLOR;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 16);
+  ctx.lineTo(x - 14, y + 10);
+  ctx.lineTo(x, y + 4);
+  ctx.lineTo(x + 14, y + 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function renderInvCanvas(){
+  const canvas = document.getElementById('invCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if(!state.invStars || state.invStars.length === 0){
+    state.invStars = Array.from({ length: 45 }, () => ({
+      x: Math.random(), y: Math.random(), r: Math.random() * 1.4 + 0.4, phase: Math.random() * Math.PI * 2
+    }));
+  }
+  for(const s of state.invStars){
+    const tw = 0.5 + 0.5 * Math.sin(Date.now() / 500 + s.phase);
+    ctx.save();
+    ctx.globalAlpha = 0.3 + tw * 0.5;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawInvShip(ctx, canvas);
+
+  for(const p of state.invProjectiles){
+    const x = (p.x / 100) * canvas.width, y = (p.y / 100) * canvas.height;
+    ctx.save();
+    ctx.shadowColor = INV_SHIP_COLOR;
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#D8FFFA';
+    ctx.beginPath();
+    ctx.ellipse(x, y, 2.2, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  for(const e of state.invEnemies){
+    const x = (e.x / 100) * canvas.width, y = (e.y / 100) * canvas.height;
+    const r = canvas.width * (e.radiusPct / 100);
+    const baseColor = e.type === 'boss' ? INV_BOSS_COLOR : e.type === 'brute' ? INV_BRUTE_COLOR : e.type === 'dart' ? INV_DART_COLOR : INV_SCOUT_COLOR;
+    ctx.save();
+    ctx.shadowColor = baseColor;
+    ctx.shadowBlur = e.type === 'boss' ? 28 + e.hitFlash * 24 : 10 + e.hitFlash * 16;
+    ctx.fillStyle = e.hitFlash > 0.05 ? '#ffffff' : baseColor;
+
+    ctx.beginPath();
+    if(e.type === 'boss'){
+      // Large rotating star — 8 points, spins each frame
+      if(!e.angle) e.angle = 0;
+      e.angle += 0.01;
+      for(let i = 0; i < 16; i++){
+        const ang = (Math.PI / 8) * i + e.angle;
+        const rad = i % 2 === 0 ? r : r * 0.52;
+        const px = x + Math.cos(ang) * rad, py = y + Math.sin(ang) * rad;
+        if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+    } else if(e.type === 'brute'){
+      for(let i = 0; i < 6; i++){
+        const ang = (Math.PI / 3) * i - Math.PI / 2;
+        const px = x + Math.cos(ang) * r, py = y + Math.sin(ang) * r;
+        if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+    } else if(e.type === 'dart'){
+      // Thin elongated diamond — tall and narrow to look fast
+      ctx.moveTo(x, y - r * 2); ctx.lineTo(x + r * 0.45, y); ctx.lineTo(x, y + r * 0.8); ctx.lineTo(x - r * 0.45, y);
+    } else {
+      // Scout: standard diamond
+      ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // Rotating outer ring for boss (extra menace)
+    if(e.type === 'boss' && e.hitFlash < 0.05){
+      ctx.strokeStyle = baseColor;
+      ctx.lineWidth = 2.5;
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(x, y, r * 1.45, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if(e.maxHp > 1){
+      // For the boss, draw a health bar instead of small pips
+      if(e.type === 'boss'){
+        const bw = r * 2.5, bh = 5;
+        const bx = x - bw / 2, by = y - r * 2 - 14;
+        ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(bx, by, bw, bh);
+        ctx.fillStyle = e.hitFlash > 0.05 ? '#fff' : baseColor;
+        ctx.fillRect(bx, by, bw * (e.hp / e.maxHp), bh);
+      } else {
+        const gap = 6;
+        const startX = x - ((e.maxHp - 1) * gap) / 2;
+        for(let i = 0; i < e.maxHp; i++){
+          ctx.beginPath();
+          ctx.fillStyle = i < e.hp ? '#ffffff' : 'rgba(255,255,255,0.28)';
+          ctx.arc(startX + i * gap, y - r - 8, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  for(const pu of state.invPickups){
+    const x = (pu.x / 100) * canvas.width, y = (pu.y / 100) * canvas.height;
+    const pulse = 0.7 + 0.3 * Math.sin(Date.now() / 150);
+    const color = pu.type === 'shield' ? INV_SHIELD_COLOR : pu.type === 'machinegun' ? INV_MACHINEGUN_COLOR : INV_PICKUP_COLOR;
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = color;
+    if(pu.type === 'shield'){
+      const r = 5;
+      ctx.beginPath();
+      ctx.arc(x - r * 0.55, y - r * 0.3, r, 0, Math.PI * 2);
+      ctx.arc(x + r * 0.55, y - r * 0.3, r, 0, Math.PI * 2);
+      ctx.moveTo(x - r * 1.5, y);
+      ctx.lineTo(x, y + r * 1.8);
+      ctx.lineTo(x + r * 1.5, y);
+      ctx.closePath();
+      ctx.fill();
+    } else if(pu.type === 'machinegun'){
+      // Draw a small gun-barrel silhouette
+      ctx.fillRect(x - 7, y - 3, 14, 5);
+      ctx.fillRect(x + 5, y - 5, 5, 9);
+    } else {
+      ctx.beginPath();
+      ctx.arc(x, y, 7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  for(const p of state.invParticles){
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.alpha);
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Active power-up indicators (stacked so multiple can show at once)
+  const now = performance.now();
+  let indicatorY = 16;
+  if(now < state.invMachineGunUntil){
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,140,66,0.92)';
+    ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('⚙ MACHINE GUN', canvas.width / 2, indicatorY);
+    ctx.restore();
+    indicatorY += 16;
+  }
+  if(now < state.invRapidFireUntil){
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,210,63,0.92)';
+    ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('✦ RAPID FIRE', canvas.width / 2, indicatorY);
+    ctx.restore();
+  }
+}
+
+function startInvRound(){
+  cancelInvRound();
+  state.invRoundActive = true;
+  state.invScore = 0;
+  state.invLives = INV_MAX_LIVES;
+  state.invShip = { x: 50, targetX: 50 };
+  state.invProjectiles = [];
+  state.invEnemies = [];
+  state.invPickups = [];
+  state.invParticles = [];
+  state.invRapidFireUntil = 0;
+  state.invMachineGunUntil = 0;
+  state.invLastAutoFireAt = 0;
+  state.invLastShotAt = 0;
+  state.invBossSpawnedThisRound = false;
+
+  document.getElementById('invScoreDisplay').textContent = '0';
+  document.getElementById('invTimeDisplay').textContent = INV_ROUND_SECONDS;
+  document.getElementById('invTimerFill').style.width = '100%';
+  renderInvLives();
+
+  const playArea = document.getElementById('invPlayArea');
+  playArea.classList.remove('idle');
+  resizeInvCanvas();
+  scheduleBossForRound();
+
+  let nextEnemyAt = 500;
+  let nextPickupAt = 4000 + Math.random() * 3000;
+  const start = performance.now();
+  let lastTime = start;
+
+  function tick(now){
+    const dt = Math.min(50, now - lastTime);
+    lastTime = now;
+    const elapsedMs = now - start;
+    const remaining = Math.max(0, INV_ROUND_SECONDS - elapsedMs / 1000);
+
+    document.getElementById('invTimeDisplay').textContent = Math.ceil(remaining);
+    document.getElementById('invTimerFill').style.width = (remaining / INV_ROUND_SECONDS * 100) + '%';
+
+    if(elapsedMs >= nextEnemyAt){
+      spawnInvEnemy();
+      nextEnemyAt = elapsedMs + (500 + Math.random() * 500);
+    }
+    if(elapsedMs >= nextPickupAt){
+      spawnInvPickup();
+      nextPickupAt = elapsedMs + (6000 + Math.random() * 4000);
+    }
+
+    // Machine gun: auto-fires every 60ms, no click needed
+    if(now < state.invMachineGunUntil && now - state.invLastAutoFireAt >= 60){
+      state.invLastAutoFireAt = now;
+      state.invProjectiles.push({ x: state.invShip.x, y: 90, hit: false });
+      sfxLaser();
+    }
+
+    updateInvGame(dt);
+    renderInvCanvas();
+
+    if(remaining <= 0){ finishInvRound(); return; }
+    state.invRoundRAF = requestAnimationFrame(tick);
+  }
+  state.invRoundRAF = requestAnimationFrame(tick);
+}
+
+// Cancels an in-progress round cleanly — same role as cancelPopRound:
+// called on natural round end AND when the teacher navigates away
+// mid-round, so the rAF loop can never keep running in the background.
+function cancelInvRound(){
+  if(state.invRoundRAF) cancelAnimationFrame(state.invRoundRAF);
+  state.invRoundRAF = null;
+  clearBossTimeout();
+  if(state.invRoundActive){
+    state.invRoundActive = false;
+    const playArea = document.getElementById('invPlayArea');
+    if(playArea) playArea.classList.add('idle');
+    const canvas = document.getElementById('invCanvas');
+    if(canvas){
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    const beginBtn = document.getElementById('invBeginTurnBtn');
+    if(beginBtn) beginBtn.disabled = false;
+  }
+}
+
+function finishInvRound(){
+  state.invRoundActive = false;
+  state.invRoundRAF = null;
+  clearBossTimeout();
+
+  const playArea = document.getElementById('invPlayArea');
+  playArea.classList.add('idle');
+
+  const team = state.invTeams[state.invCurrentTeam];
+  team.total += state.invScore;
+  state.invTurnsPlayed++;
+  renderInvScoreboard();
+
+  showInvResult(team, state.invScore).then(() => {
+    if(state.invTurnsPlayed >= INV_QUESTIONS.length){
+      endInvGame();
+    } else {
+      state.invCurrentTeam = (state.invCurrentTeam + 1) % state.invTeams.length;
+      renderInvScoreboard();
+      renderInvTurnBanner();
+      document.getElementById('invBeginTurnBtn').disabled = false;
+      document.getElementById('invTimeDisplay').textContent = '--';
+      document.getElementById('invTimerFill').style.width = '100%';
+    }
+  });
+}
+
+function endInvGame(){
+  sfxCorrect();
+  const maxScore = Math.max(...state.invTeams.map(t => t.total));
+  const winners = state.invTeams.filter(t => t.total === maxScore);
+  const winnerText = winners.length > 1
+    ? `It's a tie: ${winners.map(w => w.name).join(' & ')}!`
+    : `${winners[0].name} wins!`;
+
+  document.getElementById('invTurnBanner').innerHTML = `🎉 All done — ${winnerText}`;
+  document.getElementById('invBeginTurnBtn').classList.add('hidden');
+  document.getElementById('invTimeDisplay').textContent = '--';
+  document.getElementById('invTimerFill').style.width = '0%';
+  document.getElementById('invPlayArea').classList.add('idle');
+  document.getElementById('invPlayAgainBtn').classList.remove('hidden');
+}
+
+document.getElementById('invResetScoresBtn').addEventListener('click', () => {
+  if(!confirm('Reset all team scores to 0?')) return;
+  state.invTeams.forEach(t => t.total = 0);
+  renderInvScoreboard();
+});
+
+document.getElementById('invPlayAgainBtn').addEventListener('click', () => {
+  document.getElementById('invGame').classList.add('hidden');
+  document.getElementById('invPlayAgainBtn').classList.add('hidden');
+  document.getElementById('invBeginTurnBtn').classList.remove('hidden');
+  document.getElementById('invBeginTurnBtn').disabled = false;
+  document.getElementById('invSetup').classList.remove('hidden');
+});
+
+/* =========================================================
+   STAGE 8 — BAMBOOZLE CLONE
+   A 5×4 tile-reveal game. Teams take turns clicking tiles to
+   get a question + random reward. Rewards range from straight
+   points to game-changers (steal, swap, wipeout, freeze).
+========================================================= */
+const BZ_TILE_COLORS = [
+  "#5C8A82","#8577A8","#C97B6C","#BF9A54",
+  "#4A7A72","#7B6F9E","#B56B5C","#B08E48",
+  "#3D6B62","#6B5F8E","#A25B4C","#A07E3E"
+];
+const BZ_REWARDS = [
+  { label:"+5",      icon:"⭐", fn:(t,ts)=>{ t.total+=5; return `${t.name} gets 5 points!`; }},
+  { label:"+10",     icon:"🏆", fn:(t,ts)=>{ t.total+=10; return `${t.name} gets 10 points!`; }},
+  { label:"+15",     icon:"💥", fn:(t,ts)=>{ t.total+=15; return `${t.name} gets 15 points!`; }},
+  { label:"×2",      icon:"🎯", fn:(t,ts)=>{ t.total*=2; return `${t.name} doubles to ${t.total}!`; }},
+  { label:"STEAL",   icon:"😈", fn:(t,ts)=>{
+      const o=ts.filter(x=>x!==t&&x.total>0);
+      if(!o.length) return "No one to steal from!";
+      const v=o[Math.floor(Math.random()*o.length)]; const a=Math.min(5,v.total);
+      v.total-=a; t.total+=a; return `${t.name} steals ${a} pts from ${v.name}!`; }},
+  { label:"SWAP",    icon:"🔄", fn:(t,ts)=>{
+      const o=ts.filter(x=>x!==t);
+      if(!o.length) return "No one to swap with!";
+      const x=o[Math.floor(Math.random()*o.length)];
+      [t.total,x.total]=[x.total,t.total]; return `${t.name} swaps with ${x.name}!`; }},
+  { label:"WIPEOUT", icon:"💣", fn:(t,ts)=>{
+      const v=ts[Math.floor(Math.random()*ts.length)]; v.total=0;
+      return `💣 ${v.name} wiped out!`; }},
+  { label:"+20",     icon:"🌟", fn:(t,ts)=>{ t.total+=20; return `JACKPOT! ${t.name} gets 20 pts!`; }},
+  { label:"-5",      icon:"💀", fn:(t,ts)=>{ t.total=Math.max(0,t.total-5); return `Unlucky! ${t.name} loses 5 pts.`; }},
+  { label:"FREEZE",  icon:"🧊", fn:(t,ts)=>{ state.bzFreezeNext=true; return `Next team's turn is frozen!`; }},
+  { label:"+8 FREE", icon:"🎁", fn:(t,ts)=>{ t.total+=8; return `Bonus question! ${t.name} earns 8 pts!`; }},
+  { label:"HALF",    icon:"✂️", fn:(t,ts)=>{ t.total=Math.floor(t.total/2); return `${t.name} halved to ${t.total}.`; }},
+];
+const BZ_QUESTIONS = [
+  {q:"Comparative of 'cold'?",a:"colder"},{q:"Comparative of 'small'?",a:"smaller"},
+  {q:"Comparative of 'happy'?",a:"happier"},{q:"Comparative of 'big'?",a:"bigger"},
+  {q:"Comparative of 'nice'?",a:"nicer"},{q:"Comparative of 'hot'?",a:"hotter"},
+  {q:"Comparative of 'good'?",a:"better"},{q:"Comparative of 'bad'?",a:"worse"},
+  {q:"Comparative of 'easy'?",a:"easier"},{q:"Comparative of 'fast'?",a:"faster"},
+  {q:"Comparative of 'busy'?",a:"busier"},{q:"Comparative of 'safe'?",a:"safer"},
+  {q:"Comparative of 'thin'?",a:"thinner"},{q:"Comparative of 'old'?",a:"older"},
+  {q:"Comparative of 'young'?",a:"younger"},{q:"Comparative of 'clever'?",a:"cleverer"},
+  {q:"Comparative of 'long'?",a:"longer"},{q:"Comparative of 'dry'?",a:"drier"},
+  {q:"Comparative of 'wet'?",a:"wetter"},{q:"Comparative of 'late'?",a:"later"},
+];
+
+function renderBzTeamInputs(count){
+  const wrap=document.getElementById('bzTeamInputs'); wrap.innerHTML='';
+  for(let i=0;i<count;i++){
+    const row=document.createElement('div'); row.className='pop-team-row';
+    row.innerHTML=`<span class="dot" style="background:${POP_TEAM_COLORS[i]}"></span><input type="text" value="Team ${i+1}" maxlength="16">`;
+    wrap.appendChild(row);
+  }
+  document.getElementById('bzAddTeamBtn').disabled=count>=4;
+}
+renderBzTeamInputs(2);
+
+document.getElementById('bzAddTeamBtn').addEventListener('click',()=>{
+  const cur=document.querySelectorAll('#bzTeamInputs input').length; if(cur>=4)return;
+  const names=Array.from(document.querySelectorAll('#bzTeamInputs input')).map(i=>i.value);
+  renderBzTeamInputs(cur+1);
+  document.querySelectorAll('#bzTeamInputs input').forEach((inp,i)=>{if(names[i])inp.value=names[i];});
+});
+
+document.getElementById('bzStartBtn').addEventListener('click',()=>{
+  const names=Array.from(document.querySelectorAll('#bzTeamInputs input')).map(i=>i.value.trim()||'Team');
+  state.bzTeams=names.map((n,i)=>({name:n,color:POP_TEAM_COLORS[i],total:0}));
+  state.bzCurrentTeam=0; state.bzFreezeNext=false;
+  const qs=shuffle([...BZ_QUESTIONS]); const rw=shuffle([...BZ_REWARDS]);
+  state.bzTileData=Array.from({length:20},(_,i)=>({
+    q:qs[i%qs.length], reward:rw[i%rw.length],
+    color:BZ_TILE_COLORS[i%BZ_TILE_COLORS.length], revealed:false, used:false
+  }));
+  document.getElementById('bzSetup').classList.add('hidden');
+  document.getElementById('bzGame').classList.remove('hidden');
+  renderBzScoreboard(); renderBzGrid();
+});
+
+function renderBzScoreboard(){
+  document.getElementById('bzTeamList').innerHTML=state.bzTeams.map((t,i)=>`
+    <li class="${i===state.bzCurrentTeam?'active':''}" style="--tc:${t.color}">
+      <span class="name"><span class="dot" style="background:${t.color}"></span>${escapeHtml(t.name)}</span>
+      <span class="pop-score">${t.total}</span>
+    </li>`).join('');
+  document.getElementById('bzTurnBanner').innerHTML=`<strong>${escapeHtml(state.bzTeams[state.bzCurrentTeam].name)}</strong>'s turn`;
+}
+
+function renderBzGrid(){
+  const grid=document.getElementById('bzGrid');
+  grid.innerHTML=state.bzTileData.map((tile,i)=>{
+    if(tile.used) return `<button class="bz-tile used" style="background:#ccc;color:#888" disabled>✓</button>`;
+    if(tile.revealed) return `<button class="bz-tile revealed" style="background:${tile.color};color:white" data-i="${i}">
+      <span style="font-size:1.6em;display:block">${tile.reward.icon}</span>
+      <span class="bz-tile-label">${tile.reward.label}</span></button>`;
+    return `<button class="bz-tile" style="background:${tile.color};color:white" data-i="${i}">${i+1}</button>`;
+  }).join('');
+  grid.querySelectorAll('.bz-tile:not([disabled])').forEach(btn=>{
+    btn.addEventListener('click',()=>handleBzTileClick(Number(btn.dataset.i)));
+  });
+}
+
+function handleBzTileClick(i){
+  const tile=state.bzTileData[i]; if(tile.used)return;
+  if(!tile.revealed){ tile.revealed=true; renderBzGrid(); showBzQuestion(i); }
+  else { executeBzReward(i); }
+}
+
+function showBzQuestion(i){
+  const tile=state.bzTileData[i];
+  document.getElementById('popQuestionBody').innerHTML=`
+    <span class="modal-tag">${escapeHtml(state.bzTeams[state.bzCurrentTeam].name)}'s question</span>
+    <h3>${escapeHtml(tile.q.q)}</h3>
+    <div class="modal-answer hidden" id="popAnswerReveal">${escapeHtml(tile.q.a)}</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="bzRevealBtn">Show answer</button>
+      <button class="btn btn-primary" id="bzCorrectBtn">✓ Correct — pick reward!</button>
+      <button class="btn btn-ghost" id="bzWrongBtn">✗ Wrong — skip</button>
+    </div>`;
+  document.getElementById('popQuestionOverlay').classList.remove('hidden');
+  document.getElementById('bzRevealBtn').addEventListener('click',()=>document.getElementById('popAnswerReveal').classList.remove('hidden'));
+  document.getElementById('bzCorrectBtn').addEventListener('click',()=>{
+    document.getElementById('popQuestionOverlay').classList.add('hidden'); sfxCorrect();
+  });
+  document.getElementById('bzWrongBtn').addEventListener('click',()=>{
+    document.getElementById('popQuestionOverlay').classList.add('hidden');
+    sfxIncorrect(); tile.used=true; advanceBzTurn(); renderBzGrid();
+  });
+}
+
+function executeBzReward(i){
+  const tile=state.bzTileData[i];
+  const team=state.bzTeams[state.bzCurrentTeam];
+  const msg=tile.reward.fn(team,state.bzTeams);
+  tile.used=true; renderBzScoreboard(); renderBzGrid();
+  document.getElementById('popResultBody').innerHTML=`
+    <span style="font-size:3em;display:block;margin-bottom:8px">${tile.reward.icon}</span>
+    <div class="modal-result-big">${tile.reward.label}</div>
+    <div class="modal-result-sub">${escapeHtml(msg)}</div>
+    <div class="modal-actions"><button class="btn btn-primary" id="bzDoneBtn">Continue</button></div>`;
+  document.getElementById('popResultOverlay').classList.remove('hidden');
+  document.getElementById('bzDoneBtn').addEventListener('click',()=>{
+    document.getElementById('popResultOverlay').classList.add('hidden');
+    advanceBzTurn();
+    if(state.bzTileData.every(t=>t.used)) endBzGame();
+  });
+}
+
+function advanceBzTurn(){
+  let next=(state.bzCurrentTeam+1)%state.bzTeams.length;
+  if(state.bzFreezeNext){ state.bzFreezeNext=false; next=(next+1)%state.bzTeams.length; }
+  state.bzCurrentTeam=next; renderBzScoreboard();
+}
+
+function endBzGame(){
+  const max=Math.max(...state.bzTeams.map(t=>t.total));
+  const winners=state.bzTeams.filter(t=>t.total===max);
+  document.getElementById('bzTurnBanner').innerHTML=`🎉 ${winners.length>1?`Tie: ${winners.map(w=>w.name).join(' & ')}`:`${winners[0].name} wins`}!`;
+  document.getElementById('bzPlayAgainBtn').classList.remove('hidden'); sfxCorrect();
+}
+
+document.getElementById('bzResetScoresBtn').addEventListener('click',()=>{
+  if(!confirm('Reset all scores to 0?'))return;
+  state.bzTeams.forEach(t=>t.total=0); renderBzScoreboard();
+});
+document.getElementById('bzPlayAgainBtn').addEventListener('click',()=>{
+  document.getElementById('bzGame').classList.add('hidden');
+  document.getElementById('bzPlayAgainBtn').classList.add('hidden');
+  document.getElementById('bzSetup').classList.remove('hidden');
+});
+
+/* =========================================================
+   STAGE 9 — PRACTICE QUESTIONS + WORKSHEET PRINT
+   Four sets each progressively freer (gap fill → unscramble →
+   sentence writing → free writing). Students do these
+   individually, then the class checks together on-screen.
+========================================================= */
+const QS_SETS=[
+  { label:"Gap Fill", type:"gap", desc:"Fill in the blank with the correct comparative.",
+    questions:[
+      {prompt:"The Nile is ___ than the Thames. (long)", answer:"longer"},
+      {prompt:"A cheetah is ___ than a horse. (fast)", answer:"faster"},
+      {prompt:"My bag is ___ than yours. (heavy)", answer:"heavier"},
+      {prompt:"Summer is ___ than spring. (hot)", answer:"hotter"},
+      {prompt:"This exercise is ___ than the last. (easy)", answer:"easier"},
+    ]},
+  { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build the sentence.",
+    questions:[
+      {chips:["My","sister","is","taller","than","me","."],answer:"My sister is taller than me ."},
+      {chips:["The","red","car","is","faster","than","the","blue","one","."],answer:"The red car is faster than the blue one ."},
+      {chips:["It","is","hotter","in","July","than","in","May","."],answer:"It is hotter in July than in May ."},
+      {chips:["This","exercise","is","harder","than","the","first","."],answer:"This exercise is harder than the first ."},
+      {chips:["Dogs","are","noisier","than","cats","."],answer:"Dogs are noisier than cats ."},
+    ]},
+  { label:"Sentences", type:"sentence", desc:"Write a full comparative sentence using the word given.",
+    questions:[
+      {prompt:'Write a sentence using "bigger".',    hint:'___ is bigger than ___.'},
+      {prompt:'Write a sentence using "more tired".',hint:'I am more tired than ___.'},
+      {prompt:'Write a sentence using "better".',    hint:'___ is better than ___ because…'},
+      {prompt:'Write a sentence using "closer".',    hint:'My ___ is closer than ___ to ___.'},
+      {prompt:'Write a sentence using "more expensive".',hint:'___ is more expensive than ___.'},
+    ]},
+  { label:"Free Writing", type:"free", desc:"Write 3–5 sentences comparing two things. Use as many comparatives as you can.",
+    questions:[
+      {prompt:"Compare two animals. Write at least 3 sentences."},
+      {prompt:"Compare two foods you like. Write at least 3 sentences."},
+      {prompt:"Compare two places you know. Write at least 3 sentences."},
+    ]},
+];
+
+let qsState={setIndex:0,qIndex:0,score:0,bank:[],answer:[],checked:false};
+
+function initQs(){
+  qsState={setIndex:0,qIndex:0,score:0,bank:[],answer:[],checked:false};
+  renderQsTabs(); renderQsQuestion();
+}
+
+function renderQsTabs(){
+  document.getElementById('qsSetTabs').innerHTML=QS_SETS.map((s,i)=>`
+    <button class="qs-tab${i===qsState.setIndex?' active':''}" data-i="${i}">${s.label}</button>`).join('');
+  document.getElementById('qsSetTabs').querySelectorAll('.qs-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      qsState={setIndex:Number(btn.dataset.i),qIndex:0,score:0,bank:[],answer:[],checked:false};
+      renderQsTabs(); renderQsQuestion();
+    });
+  });
+}
+
+function renderQsQuestion(){
+  const set=QS_SETS[qsState.setIndex];
+  const q=set.questions[qsState.qIndex];
+  document.getElementById('qsProgressFill').style.width=(qsState.qIndex/set.questions.length*100)+'%';
+  document.getElementById('qsScore').textContent=`${qsState.qIndex}/${set.questions.length}`;
+  document.getElementById('qsCheckBtn').classList.remove('hidden');
+  document.getElementById('qsNextBtn').classList.add('hidden');
+  const fb=document.getElementById('qsFeedback');
+  fb.className='qs-feedback hidden'; fb.textContent='';
+  qsState.checked=false; qsState.bank=[]; qsState.answer=[];
+  const area=document.getElementById('qsQuestionArea');
+
+  if(set.type==='gap'){
+    area.innerHTML=`<p class="qs-prompt">${escapeHtml(set.desc)}</p>
+      <div class="qs-gap-fill">${q.prompt.split('___').map((p,i,a)=>
+        `<span>${escapeHtml(p)}</span>${i<a.length-1?'<input class="qs-gap" id="qsGap" placeholder="…" autocomplete="off">':''}`).join('')}</div>`;
+  } else if(set.type==='scramble'){
+    qsState.bank=shuffle(q.chips.map((t,i)=>({id:i,text:t})));
+    area.innerHTML=`<p class="qs-prompt">${escapeHtml(set.desc)}</p>
+      <div class="qs-chosen-strip" id="qsStrip"></div>
+      <div class="qs-scramble-chips" id="qsChips"></div>`;
+    renderQsScramble();
+  } else if(set.type==='sentence'){
+    area.innerHTML=`<p class="qs-prompt">${escapeHtml(q.prompt)}</p>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:8px;font-style:italic">${escapeHtml(q.hint)}</p>
+      <textarea class="qs-free-textarea" id="qsFreeInput" rows="3" placeholder="Write your sentence here…"></textarea>`;
+  } else {
+    area.innerHTML=`<p class="qs-prompt">${escapeHtml(q.prompt)}</p>
+      <textarea class="qs-free-textarea" id="qsFreeInput" rows="5" placeholder="Write here…"></textarea>`;
+  }
+}
+
+function renderQsScramble(){
+  const strip=document.getElementById('qsStrip');
+  strip.innerHTML=qsState.answer.map(c=>`<button class="chip answer-chip" data-id="${c.id}">${escapeHtml(c.text)}</button>`).join('');
+  strip.querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(qsState.checked)return;
+      const c=qsState.answer.find(x=>x.id===Number(btn.dataset.id));
+      qsState.answer=qsState.answer.filter(x=>x.id!==Number(btn.dataset.id));
+      qsState.bank.push(c); renderQsScramble();
+    });
+  });
+  const bank=document.getElementById('qsChips');
+  bank.innerHTML=qsState.bank.map(c=>`<button class="chip" data-id="${c.id}">${escapeHtml(c.text)}</button>`).join('');
+  bank.querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(qsState.checked)return;
+      const c=qsState.bank.find(x=>x.id===Number(btn.dataset.id));
+      qsState.bank=qsState.bank.filter(x=>x.id!==Number(btn.dataset.id));
+      qsState.answer.push(c); renderQsScramble();
+    });
+  });
+}
+
+document.getElementById('qsCheckBtn').addEventListener('click',()=>{
+  const set=QS_SETS[qsState.setIndex];
+  const q=set.questions[qsState.qIndex];
+  const fb=document.getElementById('qsFeedback');
+  qsState.checked=true;
+  if(set.type==='gap'){
+    const inp=document.getElementById('qsGap');
+    const correct=(inp?.value||'').trim().toLowerCase()===q.answer.toLowerCase();
+    inp?.classList.add(correct?'correct':'incorrect');
+    fb.textContent=correct?`✓ Correct! "${q.answer}"`:`✗ The answer is "${q.answer}"`;
+    fb.className=`qs-feedback ${correct?'correct':'incorrect'}`;
+    if(correct){qsState.score++;sfxCorrect();}else sfxIncorrect();
+  } else if(set.type==='scramble'){
+    const built=qsState.answer.map(c=>c.text).join(' ');
+    const correct=built===q.answer;
+    document.getElementById('qsStrip')?.classList.add(correct?'correct':'incorrect');
+    fb.textContent=correct?'✓ Correct!':`✗ "${q.answer}"`;
+    fb.className=`qs-feedback ${correct?'correct':'incorrect'}`;
+    if(correct){qsState.score++;sfxCorrect();}else sfxIncorrect();
+  } else {
+    fb.textContent='Check with your teacher or partner. Press Next when ready.';
+    fb.className='qs-feedback info';
+  }
+  fb.classList.remove('hidden');
+  document.getElementById('qsCheckBtn').classList.add('hidden');
+  document.getElementById('qsNextBtn').classList.remove('hidden');
+});
+
+document.getElementById('qsNextBtn').addEventListener('click',()=>{
+  const set=QS_SETS[qsState.setIndex];
+  if(qsState.qIndex<set.questions.length-1){
+    qsState.qIndex++; renderQsQuestion();
+  } else {
+    const fb=document.getElementById('qsFeedback');
+    fb.textContent=`Set complete! ${qsState.score}/${set.questions.length} correct. Try another set or print the worksheet.`;
+    fb.className='qs-feedback info'; fb.classList.remove('hidden');
+    document.getElementById('qsNextBtn').classList.add('hidden');
+    document.getElementById('qsProgressFill').style.width='100%';
+    document.getElementById('qsScore').textContent=`${set.questions.length}/${set.questions.length}`;
+    sfxCorrect();
+  }
+});
+
+document.getElementById('qsPrintBtn').addEventListener('click',()=>{
+  renderPrintableWorksheet();
+  document.getElementById('printableWorksheet').classList.add('active-print');
+  document.getElementById('printableRules').classList.remove('active-print');
+  window.print();
+  setTimeout(()=>document.getElementById('printableWorksheet').classList.remove('active-print'),500);
+});
+
+function renderPrintableWorksheet(){
+  const ws=document.getElementById('printableWorksheet');
+  ws.innerHTML=`
+    <h1>Comparative Adjectives — Practice Worksheet</h1>
+    <p class="print-subtitle">Name: __________________ &nbsp;&nbsp; Class: __________________ &nbsp;&nbsp; Date: __________________</p>
+    ${QS_SETS.map((set,si)=>`
+      <div class="ws-set-title">Section ${si+1}: ${set.label}</div>
+      <div class="ws-set-label">${escapeHtml(set.desc)}</div>
+      ${set.questions.map((q,qi)=>`
+        <div class="ws-q">
+          <div class="ws-q-prompt">${qi+1}. ${escapeHtml(set.type==='scramble'?q.chips.join(' / '):(q.prompt||''))}</div>
+          <div class="ws-answer-line"></div>
+          ${set.type==='free'?'<div class="ws-answer-line"></div><div class="ws-answer-line"></div>':''}
+        </div>`).join('')}
+    `).join('')}
+    <div class="answer-key">
+      <h3>Answer Key (Gap Fill &amp; Unscramble)</h3>
+      <ol>${QS_SETS[0].questions.map(q=>`<li>${escapeHtml(q.answer)}</li>`).join('')}
+          ${QS_SETS[1].questions.map(q=>`<li>${escapeHtml(q.answer)}</li>`).join('')}</ol>
+    </div>
+    <p class="print-footer">Comparative Adjectives — Interactive Lesson</p>`;
+}
+
+document.getElementById('restartLesson2').addEventListener('click',()=>{
+  document.getElementById('restartLesson').click();
+});
+
+document.getElementById('restartLesson').addEventListener('click', () => {
+  if(!confirm('Restart the whole lesson from the beginning?')) return;
+  cancelMcTimer();
+  cancelSemiTimer();
+  cancelPopRound();
+  stopPopParticleLoop();
+  cancelInvRound();
+  const wasMuted = state.muted;
+  state = {
+    currentStage: 1, completedStages: new Set(), expandedRules: new Set(), demoIndex: 0,
+    mcIndex: 0, mcScore: 0, mcAnswered: false, mcTimerRAF: null, mcStarted: false,
+    semiIndex: 0, semiScore: 0, semiBank: [], semiAnswer: [], semiChecked: false, semiTimerRAF: null, semiStarted: false,
+    popTeams: [], popCurrentTeam: 0, popQuestionOrder: [], popTurnsPlayed: 0, popScore: 0, popRoundActive: false, popRoundRAF: null,
+    popParticles: [], popParticleRAF: null, popBallAnims: [], popSpecialUsedThisRound: false, popSwarmRemaining: 0, popBgBlobs: [],
+    popBombTimeouts: [], popActiveBombs: [],
+    popGemTimeouts: [], popActiveGems: [],
+    invTeams: [], invCurrentTeam: 0, invQuestionOrder: [], invTurnsPlayed: 0, invScore: 0, invLives: 3,
+    invRoundActive: false, invRoundRAF: null, invShip: { x: 50, targetX: 50 },
+    invProjectiles: [], invEnemies: [], invPickups: [], invParticles: [], invStars: [],
+    invRapidFireUntil: 0, invMachineGunUntil: 0, invLastAutoFireAt: 0, invLastShotAt: 0,
+    invBossSpawnedThisRound: false, invBossTimeout: null,
+    muted: wasMuted
+  };
+  document.querySelector('#stage4 .semi-actions').classList.remove('hidden');
+  document.getElementById('popGame').classList.add('hidden');
+  document.getElementById('popPlayAgainBtn').classList.add('hidden');
+  document.getElementById('popBeginTurnBtn').classList.remove('hidden');
+  document.getElementById('popSetup').classList.remove('hidden');
+  document.getElementById('invGame').classList.add('hidden');
+  document.getElementById('invPlayAgainBtn').classList.add('hidden');
+  document.getElementById('invBeginTurnBtn').classList.remove('hidden');
+  document.getElementById('invSetup').classList.remove('hidden');
+  renderPopTeamInputs(2);
+  renderInvTeamInputs(2);
+  renderRuleCards();
+  renderCompareDemo();
+  resetStopwatch();
+  goToStage(1);
+  // Stage 3/4 are left uninitialized here on purpose — goToStage()
+  // will set each one up fresh (new timer included) the next time the
+  // learner actually navigates to it, same as a first-time visit.
+});
+
+/* =========================================================
+   INIT
+========================================================= */
+renderStepper();
+renderRuleCards();
+renderPrintableRules();
+renderCompareDemo();
+renderWordBank();
+renderScaffoldList();
+stopwatch.remainingMs = getConfiguredStopwatchMs();
+// Stage 3 (Controlled practice) and Stage 4 (Guided practice) are
+// deliberately NOT initialized here — goToStage() sets each of them
+// up the first time the learner actually reaches that stage, so their
+// countdown timers can't start ticking while the stage is still hidden.
+</script>
+</body>
+</html>

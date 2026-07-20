@@ -1,0 +1,296 @@
+  :root{
+    --paper: #F5F6F4;
+    --surface: #FFFFFF;
+    --ink: #333B3C;
+    --muted: #6E7A78;
+    --line: #E1E6E3;
+    --primary: #5C8A82;
+    --primary-dark: #4A726B;
+    --rule-a: #5C8A82;
+    --rule-b: #8577A8;
+    --rule-c: #C97B6C;
+    --rule-d: #BF9A54;
+    --success: #5C9C7C;
+    --success-bg: #E9F3EC;
+    --error: #C1665C;
+    --error-bg: #F8ECEA;
+    --timer: #C97A3D;
+    /* Separate from --error on purpose: --error is for form/answer
+       feedback against the light lesson-stage background; --hazard is a
+       more saturated warning red for dark-canvas game elements (Ball
+       Pop's bomb, Star Defender's boss-hit flash) that needs to read as
+       urgent against a near-black background instead. */
+    --hazard: #E4574B;
+    --radius: 16px;
+    --font-display: 'Bricolage Grotesque', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html, body{ height:100%; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(92,138,130,0.12), transparent 45%),
+      radial-gradient(circle at 80% 75%, rgba(133,119,168,0.12), transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(191,154,84,0.08), transparent 50%),
+      var(--paper);
+    background-size: 200% 200%;
+    animation: driftBg 26s ease-in-out infinite alternate;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: clamp(15px, 2vh, 21px);
+    line-height:1.5;
+    height:100dvh; /* fixes mobile browser address-bar resize jumping */
+    overflow:hidden; /* the whole page never scrolls — see .stage-body for the one workable exception */
+    display:flex; flex-direction:column;
+    padding: clamp(8px, 1.5vh, 20px) clamp(10px, 2vw, 20px);
+  }
+  @keyframes driftBg{
+    0%{ background-position: 0% 0%, 100% 100%, 50% 100%; }
+    100%{ background-position: 30% 25%, 70% 65%, 60% 80%; }
+  }
+  h1,h2,h3{font-family:var(--font-display); margin:0;}
+  .wrap{
+    max-width:1500px; margin:0 auto; position:relative; width:100%;
+    flex:1; min-height:0; display:flex; flex-direction:column;
+  }
+
+  /* ---- Lesson header ---- */
+  .lesson-header{text-align:center; margin-bottom:clamp(14px, 3vh, 36px);}
+  .lesson-header h1{font-size:clamp(32px, 6.5vh, 58px); font-weight:800;}
+  .lesson-header .objective{
+    color:var(--ink); font-weight:600; font-size:clamp(17px, 2.8vh, 25px); margin-top:16px; max-width:760px;
+    margin-left:auto; margin-right:auto;
+  }
+
+  /* Example sentences of the target language — deliberately styled in
+     a distinct, high-contrast color (not the muted body-text ink) so
+     they read as "this is the important bit", used consistently on
+     both the Aim page and the Learn the Rule page. */
+  .example-sentence{
+    font-size:clamp(17px,2.8vh,23px); font-weight:700; color:var(--rule-b);
+    line-height:1.4; margin:0;
+  }
+  .example-sentence .hl{ color:var(--rule-c); font-weight:800; }
+
+  .aim-examples{
+    display:flex; gap:clamp(16px,3vw,32px); flex-wrap:wrap; justify-content:center;
+    margin-top:clamp(20px,3.5vh,40px); max-width:1080px; margin-left:auto; margin-right:auto;
+  }
+  .aim-example{
+    flex:1; min-width:220px; max-width:320px;
+    background:var(--paper); border-radius:16px; padding:clamp(18px,3vh,32px);
+    text-align:center;
+  }
+  .aim-example-svg{ width:70%; height:auto; margin:0 auto 16px; display:block; }
+
+  /* ---- Stepper ---- */
+  .stepper{
+    display:flex; align-items:flex-start; justify-content:center; flex-shrink:0;
+    gap:0; margin: 0 auto clamp(10px, 2vh, 24px); max-width:1400px; width:100%;
+  }
+  .step{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    flex:1; position:relative; cursor:pointer; background:none; border:none;
+    font-family:var(--font-body); padding:0;
+  }
+  .step .circle{
+    width:clamp(28px, 4vh, 38px); height:clamp(28px, 4vh, 38px); border-radius:50%;
+    background:var(--surface); border:2px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:14px;
+    color:var(--muted); transition: all 0.15s ease; z-index:1;
+  }
+  .step.active .circle{ background:var(--primary); border-color:var(--primary); color:white; }
+  .step.done .circle{ background:var(--success); border-color:var(--success); color:white; }
+  /* The stepper is clickable (jumps to that stage) but had no hover/
+     press/keyboard-focus feedback at all — every OTHER clickable thing
+     on the page responds to interaction in some way, this was a real
+     gap, not a deliberate omission. Same bouncy hover language as
+     .btn/.team-color-swatch, just scoped to the circle so the label
+     text underneath doesn't jitter. */
+  .step:hover .circle{
+    transform:scale(1.1); border-color:var(--primary);
+    box-shadow:0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+  .step:active .circle{ transform:scale(0.95); transition-duration:0.08s; }
+  /* outline:none on the button itself, not the usual accessibility red
+     flag it would be elsewhere — the ring is deliberately moved onto
+     just the .circle below instead, so keyboard focus doesn't draw a
+     second, squarer ring around the whole flex column (circle + label)
+     on top of the circle's own round one. */
+  .step:focus-visible{ outline:none; }
+  .step:focus-visible .circle{ outline:2px solid var(--primary); outline-offset:2px; }
+  .step .step-label{ font-size:12px; color:var(--muted); text-align:center; max-width:90px; line-height:1.2; min-height:2.4em; }
+  .step.active .step-label{ color:var(--ink); font-weight:600; }
+  .step-line{
+    position:absolute; top:clamp(14px,2vh,17px); left:-50%; width:100%; height:2px;
+    background:var(--line); z-index:0;
+  }
+  .step:first-child .step-line{ display:none; }
+  .step.done .step-line, .step.active .step-line{ background:var(--primary); }
+
+  /* ---- Stage panels ----
+     Each stage fills all remaining vertical space after the stepper.
+     Internally it's h2 (fixed) + .stage-body (flexible, the part that
+     actually varies in size per stage) + .stage-footer (fixed, pinned
+     to the bottom by the flexible body taking up whatever space is left). */
+  .stage{
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: clamp(14px, 2.5vh, 40px) clamp(16px, 3vw, 48px);
+    position: relative;
+    overflow: hidden;
+    flex:1; min-height:0;
+    display:flex; flex-direction:column;
+  }
+  /* Every stage switch (stepper click, Back/Next, goToStage() calls from
+     JS) used to be an instant display:none/flex cut with no acknowledgment
+     that anything happened. This needed no JS changes at all — `.hidden`
+     sets display:none, so the moment it's removed the element is freshly
+     laid out and `.stage:not(.hidden)`'s animation plays from scratch
+     every time, the same way it would on first paint. */
+  .stage:not(.hidden){ animation: stageFadeIn 0.4s cubic-bezier(.16,1,.3,1); }
+  @keyframes stageFadeIn{
+    0%{ opacity:0; transform:translateY(10px); }
+    100%{ opacity:1; transform:translateY(0); }
+  }
+  .stage h2{ font-size:clamp(20px, 3.2vh, 30px); margin-bottom:clamp(8px, 1.8vh, 20px); text-align:center; flex-shrink:0; }
+  .stage-body{
+    flex:1; min-height:0; display:flex; flex-direction:column;
+    justify-content:flex-start; overflow:hidden;
+  }
+  /* Stages 1/3/4 have bounded, fixed-size content that never grows past
+     the available space in normal use — centering their .stage-body
+     closes the large empty gap flex-start otherwise leaves below short
+     content. Stage 2 is deliberately NOT included: its rule accordion
+     can have 0-4 cards open simultaneously (any combination, learner's
+     choice), so its content height is genuinely unbounded — centering
+     it clips from BOTH the top and bottom the moment enough cards are
+     open (confirmed by testing at 1280x720 with even a single card
+     open), which is worse than flex-start's bottom-only clipping.
+     Left as flex-start everywhere else for the same reason: centering +
+     overflow:hidden clips from both ends once content exceeds the box
+     — only safe where content height is genuinely predictable. */
+  #stage1 .stage-body, #stage3 .stage-body, #stage4 .stage-body{
+    justify-content:center;
+  }
+  /* Every team-based game's setup screen (intro text + legend + a
+     couple of team rows + two buttons) is similarly bounded in NORMAL
+     use — added 2026-07-16 per feedback that these screens read as
+     pinned to the top with a large dead gap below, especially now that
+     the legend redesign (see stage6-ballpop.css) made the content
+     shorter than before. The in-game view (`.pop-game-layout`) these
+     stages ALSO contain already fills its available space via its own
+     flex chain, so this is a no-op once a game is actually running —
+     verified with a stress case (8 teams added) that this doesn't
+     reintroduce stage 2's overflow-clipping risk before committing to it. */
+  #stage6 .stage-body, #stage7 .stage-body, #stage8 .stage-body,
+  #stage10 .stage-body, #stage11 .stage-body, #stage12 .stage-body,
+  #stage13 .stage-body, #stage14 .stage-body{
+    justify-content:center;
+  }
+  /* Stage 2's content height is genuinely unbounded (see above) — rather
+     than accepting silent bottom-edge clipping from the shared
+     overflow:hidden the moment 1+ rule cards are open (the compare-demo
+     section getting pushed out of view was a real, reported problem, not
+     just a rare edge case), let it scroll internally instead. Nothing
+     is ever silently lost this way. */
+  #stage2 .stage-body{
+    overflow-y:auto;
+  }
+
+  button{ font-family:var(--font-body); cursor:pointer; }
+
+
+  /* ---- Particle burst (gamified feedback) ---- */
+  .particle{
+    position:absolute; width:9px; height:9px; border-radius:50%;
+    pointer-events:none; transform:translate(-50%,-50%); z-index:20;
+    transition: transform 0.6s cubic-bezier(.2,.7,.4,1), opacity 0.6s ease;
+  }
+
+  /* ---- Sound toggle ---- */
+  .mute-toggle{
+    position:fixed; top:20px; right:20px; z-index:40;
+    background:var(--surface); border:1px solid var(--line); border-radius:50%;
+    width:44px; height:44px; font-size:18px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    transition: transform 0.32s cubic-bezier(.34,1.56,.64,1), box-shadow 0.32s ease, border-color 0.25s ease;
+  }
+  .mute-toggle:hover{
+    border-color:var(--primary); transform:scale(1.12);
+    box-shadow:0 6px 16px color-mix(in srgb, var(--primary) 30%, transparent), 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+  }
+  .mute-toggle:active{ transform:scale(0.94); transition-duration:0.08s; }
+  .mute-toggle:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+
+  /* ---- Circular countdown timer (Controlled / Guided practice)
+     Deliberately small and shape-distinct from the straight
+     progress bar below it — a ring that depletes as time runs out,
+     the reverse of a typical "loading" fill animation. ---- */
+  .timer-row{ display:flex; justify-content:center; margin-bottom:20px; }
+  .timer-circle{ position:relative; width:70px; height:70px; }
+  .timer-circle svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .timer-circle .timer-track{ fill:none; stroke:var(--line); stroke-width:5; }
+  .timer-circle .timer-arc{
+    fill:none; stroke:var(--timer); stroke-width:5; stroke-linecap:round;
+    transition: stroke 0.2s ease;
+  }
+  .timer-circle .timer-arc.urgent{ stroke:var(--error); }
+  .timer-circle-num{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:19px; color:var(--ink);
+  }
+
+  /* ---- Stage footer nav ---- */
+  .stage-footer{
+    display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
+    margin-top:clamp(8px, 1.5vh, 20px); padding-top:clamp(8px, 1.5vh, 18px); border-top:1px solid var(--line);
+  }
+  /* Soft, springy hover language shared by every button in the app —
+     a slower cubic-bezier lift (not a fast linear color-swap) plus a
+     colored glow, so interacting with anything clickable feels alive
+     rather than a flat state-swap. transition-duration is shortened
+     back down on :active so a *click* still feels instant/responsive;
+     only the hover approach is slow. */
+  .btn{
+    font-weight:700; font-size:clamp(13px, 1.8vh, 16px); border-radius:8px; padding:clamp(8px,1.3vh,12px) clamp(14px,2vw,22px); border:none;
+    transition: transform 0.32s cubic-bezier(.34,1.56,.64,1), box-shadow 0.32s ease,
+                background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, filter 0.25s ease;
+  }
+  .btn:hover:not(:disabled){ transform:translateY(-2px) scale(1.035); }
+  .btn:active:not(:disabled){ transform:scale(0.97); transition-duration:0.08s; }
+  .btn:disabled{ opacity:0.4; cursor:default; }
+  /* Keyboard-focus ring — every button in the app goes through this one
+     rule, so adding it here covers all of them at once. Site already had
+     :focus-visible on the team-color-picker's swatches/rows but not on
+     the buttons themselves, an inconsistency worth closing rather than
+     leaving keyboard navigation unindicated on the single most common
+     interactive element on the page. */
+  .btn:focus-visible{
+    outline:2px solid var(--primary); outline-offset:2px;
+  }
+  .btn-primary{ background:var(--primary); color:white; }
+  .btn-primary:hover:not(:disabled){
+    background:var(--primary-dark);
+    box-shadow:0 8px 22px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+  }
+  .btn-ghost{ background:none; color:var(--muted); border:1px solid var(--line); }
+  .btn-ghost:hover{
+    border-color:var(--primary); color:var(--primary);
+    box-shadow:0 6px 16px color-mix(in srgb, var(--primary) 20%, transparent), 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
+  }
+  .btn-danger{ background:var(--error); color:white; }
+  .btn-danger:hover:not(:disabled){
+    filter:brightness(0.94);
+    box-shadow:0 8px 22px color-mix(in srgb, var(--error) 45%, transparent), 0 0 0 3px color-mix(in srgb, var(--error) 22%, transparent);
+  }
+
+  .hidden{ display:none !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }

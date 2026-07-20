@@ -1,0 +1,387 @@
+  /* ---- Ball Pop Challenge (Stage 6) ---- */
+  .pop-team-inputs{ max-width:440px; margin:0 auto 20px; display:flex; flex-direction:column; gap:12px; }
+  .pop-team-row{ display:flex; align-items:center; gap:12px; }
+  .pop-team-row .dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+  .pop-team-row input{
+    flex:1; background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    padding:11px 16px; font-family:var(--font-body); font-size:18px; color:var(--ink);
+  }
+  .pop-team-row input:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+  .pop-setup-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+  /* Legend reuses the exact same colors/gradients as the real balls in
+     play, so it doubles as an accurate preview rather than a separate
+     illustration that could drift out of sync with the game itself.
+     Compact horizontal chips (icon + label side by side in one small
+     pill), not stacked icon-over-2-line-text boxes — per feedback that
+     the setup screens (especially Star Defender/Neon Arena, with 7-8
+     legend entries) felt cluttered. Capped to a narrower column so the
+     whole legend reads as one tidy block instead of a wide scattered
+     row, matching .pop-team-inputs' own width below it. */
+  .pop-legend{
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
+    max-width:480px; margin:0 auto clamp(14px,2.2vh,22px);
+  }
+  .pop-legend-item{
+    display:flex; align-items:center; gap:8px;
+    background:var(--paper); border:1px solid var(--line);
+    border-radius:999px; padding:5px 14px 5px 5px;
+  }
+  .pop-legend-swatch-box{
+    width:40px; height:40px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .pop-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; box-shadow:0 3px 8px rgba(0,0,0,0.2);
+  }
+  .pop-legend-swatch.normal{
+    width:38px; height:38px; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #FF6B6B 0%, #FF6B6B 55%, #C24A4A 100%);
+  }
+  .pop-legend-swatch.special{
+    width:30px; height:30px; border-radius:50%;
+    background: radial-gradient(circle at 36% 30%, #FFF9E0 0%, #FFD23F 50%, #B8791F 100%);
+    box-shadow:0 0 10px rgba(255,210,63,0.6);
+  }
+  .pop-legend-swatch.gem{
+    width:22px; height:22px; border-radius:50%;
+    background:linear-gradient(135deg, #FF3E9A 0%, #B266FF 55%, #31E6E0 100%);
+  }
+  .pop-legend-swatch.bomb{
+    width:34px; height:34px;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    background-image: repeating-linear-gradient(135deg, var(--hazard) 0, var(--hazard) 18%, #241010 18%, #241010 36%);
+  }
+  .pop-legend-swatch.multi{
+    width:32px; height:32px;
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+    background: radial-gradient(circle at 40% 35%, #E0FBFF 0%, #7FE0FF 40%, #3EC1FF 70%, #1C7FBF 100%);
+    box-shadow:0 0 8px rgba(62,193,255,0.6);
+  }
+  .pop-legend-points{
+    font-family:var(--font-body); font-weight:600; font-size:13px; color:var(--ink); white-space:nowrap;
+  }
+  .pop-legend-points.gem-points{ color:#B266FF; }
+  .pop-legend-points.bomb-points{ color:var(--error); }
+
+  /* Teams now sit in a side panel next to the play area (not stacked
+     above it), and every score is deliberately oversized — this is the
+     number students actually care about round to round. */
+  .pop-game-layout{
+    display:flex; gap:clamp(12px, 2vw, 28px); flex:1; min-height:0;
+  }
+  .pop-sidebar{
+    flex:0 0 clamp(160px, 18vw, 230px);
+    display:flex; flex-direction:column; justify-content:center; gap:clamp(8px, 1.4vh, 14px);
+    min-height:0; overflow-y:auto;
+  }
+  .pop-team-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:clamp(6px, 1.2vh, 10px); }
+  .pop-team-list li{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    padding:clamp(8px, 1.6vh, 16px) 8px; border-radius:12px;
+    border:2.5px solid var(--tc, var(--line));
+    background:color-mix(in srgb, var(--tc, var(--line)) 14%, var(--surface));
+  }
+  .pop-team-list li.active{
+    background:color-mix(in srgb, var(--tc, var(--primary)) 28%, var(--surface));
+    box-shadow:0 0 0 2px var(--tc, var(--primary)), 0 0 16px color-mix(in srgb, var(--tc, var(--primary)) 50%, transparent);
+    transform:scale(1.035);
+  }
+  /* Explicit "whose turn is it" label — the colored border/glow alone
+     wasn't a clear enough signal at a glance from across a classroom. */
+  .turn-badge{
+    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--tc, var(--primary));
+  }
+  .pop-team-list .name{
+    display:flex; align-items:center; gap:6px; font-weight:600;
+    font-size:clamp(12px, 1.6vh, 15px); color:var(--ink);
+  }
+  .pop-team-list .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .pop-team-list .pop-score{
+    font-family:var(--font-display); font-weight:800;
+    color:var(--tc, var(--primary));
+    font-size:clamp(28px, 5.5vh, 44px); line-height:1;
+  }
+
+  .pop-turn-box{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding-top:clamp(6px,1vh,12px); border-top:1px solid var(--line); text-align:center;
+  }
+  .pop-turn-box span{ font-size:clamp(13px, 1.7vh, 16px); font-weight:600; color:var(--ink); }
+
+  .pop-sidebar-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .pop-sidebar-reset{
+    font-size:11px; color:var(--muted); text-decoration:underline;
+    background:none; border:none; cursor:pointer; padding:0; font-family:var(--font-body);
+  }
+  .pop-sidebar-reset:hover{ color:var(--error); }
+  .pop-sidebar-actions #popChangeTeamsBtn:hover,
+  .pop-sidebar-actions #invChangeTeamsBtn:hover,
+  .pop-sidebar-actions #bzChangeTeamsBtn:hover,
+  .pop-sidebar-actions #plinkoChangeTeamsBtn:hover{ color:var(--primary); }
+
+  .pop-main{
+    flex:1; min-height:0; display:flex; flex-direction:column; align-items:stretch;
+    gap:clamp(6px,1vh,10px);
+  }
+  /* Transparent by default — a real, visible card only in fullscreen
+     mode (see css/fullscreen-game.css), where it becomes the single
+     floating HUD instead of two separately-floating pieces. */
+  .pop-hud-card{ display:contents; }
+  .pop-hud{ display:flex; justify-content:center; gap:clamp(30px, 6vw, 70px); flex-shrink:0; }
+  .pop-hud-label{ font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); display:block; text-align:center; }
+  .pop-hud-num{
+    font-family:var(--font-display); font-size:clamp(26px, 4.5vh, 36px); font-weight:700; color:var(--ink);
+    display:block; text-align:center; transition: transform 0.15s ease;
+  }
+
+  .timer-bar-track{ width:100%; max-width:440px; height:8px; background:var(--line); border-radius:6px; overflow:hidden; flex-shrink:0; margin:0 auto; }
+  .timer-bar-fill{ height:100%; background:var(--timer); border-radius:6px; transition: width 0.2s linear; }
+
+  /* Play area — now fills the available space in pop-main rather than
+     being capped at 720 px, giving a noticeably larger battlefield. */
+  .pop-play-area{
+    position:relative; flex:1; min-height:0; width:100%;
+    border-radius:16px; overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 75%, rgba(178,102,255,0.28) 0%, transparent 40%),
+      radial-gradient(circle at 80% 25%, rgba(49,230,224,0.22) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(255,210,63,0.12) 0%, transparent 55%),
+      linear-gradient(160deg, #F2F0FA, #E8F2EF);
+    box-shadow: inset 0 0 0 3px var(--line);
+  }
+  /* Begin Turn lives centered inside the canvas itself — visible only
+     while idle (between turns), hidden the instant a round is live. */
+  #popPlayArea #popBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .pop-play-area:not(.idle) #popBeginTurnBtn{ display:none; }
+
+  /* Shared by every game's play area (Ball Pop/Star Defender/Spin Wheel/
+     Plinko/Sky Slingshot/Comet Chaos/Billiards/Neon Arena) — a big,
+     unmissable end-of-game announcement. Sits over the
+     whole play area at game end so "this round is over, here's who
+     won" reads instantly, rather than a small text update buried in
+     the footer (which is hidden entirely in fullscreen mode anyway,
+     see body.fullscreen-game .pop-turn-box > span[id$="TurnBanner"]).
+     The "Play again" button stays exactly where it already was, below
+     the play area — this banner is a visual addition, not a replacement
+     for that existing, working control. */
+  .game-over-banner{
+    position:absolute; inset:0; z-index:26;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    background:rgba(8,8,18,0.6); backdrop-filter:blur(4px);
+    animation: gameOverIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .game-over-title{
+    font-family:var(--font-display); font-weight:800; font-size:clamp(14px,2vh,18px);
+    text-transform:uppercase; letter-spacing:0.14em; color:rgba(255,255,255,0.65);
+  }
+  .game-over-winner{
+    font-family:var(--font-display); font-weight:800; font-size:clamp(30px,6.5vh,58px);
+    text-align:center; padding:0 24px; line-height:1.25;
+    background:linear-gradient(110deg, #8FF2E4, #FFD23F, #FF6BD6, #8FF2E4);
+    background-size:220% auto; background-position:0% center;
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#fff;
+    animation: gameOverShine 2.6s linear infinite;
+    text-shadow:0 0 40px rgba(255,255,255,0.12);
+  }
+  @keyframes gameOverIn{
+    0%{ opacity:0; transform:scale(0.92); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+  @keyframes gameOverShine{
+    0%{ background-position:0% center; }
+    100%{ background-position:220% center; }
+  }
+
+  .pop-particle-canvas{
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:20;
+  }
+  .pop-ball-layer{
+    position:absolute; inset:0; z-index:21;
+  }
+
+  .pop-play-area.shake{ animation: shakeWrong 0.4s ease; }
+
+  .pop-ball{
+    position:absolute; width:11%; aspect-ratio:1/1; border-radius:50%;
+    cursor:pointer; border:none; padding:0;
+    display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    /* transform/opacity are set every frame by JS (see updatePopBallAnims),
+       not by a CSS animation — this gives the organic ease-in-and-settle
+       feel from the reference game instead of a fixed-duration curve. */
+  }
+  /* "Power orb" core design — a white-hot center that reads as
+     genuinely different from every other ball type (not just "a gold
+     ball with extra glow"): a bright flare core, a dashed energy ring
+     orbiting it, and a slow pulse, so it's recognizable as "the special
+     one" even before a student consciously registers the color. */
+  .pop-ball.special{
+    width:9%;
+    border-radius:50%;
+    background: radial-gradient(circle at 50% 50%, #FFFFFF 0%, #FFF3B8 24%, #FFD23F 58%, #B8791F 100%) !important;
+    box-shadow:0 0 18px rgba(255,210,63,0.75), 0 0 34px rgba(255,159,10,0.35);
+    animation: specialCorePulse 0.9s ease-in-out infinite alternate;
+  }
+  .pop-ball.special::before{
+    content:''; position:absolute; inset:-24%; border-radius:50%;
+    border:2px dashed rgba(255,210,63,0.7);
+    animation: specialRingSpin 3.2s linear infinite;
+  }
+  .pop-ball.special::after{
+    content:''; position:absolute; inset:30%; border-radius:50%;
+    background:#fff; filter:blur(1.5px);
+    animation: specialCoreFlare 0.9s ease-in-out infinite alternate;
+  }
+  @keyframes specialCorePulse{
+    0%{ filter:brightness(1) saturate(1); }
+    100%{ filter:brightness(1.4) saturate(1.3); }
+  }
+  @keyframes specialRingSpin{
+    0%{ transform:rotate(0deg); }
+    100%{ transform:rotate(360deg); }
+  }
+  @keyframes specialCoreFlare{
+    0%{ opacity:0.5; transform:scale(0.8); }
+    100%{ opacity:1; transform:scale(1.2); }
+  }
+  /* The 4 balls a special ball bursts into are deliberately smaller
+     than a normal single-spawn ball too — visually distinct as "the
+     bonus swarm" rather than 4 regular balls. */
+  .pop-ball.swarm{ width:8%; }
+  /* The bomb reads as genuinely dangerous, not just "a red ball": hazard-
+     stripe fill, an octagon (stop-sign) silhouette instead of a circle,
+     and its own faster pulse — shape and motion carry the warning, not
+     just color. Deliberately much smaller than a normal ball — there
+     are more of them on screen at once now, so each one stays a quick,
+     precise "don't hit that" dodge rather than a big obstacle. */
+  .pop-ball.bomb{
+    width:6%;
+    font-size:0.85rem; font-weight:800; color:#FFF3D6;
+    border-radius:0;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    background-image: repeating-linear-gradient(135deg, var(--hazard) 0, var(--hazard) 18%, #241010 18%, #241010 36%) !important;
+    box-shadow:0 4px 18px rgba(0,0,0,0.5);
+    animation: bombPulse 0.5s ease-in-out infinite;
+  }
+  @keyframes bombPulse{
+    0%, 100%{ filter:brightness(1); }
+    50%{ filter:brightness(1.4) saturate(1.3); }
+  }
+
+  /* The gem: tiny, high-value, and visually distinct from everything
+     else — a shimmering two-tone gradient rather than a flat fill,
+     with its own fast glow so it reads as "grab this immediately". */
+  .pop-ball.gem{
+    width:5%;
+    background: linear-gradient(135deg, #FF3E9A 0%, #B266FF 55%, #31E6E0 100%) !important;
+    box-shadow:0 2px 10px rgba(0,0,0,0.3);
+    animation: gemGlow 0.45s ease-in-out infinite alternate;
+  }
+  @keyframes gemGlow{
+    0%{ filter:brightness(1) saturate(1); }
+    100%{ filter:brightness(1.45) saturate(1.4); }
+  }
+
+  /* The multiplier ball (new, 2026-07-16): an 8-point starburst shape
+     (clip-path, not a circle) in electric blue — deliberately not just
+     another circular gradient, so it reads as fundamentally different
+     from all 4 existing ball types at a glance, matching how big a deal
+     popping it is (doubles every point for a few seconds). An expanding
+     ring pulses outward continuously, distinct from the special ball's
+     fixed dashed ring. */
+  .pop-ball.multi{
+    width:7%;
+    border-radius:0;
+    background: radial-gradient(circle at 40% 35%, #E0FBFF 0%, #7FE0FF 40%, #3EC1FF 70%, #1C7FBF 100%) !important;
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+    box-shadow:0 0 16px rgba(62,193,255,0.75);
+    animation: multiPulse 0.4s ease-in-out infinite alternate;
+  }
+  .pop-ball.multi::before{
+    content:''; position:absolute; inset:-30%;
+    border-radius:50%; border:2px solid rgba(62,193,255,0.55);
+    animation: multiRingPulse 0.8s ease-out infinite;
+  }
+  @keyframes multiPulse{
+    0%{ filter:brightness(1) saturate(1); }
+    100%{ filter:brightness(1.5) saturate(1.3); }
+  }
+  @keyframes multiRingPulse{
+    0%{ transform:scale(0.8); opacity:0.9; }
+    100%{ transform:scale(1.3); opacity:0; }
+  }
+
+  /* Expanding ring that fires from the click point on every pop —
+     colored green-ish for a correct pop, red for a bad-ball miss. */
+  .pop-shockwave{
+    position:absolute; width:20%; aspect-ratio:1/1; border-radius:50%;
+    border:3px solid var(--ring-color, #fff); transform:translate(-50%,-50%) scale(0.3);
+    opacity:0.9; pointer-events:none; z-index:15;
+    transition: transform 0.45s ease-out, opacity 0.45s ease-out;
+  }
+  /* The special ball's mega explosion fires three of these staggered
+     (see spawnMegaExplosion) — bigger and thicker than a normal pop's
+     ring so the burst reads as a distinct, bigger event at a glance. */
+  .pop-shockwave.mega{ width:38%; border-width:5px; }
+
+  /* A gem's own signature effect (spawnPopSparkles) — small 8-point
+     sparkle glyphs flying outward and fading, distinct from every other
+     ball type's feedback (bomb's shake, special's ring-burst) so all 4
+     types have a visually distinct "personality", not just a bigger/
+     smaller version of the same shockwave+particles combo. */
+  .pop-sparkle{
+    position:absolute; width:14px; height:14px;
+    background:var(--spark-color, #FFD23F);
+    clip-path: polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%);
+    filter: drop-shadow(0 0 5px var(--spark-color, #FFD23F));
+    transform:translate(-50%,-50%) scale(0) rotate(0deg);
+    opacity:1; pointer-events:none; z-index:16;
+    transition: transform 0.55s cubic-bezier(.2,.8,.3,1), opacity 0.55s ease-in;
+  }
+
+  /* Floating "+1" / "−1" combat-text style feedback */
+  .pop-float-text{
+    position:absolute; transform:translate(-50%,-50%) scale(1); opacity:1;
+    font-family:var(--font-display); font-weight:800; font-size:28px;
+    pointer-events:none; z-index:25; text-shadow:0 2px 6px rgba(0,0,0,0.25);
+    transition: transform 0.6s cubic-bezier(.2,.7,.4,1), opacity 0.6s ease;
+  }
+  .pop-float-text.mega{ font-size:34px; white-space:nowrap; }
+
+  /* Brief warm flash across the play area's border on a mega explosion —
+     reuses the same inset box-shadow the play area already rests at, so
+     it reads as a pulse outward from that baseline rather than a jarring
+     one-off style. */
+  .pop-play-area.mega-flash{ animation: popMegaFlash 0.38s ease; }
+  @keyframes popMegaFlash{
+    0%{ box-shadow: inset 0 0 0 3px var(--line); filter:brightness(1); }
+    30%{ box-shadow: inset 0 0 60px 12px rgba(255,210,63,0.55); filter:brightness(1.2); }
+    100%{ box-shadow: inset 0 0 0 3px var(--line); filter:brightness(1); }
+  }
+
+  /* Same "flash outward from the play area's own border" language as
+     the mega explosion above, cyan-tinted for the multiplier ball. */
+  .pop-play-area.multi-flash{ animation: popMultiFlash 0.4s ease; }
+  @keyframes popMultiFlash{
+    0%{ box-shadow: inset 0 0 0 3px var(--line); filter:brightness(1); }
+    30%{ box-shadow: inset 0 0 70px 14px rgba(62,193,255,0.6); filter:brightness(1.25); }
+    100%{ box-shadow: inset 0 0 0 3px var(--line); filter:brightness(1); }
+  }
+
+  /* Persists for the WHOLE ×2 window, not just the instant it's popped —
+     a room full of players needs a continuous reminder scoring is
+     doubled, not just a one-off flash they might miss. */
+  #popPopsDisplay.multi-active{
+    color:#1C9FE0;
+    animation: popMultiActiveGlow 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes popMultiActiveGlow{
+    0%{ text-shadow:0 0 6px rgba(62,193,255,0.5); }
+    100%{ text-shadow:0 0 16px rgba(62,193,255,0.95); }
+  }

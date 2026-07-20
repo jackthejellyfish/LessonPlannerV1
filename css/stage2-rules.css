@@ -1,0 +1,61 @@
+  /* ---- Rule accordion (Stage 1) ---- */
+  /* padding-top (not just margin) gives the top row's hover lift+shadow
+     (translateY(-2px) + a shadow blurring ~10px above the card's resting
+     edge) real breathing room instead of crowding right up against the
+     stage panel's own edge — confirmed by testing: without it, a hovered
+     top-row card's border sits almost flush against the panel boundary. */
+  .rule-list{ display:grid; grid-template-columns:repeat(auto-fit, minmax(380px,1fr)); gap:clamp(10px,1.8vh,18px); padding-top:14px; margin-bottom:clamp(10px,2vh,22px); max-width:1000px; margin-left:auto; margin-right:auto; width:100%; align-items:start; }
+  .rule-row{
+    border-radius:14px; border:2px solid var(--line); background:var(--paper);
+    overflow:hidden; flex-shrink:0;
+    transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.28s cubic-bezier(.34,1.56,.64,1);
+  }
+  .rule-row.open{ border-color: var(--card-color); }
+  .rule-row:not(.open):hover{
+    border-color: var(--card-color); transform:translateY(-2px);
+    box-shadow:0 8px 18px color-mix(in srgb, var(--card-color) 20%, transparent);
+  }
+  .rule-toggle{
+    width:100%; display:flex; align-items:center; justify-content:space-between;
+    background:none; border:none; text-align:left; padding:clamp(11px,1.9vh,19px) clamp(16px,2.2vw,24px);
+    font-family:var(--font-display); font-weight:700; font-size:clamp(17px,2.8vh,23px); color:var(--card-color);
+  }
+  .rule-toggle .chevron{ font-size:17px; color:var(--muted); transition: transform 0.15s ease; }
+  .rule-row.open .rule-toggle .chevron{ transform:rotate(180deg); }
+  .rule-body{ padding:0 clamp(16px,2.2vw,22px) clamp(8px,1.4vh,16px); }
+  .rule-formula{ font-size:clamp(14px,2vh,18px); color:var(--muted); margin-bottom:clamp(5px,1.1vh,13px); text-align:center; }
+  .rule-example{ font-size:clamp(16px,2.5vh,22px); font-weight:600; display:flex; align-items:baseline; justify-content:center; gap:4px; margin-bottom:clamp(1px,0.6vh,7px); }
+  .rule-example .suffix{ color:var(--card-color); }
+  .rule-example .arrow{ color:var(--muted); font-weight:400; margin:0 4px; font-size:16px; }
+
+  /* ---- Comparison bar demo (signature element) ---- */
+  .compare-demo{
+    background: var(--paper); border-radius:14px; padding:clamp(12px,2vh,22px) clamp(18px,2.6vw,32px);
+    max-width:960px; margin:clamp(8px,1.4vh,16px) auto 0; width:100%; flex-shrink:0;
+  }
+  .compare-icons{
+    display:flex; align-items:flex-end; justify-content:center;
+    gap:clamp(18px,3.4vw,36px); margin-bottom:clamp(8px,1.4vh,16px);
+  }
+  .compare-icon-box{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .compare-icon-frame{
+    height:68px; display:flex; align-items:flex-end; justify-content:center;
+  }
+  .compare-icon-frame svg{ display:block; width:auto; height:100%; }
+  .compare-vs{
+    font-family:var(--font-display); font-weight:700; color:var(--muted);
+    font-size:15px; text-transform:uppercase; padding-bottom:22px;
+  }
+  .bar-label{ font-size:16px; font-weight:600; color:var(--ink); }
+  .compare-caption{ font-size:clamp(16px,2.4vh,22px); font-weight:700; color:var(--rule-b); margin-top:clamp(5px,1vh,11px); text-align:center; }
+  .compare-caption .hl{ color:var(--rule-c); font-weight:800; }
+  .demo-nav{ display:flex; justify-content:center; gap:9px; margin-top:clamp(8px,1.5vh,16px); }
+  .demo-dot{
+    width:11px; height:11px; border-radius:50%; background:var(--line); border:none; padding:0;
+    transition: transform 0.28s cubic-bezier(.34,1.56,.64,1), background-color 0.22s ease, box-shadow 0.28s ease;
+  }
+  .demo-dot.active{ background:var(--primary); }
+  .demo-dot:hover{
+    transform:scale(1.5); background:var(--primary);
+    box-shadow:0 0 0 5px color-mix(in srgb, var(--primary) 20%, transparent);
+  }

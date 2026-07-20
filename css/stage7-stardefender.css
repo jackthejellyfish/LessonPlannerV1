@@ -1,0 +1,79 @@
+  /* ---- Star Defender (Stage 7) ----
+     The play area itself goes deep-space dark — everything else on
+     this page lives on a soft paper background, but a starfield
+     battlefield genuinely calls for its own register. Sidebar/HUD
+     chrome around it stays consistent with the rest of the lesson. */
+  .inv-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  }
+  .inv-legend-swatch.scout{
+    width:22px; height:22px;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    background: radial-gradient(circle at 40% 35%, #6FE3D6, #2F9E8F);
+  }
+  .inv-legend-swatch.brute{
+    width:34px; height:34px;
+    clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+    background: radial-gradient(circle at 40% 35%, #C77DFF, #7B4FA0);
+  }
+  .inv-legend-swatch.dart{
+    width:12px; height:28px;
+    clip-path: polygon(50% 0%, 100% 45%, 65% 55%, 65% 100%, 35% 100%, 35% 55%, 0% 45%);
+    background: radial-gradient(circle at 40% 35%, #A8FFCF, #7DFFB3 60%, #38C170);
+  }
+  .inv-legend-swatch.boss{
+    width:32px; height:32px;
+    clip-path: polygon(50% 0%, 60% 36%, 98% 38%, 70% 60%, 80% 98%, 50% 74%, 20% 98%, 30% 60%, 2% 38%, 40% 36%);
+    background: radial-gradient(circle at 40% 35%, #FF8FA0, #FF4E6A 60%, #B01040);
+    box-shadow:0 0 10px rgba(255,78,106,0.7);
+  }
+  .inv-legend-swatch.pickup{
+    width:24px; height:24px; border-radius:50%;
+    background: radial-gradient(circle at 40% 30%, #FFF7D6, #FFD23F 60%, #D98E2B);
+    box-shadow:0 0 10px rgba(255,210,63,0.7);
+  }
+  .inv-legend-swatch.machinegun{
+    width:28px; height:18px;
+    background: linear-gradient(90deg, #FF8C42, #FF5A00);
+    border-radius:3px;
+    box-shadow:0 0 8px rgba(255,140,66,0.7);
+  }
+  .inv-legend-swatch.heart{
+    width:26px; height:26px; color:#FF6B8B; font-size:20px; box-shadow:none;
+  }
+
+  .inv-lives{
+    display:flex; gap:6px; justify-content:center;
+    font-size:clamp(22px,3.5vh,30px); /* much larger ♥ icons */
+  }
+  .inv-lives .lost{ opacity:0.2; }
+  .inv-lives.pulse{ animation: livesLost 0.7s ease-out; }
+  @keyframes livesLost{
+    0%{ filter:drop-shadow(0 0 0 var(--hazard)); }
+    30%{ filter:drop-shadow(0 0 14px var(--hazard)) saturate(1.6); }
+    100%{ filter:none; }
+  }
+
+  .inv-play-area{
+    position:relative; flex:1; min-height:0; width:100%;
+    border-radius:16px; overflow:hidden;
+    background: radial-gradient(ellipse at 50% 20%, #1B1440 0%, #0A0820 70%);
+    box-shadow: inset 0 0 0 3px #2E2860;
+    transition: box-shadow 0.1s ease;
+  }
+  .inv-play-area.life-lost{
+    animation: invLifeLost 0.6s ease-out;
+  }
+  @keyframes invLifeLost{
+    0%{ box-shadow:inset 0 0 0 3px #2E2860; }
+    20%{ box-shadow:inset 0 0 0 6px var(--hazard), 0 0 24px color-mix(in srgb, var(--hazard) 60%, transparent); }
+    50%{ box-shadow:inset 0 0 0 4px var(--hazard), 0 0 12px color-mix(in srgb, var(--hazard) 30%, transparent); }
+    100%{ box-shadow:inset 0 0 0 3px #2E2860; }
+  }
+  .inv-canvas{ position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; }
+  #invPlayArea #invBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .inv-play-area:not(.idle) #invBeginTurnBtn{ display:none; }

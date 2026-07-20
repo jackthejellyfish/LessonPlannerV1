@@ -1,0 +1,10 @@
+/* ---- Spin the Wheel (Stage 8) ---- */
+/* Reuses .inv-play-area/.inv-canvas (dark canvas frame classes) and
+   .pop-legend/.pop-game-layout/.pop-sidebar for setup-screen and
+   in-game chrome, same shared-component pattern as every other game. */
+
+#wheelPlayArea #wheelBeginTurnBtn{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+}
+.inv-play-area:not(.idle) #wheelBeginTurnBtn{ display:none; }

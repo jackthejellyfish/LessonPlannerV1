@@ -1,0 +1,167 @@
+/* =========================================================
+   FULLSCREEN GAME MODE
+   Toggled by adding "fullscreen-game" to <body> (see
+   js/navigation.js) whenever the visible stage is one of the
+   games (Ball Pop / Star Defender / Spin Wheel / Plinko / Sky
+   Slingshot / Comet Chaos / Billiards / Neon Arena). The
+   play area takes over the ENTIRE stage — no reserved gutters —
+   and the team scoreboard + HUD physically relocate (see
+   js/fullscreenLayout.js) into that stage's footer bar, sitting
+   next to the Back/Next controls instead of floating over the
+   game. One bottom strip holds all the game "chrome"; everything
+   above it is pure play area.
+========================================================= */
+body.fullscreen-game .stepper{ display:none; }
+body.fullscreen-game .wrap{ max-width:none; }
+
+/* The fullscreen stage itself sits at z-index:50 (below), which was
+   already higher than .mute-toggle's z-index:40 — meaning the mute
+   button (and now the compact-mode button) were sitting UNDER the game
+   content the whole time in fullscreen mode, unclickable. Never caught
+   before because nothing had tried clicking mute specifically while a
+   game was open. */
+body.fullscreen-game .mute-toggle{ z-index:60; }
+
+body.fullscreen-game .stage:not(.hidden){
+  position:fixed; inset:0; z-index:50;
+  margin:0; border:none; border-radius:0;
+  padding: clamp(10px, 1.8vh, 20px) clamp(12px, 2vw, 28px);
+}
+body.fullscreen-game .stage:not(.hidden) > h2{ display:none; }
+
+/* ---- Footer: dark glass bar holding nav + team scores + HUD ---- */
+body.fullscreen-game .stage:not(.hidden) .stage-footer{
+  position:fixed; left:0; right:0; bottom:0; z-index:55;
+  margin:0; border-top:1px solid rgba(255,255,255,0.12);
+  background:rgba(14,12,28,0.92); backdrop-filter:blur(10px);
+  padding:10px clamp(14px,2.5vw,32px);
+  display:flex; align-items:center; gap:clamp(10px,2vw,24px);
+}
+body.fullscreen-game .stage:not(.hidden) .stage-footer .btn-ghost{
+  background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.2);
+  flex-shrink:0;
+}
+body.fullscreen-game .stage:not(.hidden) .stage-footer .btn-ghost:hover{
+  border-color:#fff; box-shadow:0 6px 16px rgba(255,255,255,0.18), 0 0 0 3px rgba(255,255,255,0.12);
+}
+body.fullscreen-game .stage:not(.hidden) .stage-footer > div{ display:flex; gap:10px; flex-shrink:0; }
+
+/* Reserve room at the bottom of the play column so the footer never
+   overlaps interactive game content (tiles, balls near the edge). */
+body.fullscreen-game .stage:not(.hidden) .stage-body{
+  padding-bottom: clamp(56px, 8vh, 76px);
+}
+body.fullscreen-game .pop-play-area,
+body.fullscreen-game .inv-play-area{
+  height:100%;
+}
+body.fullscreen-game .pop-game-layout{
+  height:100%;
+}
+body.fullscreen-game .pop-main{ width:100%; height:100%; }
+
+/* ---- The relocated info strip: team scores + HUD, centered between
+   the Back button and the Next/Restart buttons ---- */
+body.fullscreen-game .fs-footer-info{
+  flex:1; min-width:0; display:flex; align-items:center; justify-content:center;
+  gap:clamp(16px,3vw,36px); flex-wrap:wrap;
+}
+
+/* Team scoreboard: was a stacked vertical card, now a horizontal row of
+   compact pills that fits comfortably inside the footer strip. */
+body.fullscreen-game .pop-sidebar{
+  position:static; flex:0 1 auto; width:auto; max-height:none; overflow:visible;
+  background:none; border:none; box-shadow:none; padding:0;
+  display:flex; flex-direction:row; align-items:center; gap:clamp(10px,1.6vw,18px); flex-wrap:wrap;
+}
+body.fullscreen-game .pop-team-list{
+  flex-direction:row; gap:8px; flex-wrap:wrap;
+}
+body.fullscreen-game .pop-team-list li{
+  flex-direction:row; align-items:center; gap:8px;
+  padding:6px 12px 6px 10px; border-radius:20px;
+  border-color: color-mix(in srgb, var(--tc, #fff) 70%, transparent);
+  background: color-mix(in srgb, var(--tc, #888) 22%, transparent);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+body.fullscreen-game .pop-team-list li.active{
+  box-shadow:0 0 0 2px var(--tc, #fff), 0 0 18px color-mix(in srgb, var(--tc, #fff) 65%, transparent);
+}
+body.fullscreen-game .pop-team-list li:not(.active){ opacity:0.55; transform:scale(0.97); }
+body.fullscreen-game .pop-team-list .name{ color:#fff; font-size:clamp(12px,1.5vh,14px); }
+body.fullscreen-game .pop-team-list .pop-score{ font-size:clamp(18px,2.6vh,26px); }
+/* The turn badge now IS the active pill's glow — repeating it as text
+   next to a dozen other footer elements was noise, not signal. */
+body.fullscreen-game .turn-badge{ display:none; }
+
+/* Turn-box: the "Team X's turn — question Y of N" line duplicates what
+   the highlighted pill + HUD question counter already show, so it
+   hides here; the reset/change-teams links and (Star Defender) lives
+   stay, arranged compactly inline. */
+body.fullscreen-game .pop-turn-box{
+  flex-direction:row; align-items:center; gap:10px;
+  padding-top:0; border-top:none;
+}
+body.fullscreen-game .pop-turn-box > span[id$="TurnBanner"]{ display:none; }
+body.fullscreen-game .inv-lives{ font-size:clamp(15px,2vh,19px); }
+body.fullscreen-game .pop-sidebar-actions{ gap:8px; }
+body.fullscreen-game .pop-sidebar-reset{ color:rgba(255,255,255,0.55); white-space:nowrap; }
+body.fullscreen-game .pop-sidebar-reset:hover{ color:#fff; }
+
+/* HUD: time/score/question numbers + a slim timer bar, all inline. */
+body.fullscreen-game .pop-hud-card{
+  display:flex; align-items:center; gap:clamp(14px,2vw,26px);
+}
+body.fullscreen-game .pop-hud{ gap:clamp(16px,2.4vw,32px); }
+body.fullscreen-game .pop-hud-label{ color:rgba(255,255,255,0.55); font-size:10px; }
+body.fullscreen-game .pop-hud-num{ color:#fff; font-size:clamp(18px,2.6vh,26px); }
+body.fullscreen-game .timer-bar-track{
+  width:clamp(90px,10vw,160px); height:6px; margin:0;
+}
+
+/* Ball Pop's DOM-based balls are already %-sized (they grow with the
+   play area automatically) — only their fixed-px text needs a bump so
+   labels stay legible at the much larger physical ball size. */
+body.fullscreen-game .pop-ball.bomb{ font-size:clamp(1.1rem, 2.2vw, 1.8rem); }
+body.fullscreen-game .pop-float-text{ font-size:clamp(28px, 3vw, 46px); }
+
+/* ---- Compact mode ----
+   For younger players who physically can't reach the far edges/corners
+   of a large classroom display: shrinks the whole game into a smaller,
+   centered box with generous margin all around, everything within easy
+   reach. Toggled by #compactModeBtn (js/main.js), independent of which
+   game is open — the preference persists as you move between games. */
+.compact-toggle{ display:none; }
+body.fullscreen-game .compact-toggle{ display:flex; right:74px; }
+body.fullscreen-game.compact-game .compact-toggle{ background:var(--primary); color:#fff; }
+
+body.fullscreen-game.compact-game .stage:not(.hidden){
+  inset:auto; top:50%; left:50%; transform:translate(-50%, -50%);
+  width:min(82vw, 980px); height:min(80vh, 720px);
+  border-radius:28px; border:1px solid rgba(255,255,255,0.14);
+  box-shadow:0 24px 70px rgba(0,0,0,0.4);
+}
+body.fullscreen-game.compact-game .stage:not(.hidden) .stage-footer{
+  position:absolute; left:0; right:0; bottom:0;
+  border-radius:0 0 28px 28px;
+}
+/* --compact-footer-h is kept in sync with the footer's REAL rendered
+   height by a ResizeObserver in main.js — the footer's content (team
+   pills, HUD fields, button labels) varies per game and can wrap
+   differently at this box's narrower width, so a single fixed guess
+   here (the old clamp(52px,10vh,68px)) undershot badly for some games:
+   confirmed via measurement, Billiards' actual footer ran 145px tall
+   against a 68px reservation, leaving the canvas extending ~59px
+   UNDER the footer — hiding the bottom row of pockets and the power
+   meter entirely, not just cosmetically crowding them. The clamp stays
+   as the fallback for the brief instant before the observer's first
+   measurement lands. */
+body.fullscreen-game.compact-game .stage:not(.hidden) .stage-body{
+  padding-bottom: var(--compact-footer-h, clamp(52px, 10vh, 68px));
+}
+/* The footer strip is proportionally tighter on a smaller board, so its
+   contents shrink a notch too rather than crowding/wrapping. */
+body.fullscreen-game.compact-game .pop-team-list .pop-score{ font-size:clamp(15px,2vh,20px); }
+body.fullscreen-game.compact-game .pop-hud-num{ font-size:clamp(15px,2vh,20px); }
+body.fullscreen-game.compact-game .fs-footer-info{ gap:clamp(10px,1.6vw,20px); }
+body.fullscreen-game.compact-game .timer-bar-track{ width:clamp(60px,7vw,110px); }

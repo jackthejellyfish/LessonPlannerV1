@@ -1,0 +1,27 @@
+/* ---- Comet Chaos (Stage 12) ---- */
+/* Reuses .inv-play-area / .inv-canvas and .pop-legend / .pop-game-layout /
+   .pop-sidebar for setup-screen and in-game chrome, same shared-component
+   pattern as every other game stage — the space background/starfield is
+   drawn entirely on the canvas itself, same approach as Sky Slingshot's sky. */
+
+.comet-legend-swatch{
+  width:32px; height:32px; border-radius:50%; display:block;
+  box-shadow:0 3px 8px rgba(0,0,0,0.35);
+}
+.comet-legend-swatch.planet{ background:radial-gradient(circle at 34% 30%, #FFF3C2, #FFD23F 55%, #B98A1B); }
+.comet-legend-swatch.target{ background:radial-gradient(circle, transparent 40%, #43D1FF 42%, #43D1FF 55%, transparent 58%), radial-gradient(circle at 50% 50%, #FFD23F 0%, #FFD23F 22%, transparent 24%); }
+.comet-legend-swatch.blackhole{ background:radial-gradient(circle at 40% 35%, #4A3A66, #0A0714 65%); box-shadow:0 0 10px 2px rgba(139,62,255,0.55), 0 3px 8px rgba(0,0,0,0.35); }
+.comet-legend-swatch.comet{ background:radial-gradient(circle at 35% 30%, #FFFFFF, #9FE8FF 45%, #3E8FE0); }
+
+#cometPlayArea #cometBeginTurnBtn{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+}
+.inv-play-area:not(.idle) #cometBeginTurnBtn{ display:none; }
+
+.comet-hint{
+  position:absolute; top:clamp(10px,2vh,20px); left:50%; transform:translateX(-50%);
+  z-index:22; margin:0; padding:8px 18px; border-radius:20px;
+  background:rgba(10,8,32,0.65); color:#fff; font-size:clamp(13px,1.8vh,16px); font-weight:600;
+  pointer-events:none;
+}

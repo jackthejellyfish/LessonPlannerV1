@@ -1,0 +1,26 @@
+  /* ---- Guided / semi-controlled practice (Stage 3) ---- */
+  .sentence-strip{
+    min-height:clamp(56px,8vh,76px); background:var(--paper); border:2px dashed var(--line); border-radius:14px;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; padding:clamp(10px,1.7vh,17px) 22px; margin-bottom:clamp(10px,1.8vh,20px);
+    max-width:960px; margin-left:auto; margin-right:auto; width:100%; flex-shrink:0;
+  }
+  .sentence-strip.empty::before{ content:"Click the words below in order to build the sentence."; color:var(--muted); font-size:clamp(15px,2.1vh,19px); font-weight:600; font-style:italic; }
+  .sentence-strip.correct{ border-style:solid; border-color:var(--success); background:var(--success-bg); animation: correctPulse 0.45s ease; }
+  .sentence-strip.incorrect{ border-style:solid; border-color:var(--error); background:var(--error-bg); animation: shakeWrong 0.45s ease; }
+  .chip{
+    background:var(--surface); border:2px solid var(--line); border-radius:10px;
+    padding:clamp(9px,1.5vh,13px) 21px; font-size:clamp(16px,2.4vh,21px); font-weight:600; color:var(--ink);
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s ease, border-color 0.22s ease;
+  }
+  .chip.answer-chip{ background:var(--primary); border-color:var(--primary); color:white; }
+  .chip-bank{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-bottom:clamp(12px,2.2vh,26px); max-width:960px; margin-left:auto; margin-right:auto; width:100%; flex-shrink:0; }
+  .chip:hover{
+    border-color:var(--primary); transform:translateY(-2px) scale(1.05);
+    box-shadow:0 6px 16px color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+  .chip:active{ transform:scale(0.96); transition-duration:0.08s; }
+  .semi-actions{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:8px; flex-shrink:0; }
+  .semi-feedback{ text-align:center; font-size:clamp(15px,2.1vh,19px); font-weight:600; min-height:26px; margin-top:clamp(8px,1.6vh,16px); flex-shrink:0; }
+  .semi-feedback.correct{ color:var(--success); }
+  .semi-feedback.incorrect{ color:var(--error); }
+  .semi-counter{ text-align:center; font-size:13px; color:var(--muted); margin-bottom:clamp(10px,2vh,22px); text-transform:uppercase; letter-spacing:0.06em; flex-shrink:0; }

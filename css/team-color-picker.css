@@ -1,0 +1,79 @@
+/* ---- Team color picker (setup screen for every team-based game: Ball Pop /
+   Star Defender / Spin Wheel / Plinko / Sky Slingshot / Comet Chaos /
+   Billiards / Neon Arena) ---- */
+.team-color-swatch{
+  width:34px; height:34px; border-radius:50%; flex-shrink:0; padding:0;
+  border:3px solid var(--surface); cursor:pointer;
+  box-shadow:0 0 0 2px currentColor, 0 3px 8px rgba(0,0,0,0.22);
+  transition: transform 0.32s cubic-bezier(.34,1.56,.64,1), box-shadow 0.28s ease;
+}
+.team-color-swatch:hover{
+  transform:scale(1.2) rotate(-8deg);
+  box-shadow:0 0 0 2px currentColor, 0 0 0 6px color-mix(in srgb, currentColor 30%, transparent), 0 6px 14px rgba(0,0,0,0.28);
+}
+.team-color-swatch:focus-visible{ outline:2px solid var(--primary); outline-offset:3px; }
+
+.team-color-popover{
+  position:fixed; z-index:70;
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;
+  background:var(--surface); border:1px solid var(--line); border-radius:16px;
+  padding:14px; box-shadow:0 14px 36px rgba(0,0,0,0.24), 0 0 0 1px rgba(0,0,0,0.04);
+  animation: teamColorPopIn 0.16s cubic-bezier(.34,1.56,.64,1);
+  transform-origin: top left;
+}
+@keyframes teamColorPopIn{
+  0%{ transform:scale(0.82) translateY(-6px); opacity:0; }
+  100%{ transform:scale(1) translateY(0); opacity:1; }
+}
+.team-color-option{
+  width:32px; height:32px; border-radius:50%; padding:0;
+  border:3px solid var(--surface); cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.28s ease;
+  position:relative;
+}
+.team-color-option:hover:not(:disabled){
+  transform:scale(1.28) rotate(8deg);
+  box-shadow:0 0 0 4px rgba(255,255,255,0.5), 0 6px 14px rgba(0,0,0,0.28);
+}
+.team-color-option.selected{
+  box-shadow:0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 2px 6px rgba(0,0,0,0.2);
+}
+.team-color-option.selected::after{
+  content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:800; font-size:14px; text-shadow:0 1px 3px rgba(0,0,0,0.45);
+}
+.team-color-option.taken{ opacity:0.2; cursor:not-allowed; }
+
+/* Team setup row: a small card with real identity, not a plain bordered
+   input strip — the border/background tint tracks the chosen color live
+   (see teamColorPicker.js), so the row itself previews the team's look. */
+.pop-team-row{
+  border-radius:14px; border:1.5px solid var(--line);
+  padding:6px 14px 6px 10px;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.28s cubic-bezier(.34,1.56,.64,1), box-shadow 0.28s ease;
+}
+.pop-team-row:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(0,0,0,0.1);
+}
+.pop-team-row:focus-within{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+/* Only rendered once there are more teams than the minimum (2) — see
+   renderTeamSetupRows in teamColorPicker.js — so a 2-team game never
+   shows a button that would just be disabled. */
+.pop-team-row-remove{
+  flex-shrink:0; width:26px; height:26px; border-radius:50%;
+  border:1.5px solid var(--line); background:var(--surface); color:var(--muted);
+  font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
+  padding:0; cursor:pointer;
+  transition: transform 0.28s cubic-bezier(.34,1.56,.64,1), box-shadow 0.28s ease, background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+}
+.pop-team-row-remove:hover{
+  background:var(--error-bg); border-color:var(--error); color:var(--error);
+  transform:scale(1.15);
+  box-shadow:0 4px 12px color-mix(in srgb, var(--error) 30%, transparent);
+}

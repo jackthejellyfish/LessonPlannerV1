@@ -1,0 +1,12 @@
+{
+  "name": "comparative-adjectives-lesson",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Interactive ESL lesson on comparative adjectives — static site, no build step. This package.json exists only for Playwright test tooling.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

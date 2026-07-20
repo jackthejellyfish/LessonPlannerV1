@@ -1,0 +1,1493 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comparative Adjectives — Interactive Lesson</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/modals.css" />
+    <link rel="stylesheet" href="css/team-color-picker.css" />
+    <link rel="stylesheet" href="css/stage2-rules.css" />
+    <link rel="stylesheet" href="css/stage3-controlled.css" />
+    <link rel="stylesheet" href="css/stage4-guided.css" />
+    <link rel="stylesheet" href="css/stage5-free.css" />
+    <link rel="stylesheet" href="css/stage6-ballpop.css" />
+    <link rel="stylesheet" href="css/stage7-stardefender.css" />
+    <link rel="stylesheet" href="css/stage8-spinwheel.css" />
+    <link rel="stylesheet" href="css/stage9-questions.css" />
+    <link rel="stylesheet" href="css/stage10-plinko.css" />
+    <link rel="stylesheet" href="css/stage11-angrybirds.css" />
+    <link rel="stylesheet" href="css/stage12-cometchaos.css" />
+    <link rel="stylesheet" href="css/stage13-billiards.css" />
+    <link rel="stylesheet" href="css/stage14-neonarena.css" />
+    <link rel="stylesheet" href="css/fullscreen-game.css" />
+    <link rel="stylesheet" href="css/print.css" />
+  </head>
+  <body>
+    <button
+      class="mute-toggle"
+      id="muteBtn"
+      type="button"
+      aria-label="Toggle sound"
+    ></button>
+    <button
+      class="mute-toggle compact-toggle"
+      id="compactModeBtn"
+      type="button"
+      aria-label="Shrink game to a smaller, easier-to-reach size"
+    >
+      ⤢
+    </button>
+
+    <!-- Only rendered when printing — the active-print class decides which one shows. -->
+    <div id="printableRules"></div>
+    <div id="printableWorksheet"></div>
+
+    <div class="wrap">
+      <nav class="stepper" id="stepper"></nav>
+
+      <!-- STAGE 1: LESSON AIM -->
+      <section class="stage" id="stage1">
+        <div class="stage-body">
+          <div class="lesson-header">
+            <h1>Comparative Adjectives</h1>
+            <p class="objective">
+              By the end of this lesson, you will be able to form comparative
+              adjectives correctly and use them to compare two things.
+            </p>
+          </div>
+
+          <div class="aim-examples">
+            <div class="aim-example">
+              <svg
+                viewBox="0 0 100 70"
+                class="aim-example-svg"
+                aria-hidden="true"
+              >
+                <circle cx="34" cy="42" r="26" fill="var(--rule-a)" />
+                <circle cx="80" cy="54" r="9" fill="var(--muted)" />
+              </svg>
+              <p class="example-sentence">
+                The elephant is <span class="hl">bigger</span> than the mouse.
+              </p>
+            </div>
+            <div class="aim-example">
+              <svg
+                viewBox="0 0 100 70"
+                class="aim-example-svg"
+                aria-hidden="true"
+              >
+                <polygon points="10,55 40,10 70,55" fill="var(--rule-c)" />
+                <polygon points="55,55 78,28 100,55" fill="var(--muted)" />
+              </svg>
+              <p class="example-sentence">
+                The mountain is <span class="hl">taller</span> than the hill.
+              </p>
+            </div>
+            <div class="aim-example">
+              <svg
+                viewBox="0 0 100 70"
+                class="aim-example-svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 20 L48 20 M8 34 L60 34 M8 48 L38 48"
+                  stroke="var(--rule-b)"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M70 34 L92 34"
+                  stroke="var(--muted)"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                />
+                <polygon points="92,28 92,40 100,34" fill="var(--muted)" />
+              </svg>
+              <p class="example-sentence">
+                The cheetah is <span class="hl">faster</span> than the tortoise.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <span></span>
+          <button class="btn btn-primary" id="aimNextBtn">
+            Start lesson →
+          </button>
+        </div>
+      </section>
+
+      <!-- STAGE 2: PRESENTATION -->
+      <section class="stage hidden" id="stage2">
+        <h2>Learn the rule</h2>
+        <div class="stage-body">
+          <div class="rule-list" id="ruleGrid"></div>
+
+          <div class="compare-demo" id="compareDemo">
+            <div class="compare-icons">
+              <div class="compare-icon-box">
+                <div class="compare-icon-frame" id="demoIconA"></div>
+                <span class="bar-label" id="demoLabelA"></span>
+              </div>
+              <div class="compare-vs">vs</div>
+              <div class="compare-icon-box">
+                <div class="compare-icon-frame" id="demoIconB"></div>
+                <span class="bar-label" id="demoLabelB"></span>
+              </div>
+            </div>
+            <p class="compare-caption" id="demoCaption"></p>
+            <div class="demo-nav" id="demoNav"></div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="learnBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost" id="printRulesBtn" type="button">
+              Print rules
+            </button>
+            <button class="btn btn-primary" id="learnNextBtn">
+              Next: Controlled practice →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 3: CONTROLLED PRACTICE -->
+      <section class="stage hidden" id="stage3">
+        <h2>Controlled practice</h2>
+        <div class="stage-body">
+          <div class="timer-row">
+            <div class="timer-circle">
+              <svg viewBox="0 0 44 44">
+                <circle class="timer-track" cx="22" cy="22" r="18"></circle>
+                <circle
+                  class="timer-arc"
+                  id="mcTimerArc"
+                  cx="22"
+                  cy="22"
+                  r="18"
+                ></circle>
+              </svg>
+              <span class="timer-circle-num" id="mcTimerNum"></span>
+            </div>
+          </div>
+          <div class="score-row"><span class="score" id="mcScore"></span></div>
+
+          <div class="progress-line">
+            <span
+              id="mcCounter"
+              style="font-size: 14px; color: var(--muted)"
+            ></span>
+            <div class="progress-track">
+              <div class="progress-fill" id="mcProgressFill"></div>
+            </div>
+          </div>
+
+          <p class="mc-question" id="mcQuestion"></p>
+          <div class="mc-options" id="mcOptions"></div>
+          <p class="mc-feedback" id="mcFeedback"></p>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="controlledBackBtn">← Back</button>
+          <button class="btn btn-primary" id="controlledNextBtn">
+            Next: Guided practice →
+          </button>
+        </div>
+      </section>
+
+      <!-- STAGE 4: SEMI-CONTROLLED / GUIDED PRACTICE -->
+      <section class="stage hidden" id="stage4">
+        <h2>Guided practice</h2>
+        <div class="stage-body">
+          <div class="timer-row">
+            <div class="timer-circle">
+              <svg viewBox="0 0 44 44">
+                <circle class="timer-track" cx="22" cy="22" r="18"></circle>
+                <circle
+                  class="timer-arc"
+                  id="semiTimerArc"
+                  cx="22"
+                  cy="22"
+                  r="18"
+                ></circle>
+              </svg>
+              <span class="timer-circle-num" id="semiTimerNum"></span>
+            </div>
+          </div>
+          <div class="score-row">
+            <span class="score" id="semiScoreDisplay"></span>
+          </div>
+
+          <div class="progress-line">
+            <span
+              id="semiCounter"
+              style="font-size: 14px; color: var(--muted)"
+            ></span>
+            <div class="progress-track">
+              <div class="progress-fill" id="semiProgressFill"></div>
+            </div>
+          </div>
+
+          <div class="sentence-strip empty" id="answerStrip"></div>
+          <div class="chip-bank" id="chipBank"></div>
+
+          <div class="semi-actions">
+            <button class="btn btn-ghost" id="semiReset">Clear</button>
+            <button class="btn btn-primary" id="semiCheck">
+              Check sentence
+            </button>
+            <button class="btn btn-primary hidden" id="semiNext">
+              Next sentence →
+            </button>
+          </div>
+          <p class="semi-feedback" id="semiFeedback"></p>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="guidedBackBtn">← Back</button>
+          <button class="btn btn-primary" id="guidedNextBtn">
+            Next: Free practice →
+          </button>
+        </div>
+      </section>
+
+      <!-- STAGE 5: FREE PRACTICE -->
+      <section class="stage hidden" id="stage5">
+        <h2>Free practice</h2>
+        <div class="stage-body">
+          <div class="stopwatch" id="stopwatch">
+            <div class="stopwatch-display">
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="2"
+                id="stopwatchMin"
+                value="03"
+                aria-label="Minutes"
+              />
+              <span class="colon">:</span>
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="2"
+                id="stopwatchSec"
+                value="00"
+                aria-label="Seconds"
+              />
+            </div>
+            <div class="stopwatch-adjust">
+              <button
+                class="adjust-btn"
+                id="stopwatchMinus"
+                type="button"
+                aria-label="Subtract one minute"
+              >
+                −
+              </button>
+              <button
+                class="adjust-btn"
+                id="stopwatchPlus"
+                type="button"
+                aria-label="Add one minute"
+              >
+                +
+              </button>
+            </div>
+            <div class="stopwatch-controls">
+              <button
+                class="btn btn-primary"
+                id="stopwatchToggle"
+                type="button"
+              >
+                Start
+              </button>
+              <button class="btn btn-ghost" id="stopwatchReset" type="button">
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <p class="free-intro">
+            Think of two people, animals, or things you know. Say or write five
+            sentences comparing them, out loud with a partner.
+          </p>
+
+          <div class="free-layout">
+            <div class="free-card" id="sentenceStartersCard">
+              <h3>Sentence starters</h3>
+              <div class="scaffold-list" id="scaffoldList"></div>
+            </div>
+
+            <div class="free-card prominent" id="wordBankCard">
+              <h3>Word bank</h3>
+              <div class="word-bank-row" id="wordBank"></div>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="freeBackBtn">← Back</button>
+          <button class="btn btn-primary" id="freeNextBtn">
+            Next: Ball Pop →
+          </button>
+        </div>
+      </section>
+
+      <!-- STAGE 6: BALL POP CHALLENGE -->
+      <section class="stage hidden" id="stage6">
+        <h2>Ball Pop Challenge</h2>
+        <div class="stage-body">
+          <div id="popSetup">
+            <p class="free-intro">
+              Pop as many balls as you can in 10 seconds.
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="pop-legend-swatch normal"></span>
+                </div>
+                <span class="pop-legend-points">+1</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="pop-legend-swatch special"></span>
+                </div>
+                <span class="pop-legend-points">→ 4 balls</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="pop-legend-swatch gem"></span>
+                </div>
+                <span class="pop-legend-points gem-points">+3</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="pop-legend-swatch bomb"></span>
+                </div>
+                <span class="pop-legend-points bomb-points">−1</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="pop-legend-swatch multi"></span>
+                </div>
+                <span class="pop-legend-points gem-points">×2 (4s)</span>
+              </div>
+            </div>
+
+            <div class="pop-team-inputs" id="popTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="popAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="popStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="popGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="popTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="popTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="popResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="popChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="popTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Pops</span
+                    ><span class="pop-hud-num" id="popPopsDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="popTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="popPlayArea" class="pop-play-area idle">
+                <canvas
+                  id="popParticleCanvas"
+                  class="pop-particle-canvas"
+                ></canvas>
+                <div id="popBallLayer" class="pop-ball-layer"></div>
+                <button
+                  class="btn btn-primary"
+                  id="popBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="popGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="popGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="popPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="popBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button class="btn btn-primary" id="popNextBtn">
+              Next: Star Defender →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 7: STAR DEFENDER -->
+      <section class="stage hidden" id="stage7">
+        <h2>Star Defender</h2>
+        <div class="stage-body">
+          <div id="invSetup">
+            <p class="free-intro">
+              Answer a question, then defend for 20 seconds. Click anywhere on
+              the battlefield to move and fire.
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="inv-legend-swatch scout"></span>
+                </div>
+                <span class="pop-legend-points">1 hit · +1</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="inv-legend-swatch brute"></span>
+                </div>
+                <span class="pop-legend-points">3 hits · +3</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="inv-legend-swatch dart"></span>
+                </div>
+                <span class="pop-legend-points">Fast · +2</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="inv-legend-swatch boss"></span>
+                </div>
+                <span class="pop-legend-points bomb-points">Boss · +15</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="inv-legend-swatch pickup"></span>
+                </div>
+                <span class="pop-legend-points gem-points">Rapid fire</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="inv-legend-swatch machinegun"></span>
+                </div>
+                <span class="pop-legend-points gem-points">Machine gun</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="inv-legend-swatch heart">♥</span>
+                </div>
+                <span class="pop-legend-points">Shield</span>
+              </div>
+            </div>
+
+            <div class="pop-team-inputs" id="invTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="invAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="invStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="invGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="invTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="invTurnBanner"></span>
+                <div class="inv-lives" id="invLivesDisplay"></div>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="invResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="invChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="invTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Score</span
+                    ><span class="pop-hud-num" id="invScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="invTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="invPlayArea" class="inv-play-area idle">
+                <canvas id="invCanvas" class="inv-canvas"></canvas>
+                <button
+                  class="btn btn-primary"
+                  id="invBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="invGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="invGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="invPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="invBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button class="btn btn-primary" id="invNextBtn">
+              Next: Spin Wheel →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 8: SPIN THE WHEEL -->
+      <section class="stage hidden" id="stage8">
+        <h2>Spin the Wheel</h2>
+        <div class="stage-body">
+          <div id="wheelSetup">
+            <p class="free-intro">
+              Spin the wheel to land on a question — bigger numbers are worth
+              more points. Answer correctly to score!
+            </p>
+            <div class="pop-team-inputs" id="wheelTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="wheelAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="wheelStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="wheelGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="wheelTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="wheelTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="wheelResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="wheelChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Spin</span
+                    ><span class="pop-hud-num" id="wheelQDisplay">1/10</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Last spin</span
+                    ><span class="pop-hud-num" id="wheelLastSpinDisplay"
+                      >—</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div id="wheelPlayArea" class="inv-play-area idle">
+                <canvas id="wheelCanvas" class="inv-canvas"></canvas>
+                <button
+                  class="btn btn-primary"
+                  id="wheelBeginTurnBtn"
+                  type="button"
+                >
+                  Spin the wheel
+                </button>
+                <div class="game-over-banner hidden" id="wheelGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="wheelGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="wheelPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="wheelBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button class="btn btn-primary" id="wheelNextBtn">
+              Next: Practice Questions →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 9: PRACTICE QUESTIONS + WORKSHEET -->
+      <section class="stage hidden" id="stage9">
+        <h2>Practice Questions</h2>
+        <div class="stage-body">
+          <div class="qs-layout">
+            <div class="qs-controls">
+              <div class="qs-set-tabs" id="qsSetTabs"></div>
+              <div class="qs-progress-row">
+                <div class="progress-track" style="flex: 1">
+                  <div class="progress-fill" id="qsProgressFill"></div>
+                </div>
+                <span class="score" id="qsScore"></span>
+              </div>
+            </div>
+            <div class="qs-question-area" id="qsQuestionArea"></div>
+            <div class="qs-actions">
+              <button class="btn btn-ghost" id="qsCheckBtn" type="button">
+                Check answers
+              </button>
+              <button
+                class="btn btn-primary hidden"
+                id="qsNextBtn"
+                type="button"
+              >
+                Next section →
+              </button>
+            </div>
+            <div class="qs-feedback hidden" id="qsFeedback"></div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="qsBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost" id="qsPrintBtn" type="button">
+              Print worksheet
+            </button>
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button class="btn btn-primary" id="qsNextStageBtn" type="button">
+              Next: Plinko →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 10: PLINKO DROP -->
+      <section class="stage hidden" id="stage10">
+        <h2>Plinko Drop</h2>
+        <div class="stage-body">
+          <div id="plinkoSetup">
+            <p class="free-intro">
+              Answer a question, choose your ball, then drop it down the board.
+              New ball types unlock as you play!
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="plinko-peg-legend-swatch normal"></span>
+                </div>
+                <span class="pop-legend-points"
+                  >Peg · +1, destroyed on hit</span
+                >
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="plinko-peg-legend-swatch bonus"></span>
+                </div>
+                <span class="pop-legend-points gem-points"
+                  >Bonus peg · +5, explodes</span
+                >
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="plinko-peg-legend-swatch neutral"></span>
+                </div>
+                <span class="pop-legend-points"
+                  >Dead peg · no points, stays</span
+                >
+              </div>
+            </div>
+
+            <div class="pop-legend" id="plinkoBallLegend"></div>
+
+            <div class="pop-team-inputs" id="plinkoTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="plinkoAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="plinkoStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="plinkoGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="plinkoTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="plinkoTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="plinkoResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="plinkoChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Question</span
+                    ><span class="pop-hud-num" id="plinkoQDisplay">1/10</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Ball</span
+                    ><span class="pop-hud-num" id="plinkoBallDisplay">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="plinkoPlayArea" class="inv-play-area idle">
+                <canvas id="plinkoCanvas" class="inv-canvas"></canvas>
+                <div
+                  id="plinkoBallPicker"
+                  class="plinko-ball-picker hidden"
+                ></div>
+                <button
+                  class="btn btn-primary"
+                  id="plinkoBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="plinkoGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="plinkoGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="plinkoPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="plinkoBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button
+              class="btn btn-primary"
+              id="plinkoNextStageBtn"
+              type="button"
+            >
+              Next: Sky Slingshot →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 11: SKY SLINGSHOT -->
+      <section class="stage hidden" id="stage11">
+        <h2>Sky Slingshot</h2>
+        <div class="stage-body">
+          <div id="birdsSetup">
+            <p class="free-intro">
+              Answer a question, then drag anywhere on the board to pull back
+              and release — you get ONE shot, so knock down the base of a tower
+              and watch it collapse! New towers appear as you play.
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="birds-legend-swatch pig"></span>
+                </div>
+                <span class="pop-legend-points">Pot · +10 to +25</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="birds-legend-swatch block"></span>
+                </div>
+                <span class="pop-legend-points">Block · +3</span>
+              </div>
+            </div>
+
+            <div class="pop-team-inputs" id="birdsTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="birdsAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="birdsStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="birdsGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="birdsTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="birdsTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="birdsResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="birdsChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Question</span
+                    ><span class="pop-hud-num" id="birdsQDisplay">1/10</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Shots left</span
+                    ><span class="pop-hud-num" id="birdsShotsDisplay">1</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Turn score</span
+                    ><span class="pop-hud-num" id="birdsScoreDisplay">0</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="birdsPlayArea" class="inv-play-area idle">
+                <canvas id="birdsCanvas" class="inv-canvas"></canvas>
+                <p class="birds-hint hidden" id="birdsHint">
+                  One shot — drag back and release. Aim for the base of a tower!
+                </p>
+                <button
+                  class="btn btn-primary"
+                  id="birdsBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="birdsGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="birdsGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="birdsPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="birdsBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button
+              class="btn btn-primary"
+              id="birdsNextStageBtn"
+              type="button"
+            >
+              Next: Comet Chaos →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 12: COMET CHAOS -->
+      <section class="stage hidden" id="stage12">
+        <h2>Comet Chaos</h2>
+        <div class="stage-body">
+          <div id="cometSetup">
+            <p class="free-intro">
+              Answer a question, then drag anywhere on the board to pull back
+              and release — your comet gets pulled and flung around by planet
+              gravity, so watch it curve! Land in the glowing target for points,
+              but stay clear of the black hole.
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="comet-legend-swatch comet"></span>
+                </div>
+                <span class="pop-legend-points">Comet</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="comet-legend-swatch planet"></span>
+                </div>
+                <span class="pop-legend-points"
+                  >Planet — pulls your comet in</span
+                >
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="comet-legend-swatch target"></span>
+                </div>
+                <span class="pop-legend-points"
+                  >Target · +20 (bullseye +50)</span
+                >
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="comet-legend-swatch blackhole"></span>
+                </div>
+                <span class="pop-legend-points"
+                  >Black hole — swallows your shot</span
+                >
+              </div>
+            </div>
+
+            <div class="pop-team-inputs" id="cometTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="cometAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="cometStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="cometGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="cometTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="cometTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="cometResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="cometChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Question</span
+                    ><span class="pop-hud-num" id="cometQDisplay">1/10</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Comets left</span
+                    ><span class="pop-hud-num" id="cometShotsDisplay">3</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Turn score</span
+                    ><span class="pop-hud-num" id="cometScoreDisplay">0</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="cometPlayArea" class="inv-play-area idle">
+                <canvas id="cometCanvas" class="inv-canvas"></canvas>
+                <p class="comet-hint hidden" id="cometHint">
+                  Drag anywhere on the board to pull back, release to launch!
+                </p>
+                <button
+                  class="btn btn-primary"
+                  id="cometBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="cometGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="cometGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="cometPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="cometBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button
+              class="btn btn-primary"
+              id="cometNextStageBtn"
+              type="button"
+            >
+              Next: Billiards →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 13: BILLIARDS -->
+      <section class="stage hidden" id="stage13">
+        <h2>Billiards</h2>
+        <div class="stage-body">
+          <div id="billiardsSetup">
+            <p class="free-intro">
+              Answer a question, then drag away from the cue ball to pull back
+              and release — you get ONE shot, so line it up carefully! Sink the
+              colored balls for points.
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="billiards-legend-swatch cue"></span>
+                </div>
+                <span class="pop-legend-points"
+                  >Cue ball — don't pocket this one!</span
+                >
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="billiards-legend-swatch object"></span>
+                </div>
+                <span class="pop-legend-points">Colored balls · +5 to +50</span>
+              </div>
+            </div>
+
+            <div class="pop-team-inputs" id="billiardsTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button
+                class="btn btn-ghost"
+                id="billiardsAddTeamBtn"
+                type="button"
+              >
+                + Add team
+              </button>
+              <button
+                class="btn btn-primary"
+                id="billiardsStartBtn"
+                type="button"
+              >
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="billiardsGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="billiardsTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="billiardsTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="billiardsResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="billiardsChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Question</span
+                    ><span class="pop-hud-num" id="billiardsQDisplay"
+                      >1/10</span
+                    >
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Turn score</span
+                    ><span class="pop-hud-num" id="billiardsScoreDisplay"
+                      >0</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div id="billiardsPlayArea" class="inv-play-area idle">
+                <canvas id="billiardsCanvas" class="inv-canvas"></canvas>
+                <p class="billiards-hint hidden" id="billiardsHint">
+                  One shot — drag away from the cue ball, release to strike!
+                </p>
+                <button
+                  class="btn btn-primary"
+                  id="billiardsBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div
+                  class="game-over-banner hidden"
+                  id="billiardsGameOverBanner"
+                >
+                  <div class="game-over-title">Game over</div>
+                  <div
+                    class="game-over-winner"
+                    id="billiardsGameOverWinner"
+                  ></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="billiardsPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="billiardsBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button
+              class="btn btn-primary"
+              id="billiardsNextStageBtn"
+              type="button"
+            >
+              Next: Neon Arena →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 14: NEON ARENA -->
+      <section class="stage hidden" id="stage14">
+        <h2>Neon Arena</h2>
+        <div class="stage-body">
+          <div id="neonSetup">
+            <p class="free-intro">
+              Answer a question, then survive 20 seconds in the arena. Move with
+              WASD or the arrow keys, click (or tap) to shoot. Touching an enemy
+              costs a life — walk over glowing pickups to power up!
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch drifter"></span>
+                </div>
+                <span class="pop-legend-points">Drifter · +1</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch zapper"></span>
+                </div>
+                <span class="pop-legend-points">Zapper · +2</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch juggernaut"></span>
+                </div>
+                <span class="pop-legend-points">Juggernaut · +3</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch warden"></span>
+                </div>
+                <span class="pop-legend-points bomb-points">Warden · +15</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch power"></span>
+                </div>
+                <span class="pop-legend-points gem-points">Power Core</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch overdrive"></span>
+                </div>
+                <span class="pop-legend-points gem-points">Overdrive</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch spread"></span>
+                </div>
+                <span class="pop-legend-points gem-points">Spread Core</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="neon-legend-swatch bomb"></span>
+                </div>
+                <span class="pop-legend-points gem-points">Nova Bomb</span>
+              </div>
+            </div>
+
+            <div class="pop-team-inputs" id="neonTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="neonAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="neonStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="neonGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="neonTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="neonTurnBanner"></span>
+                <div class="inv-lives" id="neonLivesDisplay"></div>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="neonResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="neonChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="neonTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Score</span
+                    ><span class="pop-hud-num" id="neonScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="neonTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="neonPlayArea" class="inv-play-area idle">
+                <canvas id="neonCanvas" class="inv-canvas"></canvas>
+                <p class="neon-hint hidden" id="neonHint">
+                  Move: WASD or arrow keys · Click or tap to shoot
+                </p>
+                <button
+                  class="btn btn-primary"
+                  id="neonBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="neonGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="neonGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="neonPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="neonBackBtn">← Back</button>
+          <button class="btn btn-ghost restart-lesson-btn">
+            ↺ Restart lesson
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- BALL POP: QUESTION MODAL -->
+    <div class="overlay hidden" id="popQuestionOverlay">
+      <div
+        class="modal"
+        id="popQuestionBody"
+        role="dialog"
+        aria-modal="true"
+      ></div>
+    </div>
+
+    <!-- BALL POP: TURN RESULT MODAL -->
+    <div class="overlay hidden" id="popResultOverlay">
+      <div
+        class="modal"
+        id="popResultBody"
+        role="dialog"
+        aria-modal="true"
+      ></div>
+    </div>
+
+    <!-- SHARED: CONFIRM DIALOG (replaces native confirm() everywhere in the app) -->
+    <div class="overlay hidden" id="confirmOverlay">
+      <div
+        class="modal"
+        id="confirmBody"
+        role="alertdialog"
+        aria-modal="true"
+      ></div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
