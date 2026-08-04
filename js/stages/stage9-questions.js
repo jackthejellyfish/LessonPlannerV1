@@ -1,6 +1,7 @@
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml } from '../utils.js';
 import { sfxCorrect, sfxIncorrect } from '../audio.js';
+import { getCurrentLesson } from '../lessons.js';
 import { QS_SETS } from '../content/stage9-questions.js';
 
 /* =========================================================
@@ -252,9 +253,10 @@ document.getElementById('qsPrintBtn').addEventListener('click',()=>{
 });
 
 function renderPrintableWorksheet(){
+  const lesson=getCurrentLesson();
   const ws=document.getElementById('printableWorksheet');
   ws.innerHTML=`
-    <h1>Comparative Adjectives — Practice Worksheet</h1>
+    <h1>${lesson.printWorksheetTitle}</h1>
     <p class="print-subtitle">Name: __________________ &nbsp;&nbsp; Class: __________________ &nbsp;&nbsp; Date: __________________</p>
     ${QS_SETS.map((set,si)=>`
       <div class="ws-set-title">Section ${si+1}: ${set.label}</div>
@@ -271,7 +273,7 @@ function renderPrintableWorksheet(){
       <ol>${QS_SETS[0].questions.map(q=>`<li>${escapeHtml(q.answer)}</li>`).join('')}
           ${QS_SETS[1].questions.map(q=>`<li>${escapeHtml(q.answer)}</li>`).join('')}</ol>
     </div>
-    <p class="print-footer">Comparative Adjectives — Interactive Lesson</p>`;
+    <p class="print-footer">${lesson.printFooter}</p>`;
 }
 
 document.getElementById('qsBackBtn').addEventListener('click', () => goToStage(8));

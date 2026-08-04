@@ -6,6 +6,7 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { BIRDS_QUESTIONS, BIRD_LEVELS } from '../content/stage11-angrybirds.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 
 /* =========================================================
    STAGE 11 — SKY SLINGSHOT (Sahara desert overhaul)
@@ -112,6 +113,7 @@ function loadBirdsLevel(index){
   state.birdsBlocks = template.blocks.map(b => ({ ...b, alive: true, falling: false, settled: false }));
   state.birdsShotsLeft = SHOTS_PER_TURN;
   state.birdsTurnScore = 0;
+  birdsFloatTexts = [];
   loadNextBird();
   document.getElementById('birdsShotsDisplay').textContent = String(state.birdsShotsLeft);
   document.getElementById('birdsScoreDisplay').textContent = '0';
@@ -201,6 +203,10 @@ function sfxStretchTick(power){
 // visual trail (not part of `state`, same reasoning as Plinko's
 // module-level hover-preview vars: transient UI, not game data).
 let birdsTrail = [];
+
+// Rising "+N" text on every block/pot hit — same shared canvas
+// float-text helper every other canvas game uses.
+let birdsFloatTexts = [];
 
 // Screen shake on a solid hit — a brief, decaying random jitter applied
 // to the whole canvas draw in renderBirdsCanvas. Added per feedback that
@@ -457,6 +463,7 @@ function updateBirdsPhysics(dt){
   // still be mid-collapse after the projectile has already settled.
   updateFallingObjects(dtSec, canvas);
   updateBirdsParticles();
+  birdsFloatTexts = updateFloatTexts(birdsFloatTexts);
 
   const bird = state.birdsBird;
   if(!bird || !bird.launched) return;
@@ -515,6 +522,7 @@ function updateBirdsPhysics(dt){
       state.birdsTurnScore += POINTS_BLOCK;
       document.getElementById('birdsScoreDisplay').textContent = String(state.birdsTurnScore);
       spawnBirdsParticles(bx, by, SANDSTONE_FILL, 20);
+      spawnFloatText(birdsFloatTexts, bx, by, `+${POINTS_BLOCK}`, SANDSTONE_FILL);
       sfxThud();
       triggerShake(5);
       triggerCollapse(block);
@@ -533,6 +541,7 @@ function updateBirdsPhysics(dt){
       state.birdsTurnScore += value;
       document.getElementById('birdsScoreDisplay').textContent = String(state.birdsTurnScore);
       spawnBirdsParticles(px, py, POT_FILL, 26);
+      spawnFloatText(birdsFloatTexts, px, py, `+${value}`, POT_FILL);
       sfxPigPop();
       // Bigger pots (worth more) land a bigger shake — scales the "juice"
       // with how good a hit it was, not a flat amount every time.
@@ -582,6 +591,7 @@ export function cancelBirdsRound(){
   state.birdsBird = null;
   state.birdsParticles = [];
   birdsTrail = [];
+  birdsFloatTexts = [];
   const playArea = document.getElementById('birdsPlayArea');
   if(playArea) playArea.classList.add('idle');
   const hint = document.getElementById('birdsHint');
@@ -802,6 +812,8 @@ function renderBirdsCanvas(){
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
+
+  drawFloatTexts(ctx, birdsFloatTexts, Math.max(16, canvas.width * 0.024));
 
   // Trajectory preview + sling bands while aiming. Band color/glow
   // intensifies with pull power (same green->amber->red language as the

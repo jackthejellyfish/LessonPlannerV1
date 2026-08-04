@@ -1,0 +1,40 @@
+  /* ---- Fruit Ninja (Stage 15) ----
+     Reuses .inv-play-area/.inv-canvas from stage7-stardefender.css —
+     same shared "dark canvas game chrome" every physics/action game
+     since Plinko builds on. Only legend swatches + the hint text are
+     stage-specific. */
+  .fruit-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  }
+  .fruit-legend-swatch.circle{
+    width:26px; height:26px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #FFE1A8, #F2B705 60%, #A87A00);
+    box-shadow:0 0 10px rgba(242,183,5,0.6);
+  }
+  .fruit-legend-swatch.square{
+    width:24px; height:24px; border-radius:5px;
+    background: radial-gradient(circle at 35% 30%, #B8E8D8, #3DB88D 60%, #1F6B50);
+    box-shadow:0 0 10px rgba(61,184,141,0.6);
+  }
+  .fruit-legend-swatch.triangle{
+    width:0; height:0;
+    border-left:13px solid transparent; border-right:13px solid transparent;
+    border-bottom:24px solid #FF6B6B;
+    filter: drop-shadow(0 0 6px rgba(255,107,107,0.6));
+  }
+
+  #fruitPlayArea #fruitBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .inv-play-area:not(.idle) #fruitBeginTurnBtn{ display:none; }
+
+  #fruitCanvas{ cursor:crosshair; touch-action:none; }
+
+  .fruit-hint{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    z-index:22; margin:0; padding:8px 18px; border-radius:999px;
+    background:rgba(10,6,25,0.72); color:#FFE1A8; font-size:clamp(12px,1.6vh,15px);
+    box-shadow:0 4px 14px rgba(0,0,0,0.35); pointer-events:none;
+  }

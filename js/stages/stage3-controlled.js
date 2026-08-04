@@ -4,6 +4,7 @@ import { shuffle, escapeHtml } from '../utils.js';
 import { sfxCorrect, sfxIncorrect, sfxTick, sfxTimeUp } from '../audio.js';
 import { burstFromElement } from '../particles.js';
 import { setTimerRing, TIMER_RING_CIRCUMFERENCE } from '../timerRing.js';
+import { getCurrentLesson } from '../lessons.js';
 import { MC_QUESTIONS } from '../content/stage3-controlled.js';
 
 /* =========================================================
@@ -55,7 +56,7 @@ export function renderMcQuestion(){
   document.getElementById('mcCounter').textContent = `Question ${state.mcIndex + 1} of ${MC_QUESTIONS.length}`;
   document.getElementById('mcScore').textContent = `Score: ${state.mcScore}`;
   document.getElementById('mcProgressFill').style.width = (state.mcIndex / MC_QUESTIONS.length * 100) + '%';
-  document.getElementById('mcQuestion').textContent = `What is the comparative of '${q.word}'?`;
+  document.getElementById('mcQuestion').textContent = getCurrentLesson().mcQuestionTemplate(q.word);
   document.getElementById('mcFeedback').textContent = '';
   document.getElementById('mcFeedback').style.color = 'var(--muted)';
 

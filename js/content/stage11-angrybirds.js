@@ -5,18 +5,45 @@
    rescale live game state, just re-read canvas.width/height at
    render/collision time.
 ========================================================= */
-export const BIRDS_QUESTIONS = [
-  { prompt: "What is the comparative of 'small'?", answer: "smaller" },
-  { prompt: "What is the comparative of 'loud'?", answer: "louder" },
-  { prompt: "What is the comparative of 'brave'?", answer: "braver" },
-  { prompt: "What is the comparative of 'funny'?", answer: "funnier" },
-  { prompt: "What is the comparative of 'high'?", answer: "higher" },
-  { prompt: "What is the comparative of 'far'? (it's irregular!)", answer: "farther" },
-  { prompt: "What is the comparative of 'good'? (it's irregular!)", answer: "better" },
-  { prompt: "What is the comparative of 'heavy'?", answer: "heavier" },
-  { prompt: "What is the comparative of 'thin'?", answer: "thinner" },
-  { prompt: "What is the comparative of 'bad'? (it's irregular!)", answer: "worse" }
-];
+const LESSON_CONTENT = {
+  comparatives: {
+    BIRDS_QUESTIONS: [
+      { prompt: "What is the comparative of 'small'?", answer: "smaller" },
+      { prompt: "What is the comparative of 'loud'?", answer: "louder" },
+      { prompt: "What is the comparative of 'brave'?", answer: "braver" },
+      { prompt: "What is the comparative of 'funny'?", answer: "funnier" },
+      { prompt: "What is the comparative of 'high'?", answer: "higher" },
+      { prompt: "What is the comparative of 'far'? (it's irregular!)", answer: "farther" },
+      { prompt: "What is the comparative of 'good'? (it's irregular!)", answer: "better" },
+      { prompt: "What is the comparative of 'heavy'?", answer: "heavier" },
+      { prompt: "What is the comparative of 'thin'?", answer: "thinner" },
+      { prompt: "What is the comparative of 'bad'? (it's irregular!)", answer: "worse" }
+    ]
+  },
+  health: {
+    BIRDS_QUESTIONS: [
+      { prompt: "What's the matter? I've got a headache.", answer: "You should take some medicine." },
+      { prompt: "What's the matter? I've got a fever.", answer: "You should stay in bed." },
+      { prompt: "What's the matter? I've got a toothache.", answer: "You should see a dentist." },
+      { prompt: "What's the matter? I've got a runny nose.", answer: "You should blow your nose." },
+      { prompt: "What's the matter? I've got a sore throat.", answer: "You should drink some hot tea." },
+      { prompt: "What's the matter? I've got a stomach ache.", answer: "You should see a doctor." },
+      { prompt: "What's the matter? I've got a backache.", answer: "You should rest." },
+      { prompt: "What's the matter? I've got a cold.", answer: "You should stay in bed." },
+      { prompt: "What's the matter? I've got a cough.", answer: "You should drink some water." },
+      { prompt: "What's the matter? I've got an earache.", answer: "You should see a doctor." }
+    ]
+  }
+};
+
+export const BIRDS_QUESTIONS = [];
+
+export function applyLesson(id){
+  const data = LESSON_CONTENT[id] || LESSON_CONTENT.comparatives;
+  BIRDS_QUESTIONS.length = 0;
+  BIRDS_QUESTIONS.push(...data.BIRDS_QUESTIONS);
+}
+applyLesson('comparatives');
 
 // Eight layouts, cycling via state.birdsLevelIndex % BIRD_LEVELS.length.
 // Blocks are deliberately stacked directly on top of one another (same

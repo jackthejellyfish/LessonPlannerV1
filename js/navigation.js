@@ -11,13 +11,14 @@ import { cancelBirdsRound, ensureBirdsLayout } from './stages/stage11-angrybirds
 import { cancelCometRound, ensureCometLayout } from './stages/stage12-cometchaos.js';
 import { cancelBilliardsRound, ensureBilliardsLayout } from './stages/stage13-billiards.js';
 import { cancelNeonRound, ensureNeonLayout } from './stages/stage14-neonarena.js';
+import { cancelFruitRound, ensureFruitLayout } from './stages/stage15-fruitninja.js';
 import { enterFooterLayout, exitFooterLayout } from './fullscreenLayout.js';
 
 // Stages that take over the full viewport while active — the team
 // scoreboard and HUD relocate into that stage's footer bar instead of
 // a permanent side panel (see css/fullscreen-game.css and
 // js/fullscreenLayout.js). Extend this set when a new game stage is added.
-const FULLSCREEN_STAGES = new Set([6, 7, 8, 10, 11, 12, 13, 14]);
+const FULLSCREEN_STAGES = new Set([6, 7, 8, 10, 11, 12, 13, 14, 15]);
 
 export function goToStage(num){
   // Pause whichever gamified timer might still be running when we
@@ -35,6 +36,7 @@ export function goToStage(num){
   cancelCometRound();
   cancelBilliardsRound();
   cancelNeonRound();
+  cancelFruitRound();
 
   const prevNum = state.currentStage;
   if(FULLSCREEN_STAGES.has(prevNum) && prevNum !== num){
@@ -79,4 +81,5 @@ export function goToStage(num){
   if(num === 12){ ensureCometLayout(); }
   if(num === 13){ ensureBilliardsLayout(); }
   if(num === 14){ ensureNeonLayout(); }
+  if(num === 15){ ensureFruitLayout(); }
 }

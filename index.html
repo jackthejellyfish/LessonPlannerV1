@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/lesson-select.css" />
     <link rel="stylesheet" href="css/modals.css" />
     <link rel="stylesheet" href="css/team-color-picker.css" />
     <link rel="stylesheet" href="css/stage2-rules.css" />
@@ -25,6 +26,7 @@
     <link rel="stylesheet" href="css/stage12-cometchaos.css" />
     <link rel="stylesheet" href="css/stage13-billiards.css" />
     <link rel="stylesheet" href="css/stage14-neonarena.css" />
+    <link rel="stylesheet" href="css/stage15-fruitninja.css" />
     <link rel="stylesheet" href="css/fullscreen-game.css" />
     <link rel="stylesheet" href="css/print.css" />
   </head>
@@ -43,77 +45,38 @@
     >
       ⤢
     </button>
+    <button
+      class="mute-toggle change-lesson-toggle"
+      id="changeLessonBtn"
+      type="button"
+      aria-label="Change lesson"
+    >
+      ⇄
+    </button>
 
     <!-- Only rendered when printing — the active-print class decides which one shows. -->
     <div id="printableRules"></div>
     <div id="printableWorksheet"></div>
 
-    <div class="wrap">
+    <!-- LESSON SELECT — shown first; picking a card reveals .wrap below and
+         starts that lesson at Stage 1. See js/lessons.js. -->
+    <div class="lesson-select" id="lessonSelect">
+      <div class="lesson-select-inner">
+        <p class="lesson-select-eyebrow">ESL Interactive Lesson</p>
+        <h1>Choose a lesson</h1>
+        <p class="lesson-select-sub">Select which grammar point to teach in this session.</p>
+        <div class="lesson-cards" id="lessonCards"></div>
+      </div>
+    </div>
+
+    <div class="wrap hidden" id="wrap">
       <nav class="stepper" id="stepper"></nav>
 
       <!-- STAGE 1: LESSON AIM -->
       <section class="stage" id="stage1">
         <div class="stage-body">
-          <div class="lesson-header">
-            <h1>Comparative Adjectives</h1>
-            <p class="objective">
-              By the end of this lesson, you will be able to form comparative
-              adjectives correctly and use them to compare two things.
-            </p>
-          </div>
-
-          <div class="aim-examples">
-            <div class="aim-example">
-              <svg
-                viewBox="0 0 100 70"
-                class="aim-example-svg"
-                aria-hidden="true"
-              >
-                <circle cx="34" cy="42" r="26" fill="var(--rule-a)" />
-                <circle cx="80" cy="54" r="9" fill="var(--muted)" />
-              </svg>
-              <p class="example-sentence">
-                The elephant is <span class="hl">bigger</span> than the mouse.
-              </p>
-            </div>
-            <div class="aim-example">
-              <svg
-                viewBox="0 0 100 70"
-                class="aim-example-svg"
-                aria-hidden="true"
-              >
-                <polygon points="10,55 40,10 70,55" fill="var(--rule-c)" />
-                <polygon points="55,55 78,28 100,55" fill="var(--muted)" />
-              </svg>
-              <p class="example-sentence">
-                The mountain is <span class="hl">taller</span> than the hill.
-              </p>
-            </div>
-            <div class="aim-example">
-              <svg
-                viewBox="0 0 100 70"
-                class="aim-example-svg"
-                aria-hidden="true"
-              >
-                <path
-                  d="M8 20 L48 20 M8 34 L60 34 M8 48 L38 48"
-                  stroke="var(--rule-b)"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M70 34 L92 34"
-                  stroke="var(--muted)"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                />
-                <polygon points="92,28 92,40 100,34" fill="var(--muted)" />
-              </svg>
-              <p class="example-sentence">
-                The cheetah is <span class="hl">faster</span> than the tortoise.
-              </p>
-            </div>
-          </div>
+          <div class="lesson-header" id="aimHeader"></div>
+          <div class="aim-examples" id="aimExamples"></div>
         </div>
         <div class="stage-footer">
           <span></span>
@@ -314,10 +277,7 @@
             </div>
           </div>
 
-          <p class="free-intro">
-            Think of two people, animals, or things you know. Say or write five
-            sentences comparing them, out loud with a partner.
-          </p>
+          <p class="free-intro" id="freeIntro"></p>
 
           <div class="free-layout">
             <div class="free-card" id="sentenceStartersCard">
@@ -1451,6 +1411,135 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="neonBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">
+              ↺ Restart lesson
+            </button>
+            <button
+              class="btn btn-primary"
+              id="neonNextStageBtn"
+              type="button"
+            >
+              Next: Fruit Ninja →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 15: FRUIT NINJA -->
+      <section class="stage hidden" id="stage15">
+        <h2>Fruit Ninja</h2>
+        <div class="stage-body">
+          <div id="fruitSetup">
+            <p class="free-intro">
+              Answer a question, then slice as many shapes as you can in 10
+              seconds. Swipe (or click-drag) across the play area to cut a
+              shape in two — a shape only counts once it's actually sliced!
+            </p>
+
+            <div class="pop-legend">
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="fruit-legend-swatch circle"></span>
+                </div>
+                <span class="pop-legend-points">Circle · +1</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="fruit-legend-swatch square"></span>
+                </div>
+                <span class="pop-legend-points">Square · +1</span>
+              </div>
+              <div class="pop-legend-item">
+                <div class="pop-legend-swatch-box">
+                  <span class="fruit-legend-swatch triangle"></span>
+                </div>
+                <span class="pop-legend-points">Triangle · +1</span>
+              </div>
+            </div>
+
+            <div class="pop-team-inputs" id="fruitTeamInputs"></div>
+            <div class="pop-setup-actions">
+              <button class="btn btn-ghost" id="fruitAddTeamBtn" type="button">
+                + Add team
+              </button>
+              <button class="btn btn-primary" id="fruitStartBtn" type="button">
+                Start game
+              </button>
+            </div>
+          </div>
+
+          <div id="fruitGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="fruitTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="fruitTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button
+                    class="pop-sidebar-reset"
+                    id="fruitResetScoresBtn"
+                    type="button"
+                  >
+                    Reset scores
+                  </button>
+                  <button
+                    class="pop-sidebar-reset"
+                    id="fruitChangeTeamsBtn"
+                    type="button"
+                  >
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="fruitTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Score</span
+                    ><span class="pop-hud-num" id="fruitScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="fruitTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="fruitPlayArea" class="inv-play-area idle">
+                <canvas id="fruitCanvas" class="inv-canvas"></canvas>
+                <p class="fruit-hint hidden" id="fruitHint">
+                  Swipe across a shape to slice it!
+                </p>
+                <button
+                  class="btn btn-primary"
+                  id="fruitBeginTurnBtn"
+                  type="button"
+                >
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="fruitGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="fruitGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary hidden"
+                id="fruitPlayAgainBtn"
+                type="button"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="fruitBackBtn">← Back</button>
           <button class="btn btn-ghost restart-lesson-btn">
             ↺ Restart lesson
           </button>

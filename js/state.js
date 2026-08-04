@@ -5,6 +5,7 @@
    is visible to every importer immediately, per the ES module spec.
 ========================================================= */
 export let state = {
+  currentLesson: 'comparatives',
   currentStage: 1,
   completedStages: new Set(),
   expandedRules: new Set(),  // indices of currently open rule rows — any number can be open at once
@@ -54,6 +55,7 @@ export let state = {
   invEnemies: [],
   invPickups: [],
   invParticles: [],
+  invShockwaves: [],      // expanding rings fired on every enemy kill: { x, y, color, big, createdAt }
   invStars: [],           // starfield background positions, generated once on first render
   invRapidFireUntil: 0,
   invMachineGunUntil: 0,
@@ -139,14 +141,25 @@ export let state = {
   neonInvulnUntil: 0,        // brief invulnerability window after a life is lost
   neonBossSpawnedThisRound: false,
   neonBossTimeout: null,
+  fruitTeams: [],
+  fruitCurrentTeam: 0,
+  fruitQuestionOrder: [],
+  fruitTurnsPlayed: 0,
+  fruitScore: 0,
+  fruitRoundActive: false,
+  fruitRoundRAF: null,
+  fruitShapes: [],           // live uncut shapes + flying cut halves this round
+  fruitParticles: [],
+  fruitSwipeTrail: [],       // recent blade-swipe points: { x, y, createdAt }, fades and is used for cut detection
   muted: false
 };
 
 // Restarts the whole lesson. Reassigns the exported `state` binding —
 // every module that imported { state } sees the new object immediately.
-export function resetLessonState(){
+export function resetLessonState(lessonId = state.currentLesson){
   const wasMuted = state.muted;
   state = {
+    currentLesson: lessonId,
     currentStage: 1, completedStages: new Set(), expandedRules: new Set(), demoIndex: 0,
     mcIndex: 0, mcScore: 0, mcAnswered: false, mcTimerRAF: null, mcStarted: false,
     semiIndex: 0, semiScore: 0, semiBank: [], semiAnswer: [], semiChecked: false, semiTimerRAF: null, semiStarted: false,
@@ -157,7 +170,7 @@ export function resetLessonState(){
     popMultiTimeouts: [], popActiveMulti: [], popMultiplierUntil: 0,
     invTeams: [], invCurrentTeam: 0, invQuestionOrder: [], invTurnsPlayed: 0, invScore: 0, invLives: 3,
     invRoundActive: false, invRoundRAF: null, invShip: { x: 50, targetX: 50 },
-    invProjectiles: [], invEnemies: [], invPickups: [], invParticles: [], invStars: [],
+    invProjectiles: [], invEnemies: [], invPickups: [], invParticles: [], invShockwaves: [], invStars: [],
     invRapidFireUntil: 0, invMachineGunUntil: 0, invLastAutoFireAt: 0, invLastShotAt: 0,
     invBossSpawnedThisRound: false, invBossTimeout: null,
     wheelTeams: [], wheelCurrentTeam: 0, wheelQuestionOrder: [], wheelTurnsPlayed: 0,
@@ -182,6 +195,8 @@ export function resetLessonState(){
     neonPowerActive: false, neonOverdriveActive: false, neonSpreadActive: false,
     neonLastShotAt: 0, neonInvulnUntil: 0,
     neonBossSpawnedThisRound: false, neonBossTimeout: null,
+    fruitTeams: [], fruitCurrentTeam: 0, fruitQuestionOrder: [], fruitTurnsPlayed: 0, fruitScore: 0,
+    fruitRoundActive: false, fruitRoundRAF: null, fruitShapes: [], fruitParticles: [], fruitSwipeTrail: [],
     muted: wasMuted
   };
 }

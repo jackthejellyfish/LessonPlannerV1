@@ -7,6 +7,12 @@ import { INV_QUESTIONS } from '../content/stage7-stardefender.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { confirmDialog } from '../confirmDialog.js';
+import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+
+// Rising "+N" text on every kill — same shared canvas float-text helper
+// every other canvas game uses, local module state like Plinko's own
+// transient render vars.
+let invFloatTexts = [];
 
 /* =========================================================
    STAGE 7 — STAR DEFENDER
@@ -232,6 +238,23 @@ function triggerInvShake(mag){
   invShakeMag = mag;
 }
 
+// A small burst at the ship's barrel every time it fires — makes each
+// shot read as a real event instead of just a bolt silently appearing.
+function spawnInvMuzzleFlash(canvas){
+  const s = canvasScale(canvas);
+  const x = (state.invShip.x / 100) * canvas.width;
+  const y = canvas.height - 18 * s - 14 * s;
+  spawnInvParticles(x, y, INV_SHIP_COLOR, 5, s * 0.5);
+}
+
+// Expanding ring fired on every enemy kill (not just bosses) — same
+// "impact ring" language as Ball Pop's DOM shockwave, but drawn on
+// canvas since this game has no per-entity DOM nodes to animate.
+const INV_SHOCKWAVE_DURATION_MS = 380;
+function spawnInvShockwave(x, y, color, big = false){
+  state.invShockwaves.push({ x, y, color, big, createdAt: performance.now() });
+}
+
 function spawnInvPickup(){
   // Three pickups with equal probability
   const r = Math.random();
@@ -305,6 +328,7 @@ document.getElementById('invPlayArea').addEventListener('click', (e) => {
   state.invLastShotAt = now;
 
   sfxLaser();
+  spawnInvMuzzleFlash(canvas);
   const shots = rapid ? 3 : 1;
   for(let i = 0; i < shots; i++){
     state.invProjectiles.push({ x: state.invShip.x + (i - (shots - 1) / 2) * 4, y: 90, hit: false });
@@ -353,13 +377,16 @@ function updateInvGame(dt){
           state.invScore += enemy.points;
           document.getElementById('invScoreDisplay').textContent = state.invScore;
           const color = enemy.type === 'boss' ? INV_BOSS_COLOR : enemy.type === 'brute' ? INV_BRUTE_COLOR : INV_SCOUT_COLOR;
-          spawnInvParticles((enemy.x / 100) * canvas.width, (enemy.y / 100) * canvas.height, color, enemy.type === 'boss' ? 60 : enemy.type === 'brute' ? 40 : 22, canvasScale(canvas));
+          const killX = (enemy.x / 100) * canvas.width, killY = (enemy.y / 100) * canvas.height;
+          spawnInvParticles(killX, killY, color, enemy.type === 'boss' ? 60 : enemy.type === 'brute' ? 40 : 22, canvasScale(canvas));
+          spawnInvShockwave(killX, killY, color, enemy.type === 'boss');
+          spawnFloatText(invFloatTexts, killX, killY, `+${enemy.points}`, color);
           sfxEnemyDestroy(enemy.type === 'brute' ? 1 : 0.5);
           // A boss kill is the biggest single moment in this game — same
-          // small canvas-shake trick as Sky Slingshot's impact feedback,
-          // added here per feedback that other games could use a bit of
-          // that same juice too.
-          if(enemy.type === 'boss') triggerInvShake(8);
+          // small canvas-shake trick as Sky Slingshot's impact feedback.
+          // Every kill now gets a scaled-down version of the same shake so
+          // all hits feel like they land, not just bosses.
+          triggerInvShake(enemy.type === 'boss' ? 8 : enemy.type === 'brute' ? 4 : 2);
         } else {
           // A hit that doesn't destroy it still visibly wears it down —
           // shrinks toward 60% of its original size as HP drops, so a
@@ -402,6 +429,9 @@ function updateInvGame(dt){
   state.invPickups = state.invPickups.filter(pu => !pu.collected);
 
   updateInvParticles();
+  invFloatTexts = updateFloatTexts(invFloatTexts);
+  const shockNow = performance.now();
+  state.invShockwaves = state.invShockwaves.filter(sw => shockNow - sw.createdAt < INV_SHOCKWAVE_DURATION_MS);
 }
 
 // Reference width the ship/projectile/particle proportions below were
@@ -465,6 +495,18 @@ function renderInvCanvas(){
   const invScale = canvasScale(canvas);
   for(const p of state.invProjectiles){
     const x = (p.x / 100) * canvas.width, y = (p.y / 100) * canvas.height;
+    // Dimmer trailing ellipse behind the bolt (projectiles only ever
+    // travel straight up at a fixed speed, so "behind" is simply a
+    // fixed offset back down toward where it came from) — makes the
+    // shot read as fast motion instead of a static dot.
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = INV_SHIP_COLOR;
+    ctx.beginPath();
+    ctx.ellipse(x, y + 9 * invScale, 1.6 * invScale, 6 * invScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     ctx.save();
     ctx.shadowColor = INV_SHIP_COLOR;
     ctx.shadowBlur = 8 * invScale;
@@ -472,6 +514,22 @@ function renderInvCanvas(){
     ctx.beginPath();
     ctx.ellipse(x, y, 2.2 * invScale, 7 * invScale, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+  }
+
+  for(const sw of state.invShockwaves){
+    const t = (performance.now() - sw.createdAt) / INV_SHOCKWAVE_DURATION_MS;
+    if(t >= 1) continue;
+    const r = (sw.big ? 40 : 20) * invScale * (0.3 + t * 1.3);
+    ctx.save();
+    ctx.globalAlpha = 1 - t;
+    ctx.strokeStyle = sw.color;
+    ctx.lineWidth = (sw.big ? 4 : 2.5) * invScale;
+    ctx.shadowColor = sw.color;
+    ctx.shadowBlur = 12 * invScale;
+    ctx.beginPath();
+    ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -616,6 +674,8 @@ function renderInvCanvas(){
     ctx.restore();
   }
 
+  drawFloatTexts(ctx, invFloatTexts, Math.max(16, 22 * invScale));
+
   // Active power-up indicators (stacked so multiple can show at once)
   const now = performance.now();
   const indicatorFont = Math.max(12, 12 * invScale);
@@ -649,6 +709,8 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
   state.invEnemies = [];
   state.invPickups = [];
   state.invParticles = [];
+  state.invShockwaves = [];
+  invFloatTexts = [];
   state.invRapidFireUntil = 0;
   state.invMachineGunUntil = 0;
   state.invLastAutoFireAt = 0;
@@ -695,6 +757,8 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
       state.invLastAutoFireAt = now;
       state.invProjectiles.push({ x: state.invShip.x, y: 90, hit: false });
       sfxLaser();
+      const mgCanvas = invCanvasResizer.getCanvas();
+      if(mgCanvas) spawnInvMuzzleFlash(mgCanvas);
     }
 
     updateInvGame(dt);

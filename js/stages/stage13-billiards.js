@@ -6,6 +6,11 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { BILLIARDS_QUESTIONS, BILLIARDS_BALLS } from '../content/stage13-billiards.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+
+// Rising "+N" text on every pocketed ball — same shared canvas
+// float-text helper every other canvas game uses.
+let billiardsFloatTexts = [];
 
 /* =========================================================
    STAGE 13 — BILLIARDS
@@ -182,6 +187,7 @@ function loadBilliardsRack(){
   state.billiardsBalls = [cueBall, ...objectBalls];
   state.billiardsTurnScore = 0;
   state.billiardsShotFired = false;
+  billiardsFloatTexts = [];
   cueAwaitingStrike = true;
   document.getElementById('billiardsScoreDisplay').textContent = '0';
 }
@@ -334,26 +340,23 @@ function computeCuePull(canvas){
   const bounds = billiardsTableBounds(canvas);
   const cue = getCueBall();
   const anchorX = cue.restX, anchorY = cue.restY;
-  const r = cue.r;
   const maxPull = (bounds.right - bounds.left) * 0.21; // more pull range to match the power increase
 
   const rawDx = dragStart.x - dragCurrent.x, rawDy = dragStart.y - dragCurrent.y;
   const rawDist = Math.hypot(rawDx, rawDy);
+  // Power/direction are derived straight from the raw drag vector, capped
+  // only by maxPull — NOT clamped to the table's bounding box. It used to
+  // be clamped (a pulled-back point kept inside the table rect), but that
+  // meant a cue ball resting near a rail hit the box clamp well before
+  // the drag reached maxPull, capping shot power far under 1 in that
+  // direction ("impossible to power up near the edge"), and could even
+  // skew the aim angle if x and y clamped by different amounts. The
+  // clamped point was only ever used to derive power/direction — nothing
+  // renders it — so there's no visual to preserve here.
   const dist = Math.min(rawDist, maxPull);
   const nx = rawDist > 0 ? rawDx / rawDist : 0, ny = rawDist > 0 ? rawDy / rawDist : 0;
-
-  let x = anchorX - nx * dist, y = anchorY - ny * dist;
-  x = Math.max(bounds.left + r * 1.3, Math.min(bounds.right - r * 1.3, x));
-  y = Math.max(bounds.top + r * 1.3, Math.min(bounds.bottom - r * 1.3, y));
-
-  const edx = anchorX - x, edy = anchorY - y;
-  const edist = Math.hypot(edx, edy);
-  const power = Math.min(edist / maxPull, 1);
-  return {
-    x, y, power, dist: edist,
-    nx: edist > 0 ? edx / edist : 0, ny: edist > 0 ? edy / edist : 0,
-    anchorX, anchorY, maxPull
-  };
+  const power = Math.min(dist / maxPull, 1);
+  return { power, dist, nx, ny, anchorX, anchorY, maxPull };
 }
 
 function onBilliardsPointerDown(e){
@@ -417,6 +420,7 @@ function pocketBall(ball, pocketPos){
   if(!ball.isCue){
     state.billiardsTurnScore += ball.value;
     document.getElementById('billiardsScoreDisplay').textContent = String(state.billiardsTurnScore);
+    spawnFloatText(billiardsFloatTexts, pocketPos.x, pocketPos.y, `+${ball.value}`, ball.color);
   }
 }
 
@@ -534,6 +538,7 @@ function billiardsPhysicsStep(dtSec, bounds, pockets, pocketR, friction){
 
 function updateBilliardsPhysics(dt){
   updateBilliardsParticles();
+  billiardsFloatTexts = updateFloatTexts(billiardsFloatTexts);
   if(!state.billiardsRoundActive || !state.billiardsBalls.length) return;
   const canvas = billiardsCanvasResizer.getCanvas();
   const bounds = billiardsTableBounds(canvas);
@@ -591,6 +596,7 @@ export function cancelBilliardsRound(){
   cueAwaitingStrike = true;
   state.billiardsBalls = [];
   state.billiardsParticles = [];
+  billiardsFloatTexts = [];
   const playArea = document.getElementById('billiardsPlayArea');
   if(playArea) playArea.classList.add('idle');
   const hint = document.getElementById('billiardsHint');
@@ -687,6 +693,8 @@ function renderBilliardsCanvas(){
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
+
+  drawFloatTexts(ctx, billiardsFloatTexts, Math.max(16, tableScale * 0.05));
 
   const cue = state.billiardsBalls && state.billiardsBalls.find(b => b.isCue);
 

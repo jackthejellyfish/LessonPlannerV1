@@ -7,18 +7,24 @@ const { test, expect } = require('@playwright/test');
 // visible stepper by design (see css/fullscreen-game.css), so steps are
 // clicked via locator.evaluate(el => el.click()) to bypass Playwright's
 // visibility gate rather than treating that as a bug.
+//
+// .wrap (stepper + all 15 stages) stays hidden behind the lesson-select
+// screen (js/lessons.js) until a lesson card is picked — every test clicks
+// the first card right after goto() purely to get past that gate; which
+// lesson is picked doesn't matter for these structural assertions.
 
-test('all 14 stages are reachable with zero console/page errors', async ({ page }) => {
+test('all 15 stages are reachable with zero console/page errors', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`PAGEERROR: ${e.message}`));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`); });
 
   await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
 
   const steps = page.locator('.step');
-  await expect(steps).toHaveCount(14);
+  await expect(steps).toHaveCount(15);
 
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 15; i++) {
     await steps.nth(i).evaluate((el) => el.click());
     await page.waitForTimeout(150);
   }
@@ -28,6 +34,7 @@ test('all 14 stages are reachable with zero console/page errors', async ({ page 
 
 test('stage 1 Start lesson button advances to stage 2', async ({ page }) => {
   await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
   await page.click('.step >> nth=0');
   await page.click('#stage1 .btn-primary');
   await expect(page.locator('#stage2')).not.toHaveClass(/hidden/);
@@ -35,6 +42,7 @@ test('stage 1 Start lesson button advances to stage 2', async ({ page }) => {
 
 test('stage 2 rule accordion toggles open', async ({ page }) => {
   await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(1).evaluate((el) => el.click());
   await page.locator('.rule-toggle').first().click();
   await expect(page.locator('.rule-row').first()).toHaveClass(/open/);
@@ -46,6 +54,7 @@ test('stage 6 Ball Pop starts a round without errors', async ({ page }) => {
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
 
   await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(5).evaluate((el) => el.click());
   await page.click('#popStartBtn');
   await page.waitForTimeout(300);
@@ -55,6 +64,7 @@ test('stage 6 Ball Pop starts a round without errors', async ({ page }) => {
 
 test('stage 9 practice questions has 4 tabs', async ({ page }) => {
   await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(8).evaluate((el) => el.click());
   await page.waitForTimeout(200);
   await expect(page.locator('.qs-tab')).toHaveCount(4);

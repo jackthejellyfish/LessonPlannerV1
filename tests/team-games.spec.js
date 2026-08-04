@@ -13,6 +13,7 @@ test('Billiards: a full turn answers a question, resolves a shot, and updates th
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
 
   await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(12).evaluate((el) => el.click());
   await page.click('#billiardsStartBtn');
   await page.waitForTimeout(300);
@@ -51,6 +52,7 @@ test('Neon Arena: a full turn answers a question, plays a round, and reaches the
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
 
   await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(13).evaluate((el) => el.click());
   await page.click('#neonStartBtn');
   await page.waitForTimeout(300);

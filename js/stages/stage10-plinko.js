@@ -23,6 +23,14 @@ import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '
 ========================================================= */
 function ballTypeById(id){ return BALL_TYPES.find(b => b.id === id); }
 
+// Which point value sits in which slot for the CURRENT drop — reshuffled
+// every drop (see spawnPlinkoBall) so the high-value slots aren't always
+// the same two edges turn after turn. Module-level rather than `state`,
+// same reasoning as every other transient render/layout var here (e.g.
+// plinkoPreviewX) — it's derived, reproducible board dressing, not saved
+// game progress.
+let plinkoRoundSlotValues = SLOT_VALUES.slice();
+
 // Live hover preview while choosing a drop point (see waitForPlinkoDrop)
 // — not part of `state` since it's a transient UI hint, not game data.
 let plinkoPreviewX = null;
@@ -87,6 +95,7 @@ document.getElementById('plinkoStartBtn').addEventListener('click', () => {
   state.plinkoUnlockedBalls = ['classic'];
   state.plinkoBalls = [];
   state.plinkoRoundResults = [];
+  plinkoRoundSlotValues = shuffle(SLOT_VALUES);
 
   document.getElementById('plinkoSetup').classList.add('hidden');
   document.getElementById('plinkoGame').classList.remove('hidden');
@@ -344,6 +353,10 @@ function spawnPlinkoBall(typeId, xPx){
   // never leaves a sparser board for the next team's turn.
   state.plinkoPegs = generatePlinkoPegs(canvas);
   state.plinkoPegPoints = 0;
+  // Reshuffled every drop — same "different values too, for variation"
+  // spirit as the fresh peg field above, so the edge slots aren't always
+  // the two 100s turn after turn.
+  plinkoRoundSlotValues = shuffle(SLOT_VALUES);
   const bonusDisplay = document.getElementById('plinkoBonusDisplay');
   if(bonusDisplay) bonusDisplay.textContent = '0';
   state.plinkoBalls = [{
@@ -565,7 +578,7 @@ function landPlinkoBall(ball, bounds){
   const slotCount = SLOT_VALUES.length;
   const slotWidth = (bounds.right - bounds.left) / slotCount;
   const slotIndex = Math.max(0, Math.min(slotCount - 1, Math.floor((ball.x - bounds.left) / slotWidth)));
-  const points = SLOT_VALUES[slotIndex];
+  const points = plinkoRoundSlotValues[slotIndex];
   const canvas = plinkoCanvasResizer.getCanvas();
   const settleX = bounds.left + slotWidth * (slotIndex + 0.5), settleY = canvas.height * 0.865;
 
@@ -717,7 +730,7 @@ function renderPlinkoCanvas(){
   const panelGap = Math.max(2, slotWidth * 0.06);
   const nowShimmer = performance.now();
   for(let i = 0; i < slotCount; i++){
-    const value = SLOT_VALUES[i];
+    const value = plinkoRoundSlotValues[i];
     const style = slotTierStyle(value);
     const x0 = bounds.left + slotWidth * i + panelGap / 2;
     const w = slotWidth - panelGap;

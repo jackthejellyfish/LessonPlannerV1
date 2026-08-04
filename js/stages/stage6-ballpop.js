@@ -198,6 +198,28 @@ function showFloatingText(container, xPct, yPct, text, color, extraClass = ''){
 const popCanvasResizer = createCanvasResizer('popParticleCanvas', 'popPlayArea');
 export function resizePopCanvas(){ popCanvasResizer.resize(); }
 
+// Cache the 2D context per canvas element instead of calling
+// getContext('2d') every single animation frame — getContext on the
+// same element always returns the same context instance, so the only
+// reason to look it up again is if the canvas element itself changed.
+let popCtxCache = null;
+let popCtxCanvasEl = null;
+function getPopCtx(canvas){
+  if(canvas !== popCtxCanvasEl){
+    popCtxCanvasEl = canvas;
+    popCtxCache = canvas.getContext('2d');
+  }
+  return popCtxCache;
+}
+
+// Above this many live particles (a bomb/mega burst can spawn up to
+// 150 at once), stop paying the shadowBlur cost per-particle — a real
+// per-shape blur convolution for every one of 150 tiny circles every
+// frame is what made bomb/mega moments feel laggy. A handful of normal
+// pop particles still get their glow; a big burst trades a bit of glow
+// for staying smooth.
+const POP_PARTICLE_GLOW_LIMIT = 60;
+
 function spawnPopParticles(xPx, yPx, count = 40, speedMult = 1, sizeMult = 1){
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
@@ -250,7 +272,7 @@ const POP_GEM_MIN_GAP_MS = 1600;
 // rule a room full of students can track by ear ("double points!").
 const POP_MULTI_COUNT = 1;
 const POP_MULTI_FUSE_MS = 2600;
-const POP_MULTI_COLOR = "#3EC1FF";
+const POP_MULTI_COLOR = "#A855F7";
 const POP_MULTIPLIER_DURATION_MS = 4000;
 
 function popMultiplierActive(){
@@ -281,7 +303,7 @@ function updatePopParticles(){
 function renderPopCanvas(){
   const canvas = popCanvasResizer.getCanvas();
   if(!canvas) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = getPopCtx(canvas);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Animated background: slow-floating bokeh blobs — large,
@@ -295,7 +317,8 @@ function renderPopCanvas(){
       vx: (Math.random() - 0.5) * 0.00018,
       vy: (Math.random() - 0.5) * 0.00012,
       color: ['rgba(178,102,255,', 'rgba(49,230,224,', 'rgba(255,210,63,', 'rgba(255,107,107,'][i % 4],
-      phase: Math.random() * Math.PI * 2
+      phase: Math.random() * Math.PI * 2,
+      gradient: null, gradientR: 0
     }));
   }
   for(const b of state.popBgBlobs){
@@ -304,13 +327,25 @@ function renderPopCanvas(){
     if(b.x > 1 + b.r) b.x = -b.r;
     if(b.y < -b.r) b.y = 1 + b.r;
     if(b.y > 1 + b.r) b.y = -b.r;
-    const alpha = 0.06 + 0.04 * Math.sin(Date.now() / 1800 + b.phase);
+    // Pulse via globalAlpha (a cheap per-draw scalar) instead of baking
+    // the alpha into the gradient's color stops — that lets the
+    // gradient itself (the expensive part to build) be cached and
+    // reused across frames instead of recreated 8x every single frame.
+    const alphaRatio = 0.6 + 0.4 * Math.sin(Date.now() / 1800 + b.phase); // 0.2..1.0, scales the 0.1 baked-in max below
     const x = b.x * canvas.width, y = b.y * canvas.height, r = b.r * canvas.width;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, b.color + alpha + ')');
-    grad.addColorStop(1, b.color + '0)');
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    if(!b.gradient || b.gradientR !== r){
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+      grad.addColorStop(0, b.color + '0.1)');
+      grad.addColorStop(1, b.color + '0)');
+      b.gradient = grad;
+      b.gradientR = r;
+    }
+    ctx.save();
+    ctx.globalAlpha = alphaRatio;
+    ctx.translate(x, y);
+    ctx.fillStyle = b.gradient;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
 
   // Pulsing glow ring behind every live ball — same idea as the
@@ -352,12 +387,15 @@ function renderPopCanvas(){
     ctx.restore();
   }
 
+  const particleGlowOn = state.popParticles.length <= POP_PARTICLE_GLOW_LIMIT;
   for(const p of state.popParticles){
     ctx.save();
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 12;
+    if(particleGlowOn){
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 12;
+    }
     ctx.beginPath();
     ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
     ctx.fill();
@@ -385,8 +423,7 @@ export function stopPopParticleLoop(){
   clearAllGems();
   const canvas = popCanvasResizer.getCanvas();
   if(canvas){
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    getPopCtx(canvas).clearRect(0, 0, canvas.width, canvas.height);
   }
 }
 

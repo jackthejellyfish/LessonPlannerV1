@@ -1,10 +1,16 @@
   /* ---- Guided / semi-controlled practice (Stage 3) ---- */
   .sentence-strip{
-    min-height:clamp(56px,8vh,76px); background:var(--paper); border:2px dashed var(--line); border-radius:14px;
-    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; padding:clamp(10px,1.7vh,17px) 22px; margin-bottom:clamp(10px,1.8vh,20px);
+    /* Fixed height (not min-height) sized for 2 rows of chips, so the
+       box never grows/shrinks as chips are added/removed — a growing
+       box here used to cascade into the whole #stage4 column re-centering
+       (see #stage4 .stage-body in base.css). justify-content:flex-start
+       (not center) keeps already-placed chips pinned in place instead of
+       re-centering the whole row every time a new chip is appended. */
+    height:clamp(120px,17vh,160px); background:var(--paper); border:2px dashed var(--line); border-radius:14px;
+    display:flex; flex-wrap:wrap; align-items:flex-start; align-content:center; justify-content:flex-start; gap:10px; padding:clamp(10px,1.7vh,17px) 22px; margin-bottom:clamp(10px,1.8vh,20px);
     max-width:960px; margin-left:auto; margin-right:auto; width:100%; flex-shrink:0;
   }
-  .sentence-strip.empty::before{ content:"Click the words below in order to build the sentence."; color:var(--muted); font-size:clamp(15px,2.1vh,19px); font-weight:600; font-style:italic; }
+  .sentence-strip.empty::before{ content:"Click the words below in order to build the sentence."; color:var(--muted); font-size:clamp(15px,2.1vh,19px); font-weight:600; font-style:italic; width:100%; text-align:center; align-self:center; }
   .sentence-strip.correct{ border-style:solid; border-color:var(--success); background:var(--success-bg); animation: correctPulse 0.45s ease; }
   .sentence-strip.incorrect{ border-style:solid; border-color:var(--error); background:var(--error-bg); animation: shakeWrong 0.45s ease; }
   .chip{

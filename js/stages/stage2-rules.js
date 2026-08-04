@@ -1,5 +1,6 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
+import { getCurrentLesson } from '../lessons.js';
 import { RULES, COMPARE_DEMOS, COMPARE_ICON_COLORS } from '../content/stage2-rules.js';
 
 // One small function that draws four different themed icons, each
@@ -39,6 +40,70 @@ export function buildCompareIcon(type, valuePct, color){
     const len = 18 + valuePct * 0.55;
     return `<svg viewBox="0 0 90 20" width="90" height="20">
       <line x1="5" y1="10" x2="${5 + len}" y2="10" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="9 6"/>
+    </svg>`;
+  }
+  // --- Health lesson icons: a symptom paired with its advice, not a
+  // magnitude comparison, so `scale` just gives a bit of visual variety
+  // rather than encoding "which is bigger" the way it does above.
+  if(type === 'headache'){
+    const r = 16 * scale;
+    return `<svg viewBox="0 0 60 70" width="60" height="70">
+      <circle cx="30" cy="42" r="${r}" fill="${color}"/>
+      <path d="M12 20 L20 28 L12 36" stroke="${color}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M48 20 L40 28 L48 36" stroke="${color}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+  }
+  if(type === 'medicine'){
+    const bh = 26 * scale, by = 54 - bh;
+    return `<svg viewBox="0 0 40 60" width="40" height="60">
+      <rect x="12" y="${by}" width="16" height="${bh}" rx="4" fill="${color}"/>
+      <rect x="16" y="${by-6}" width="8" height="8" rx="2" fill="${color}"/>
+      <line x1="20" y1="${by+bh*0.35}" x2="20" y2="${by+bh*0.75}" stroke="var(--paper)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="14" y1="${by+bh*0.55}" x2="26" y2="${by+bh*0.55}" stroke="var(--paper)" stroke-width="3" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'bed'){
+    const w = 50 * scale;
+    return `<svg viewBox="0 0 70 40" width="70" height="40">
+      <rect x="${35-w/2}" y="18" width="${w}" height="14" rx="3" fill="${color}"/>
+      <rect x="${35-w/2+4}" y="10" width="${w*0.28}" height="10" rx="3" fill="var(--paper)"/>
+      <line x1="${35-w/2}" y1="32" x2="${35-w/2}" y2="38" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+      <line x1="${35+w/2}" y1="32" x2="${35+w/2}" y2="38" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'nose'){
+    const r = 14 * scale;
+    return `<svg viewBox="0 0 40 60" width="40" height="60">
+      <path d="M20 10 C10 26 10 34 20 38 C30 34 30 26 20 10 Z" fill="${color}"/>
+      <circle cx="20" cy="${38+r*0.5}" r="${r*0.35}" fill="${color}" opacity="0.55"/>
+    </svg>`;
+  }
+  if(type === 'tissue'){
+    const s = 30 * scale;
+    return `<svg viewBox="0 0 50 40" width="50" height="40">
+      <rect x="${25-s/2}" y="10" width="${s}" height="${s*0.6}" rx="4" fill="${color}"/>
+      <path d="M${25-s/2} 10 L25 2 L${25+s/2} 10" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round"/>
+    </svg>`;
+  }
+  if(type === 'tooth'){
+    return `<svg viewBox="0 0 60 60" width="${60*scale}" height="${60*scale}">
+      <path d="M30 8 C18 8 12 18 14 30 C15 38 18 46 22 52 C24 46 26 42 30 42 C34 42 36 46 38 52 C42 46 45 38 46 30 C48 18 42 8 30 8 Z" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'dentist'){
+    const s = 30 * scale;
+    return `<svg viewBox="0 0 50 50" width="50" height="50">
+      <circle cx="25" cy="25" r="${s/2}" fill="${color}"/>
+      <line x1="25" y1="${25-s*0.22}" x2="25" y2="${25+s*0.22}" stroke="var(--paper)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="${25-s*0.22}" y1="25" x2="${25+s*0.22}" y2="25" stroke="var(--paper)" stroke-width="4" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'thermometer'){
+    const h = 34 * scale;
+    return `<svg viewBox="0 0 40 70" width="40" height="70">
+      <rect x="14" y="${48-h}" width="12" height="${h}" rx="6" fill="${color}"/>
+      <circle cx="20" cy="54" r="12" fill="${color}"/>
+      <circle cx="20" cy="54" r="6" fill="var(--paper)"/>
     </svg>`;
   }
   return '';
@@ -84,11 +149,16 @@ export function renderRuleCards(){
 
 export function renderCompareDemo(){
   const demo = COMPARE_DEMOS[state.demoIndex];
-  const color = COMPARE_ICON_COLORS[demo.icon];
+  // iconA/iconB let each side show a different icon type (a symptom
+  // paired with its advice); demos that only set `icon` (the original
+  // magnitude comparisons — two towers, one taller) fall back to using
+  // that same icon/color on both sides, unchanged.
+  const iconA = demo.iconA || demo.icon;
+  const iconB = demo.iconB || demo.icon;
   document.getElementById('demoLabelA').textContent = demo.labelA;
   document.getElementById('demoLabelB').textContent = demo.labelB;
-  document.getElementById('demoIconA').innerHTML = buildCompareIcon(demo.icon, demo.valueA, color);
-  document.getElementById('demoIconB').innerHTML = buildCompareIcon(demo.icon, demo.valueB, color);
+  document.getElementById('demoIconA').innerHTML = buildCompareIcon(iconA, demo.valueA, COMPARE_ICON_COLORS[iconA]);
+  document.getElementById('demoIconB').innerHTML = buildCompareIcon(iconB, demo.valueB, COMPARE_ICON_COLORS[iconB]);
   document.getElementById('demoCaption').innerHTML = demo.caption;
 
   const nav = document.getElementById('demoNav');
@@ -111,10 +181,11 @@ document.getElementById('learnNextBtn').addEventListener('click', () => goToStag
 // which rules happen to be open in the interactive accordion, since a
 // printout should always show everything.
 export function renderPrintableRules(){
+  const lesson = getCurrentLesson();
   const container = document.getElementById('printableRules');
   container.innerHTML = `
-    <h1>Comparative Adjectives — Rules Reference</h1>
-    <p class="print-subtitle">Spelling rules for forming comparative adjectives</p>
+    <h1>${lesson.printRulesTitle}</h1>
+    <p class="print-subtitle">${lesson.printRulesSubtitle}</p>
     ${RULES.map(rule => `
       <div class="print-rule" style="--print-accent:${rule.color}">
         <h2>${rule.name}</h2>
@@ -124,7 +195,7 @@ export function renderPrintableRules(){
         `).join('')}
       </div>
     `).join('')}
-    <p class="print-footer">Comparative Adjectives — Interactive Lesson</p>
+    <p class="print-footer">${lesson.printFooter}</p>
   `;
 }
 

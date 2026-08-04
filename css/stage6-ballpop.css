@@ -288,24 +288,22 @@
     100%{ filter:brightness(1.45) saturate(1.4); }
   }
 
-  /* The multiplier ball (new, 2026-07-16): an 8-point starburst shape
-     (clip-path, not a circle) in electric blue — deliberately not just
-     another circular gradient, so it reads as fundamentally different
-     from all 4 existing ball types at a glance, matching how big a deal
-     popping it is (doubles every point for a few seconds). An expanding
-     ring pulses outward continuously, distinct from the special ball's
-     fixed dashed ring. */
+  /* The multiplier ball: a circle with its own violet electric gradient
+     (distinct from special's gold, gem's pink/purple/cyan diagonal, and
+     bomb's hazard stripes), matching how big a deal popping it is
+     (doubles every point for a few seconds). An expanding ring pulses
+     outward continuously, distinct from the special ball's fixed dashed
+     ring. */
   .pop-ball.multi{
     width:7%;
-    border-radius:0;
-    background: radial-gradient(circle at 40% 35%, #E0FBFF 0%, #7FE0FF 40%, #3EC1FF 70%, #1C7FBF 100%) !important;
-    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
-    box-shadow:0 0 16px rgba(62,193,255,0.75);
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #E0B3FF 25%, #A855F7 55%, #5B21B6 100%) !important;
+    box-shadow:0 0 16px rgba(168,85,247,0.75);
     animation: multiPulse 0.4s ease-in-out infinite alternate;
   }
   .pop-ball.multi::before{
     content:''; position:absolute; inset:-30%;
-    border-radius:50%; border:2px solid rgba(62,193,255,0.55);
+    border-radius:50%; border:2px solid rgba(168,85,247,0.55);
     animation: multiRingPulse 0.8s ease-out infinite;
   }
   @keyframes multiPulse{
@@ -348,11 +346,12 @@
   /* Floating "+1" / "−1" combat-text style feedback */
   .pop-float-text{
     position:absolute; transform:translate(-50%,-50%) scale(1); opacity:1;
-    font-family:var(--font-display); font-weight:800; font-size:28px;
-    pointer-events:none; z-index:25; text-shadow:0 2px 6px rgba(0,0,0,0.25);
+    font-family:var(--font-display); font-weight:800; font-size:34px;
+    color:#fff; -webkit-text-stroke:1.5px rgba(0,0,0,0.55);
+    pointer-events:none; z-index:25; text-shadow:0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.35);
     transition: transform 0.6s cubic-bezier(.2,.7,.4,1), opacity 0.6s ease;
   }
-  .pop-float-text.mega{ font-size:34px; white-space:nowrap; }
+  .pop-float-text.mega{ font-size:40px; white-space:nowrap; }
 
   /* Brief warm flash across the play area's border on a mega explosion —
      reuses the same inset box-shadow the play area already rests at, so
@@ -366,11 +365,11 @@
   }
 
   /* Same "flash outward from the play area's own border" language as
-     the mega explosion above, cyan-tinted for the multiplier ball. */
+     the mega explosion above, violet-tinted for the multiplier ball. */
   .pop-play-area.multi-flash{ animation: popMultiFlash 0.4s ease; }
   @keyframes popMultiFlash{
     0%{ box-shadow: inset 0 0 0 3px var(--line); filter:brightness(1); }
-    30%{ box-shadow: inset 0 0 70px 14px rgba(62,193,255,0.6); filter:brightness(1.25); }
+    30%{ box-shadow: inset 0 0 70px 14px rgba(168,85,247,0.6); filter:brightness(1.25); }
     100%{ box-shadow: inset 0 0 0 3px var(--line); filter:brightness(1); }
   }
 
@@ -378,10 +377,10 @@
      a room full of players needs a continuous reminder scoring is
      doubled, not just a one-off flash they might miss. */
   #popPopsDisplay.multi-active{
-    color:#1C9FE0;
+    color:#8B2FD6;
     animation: popMultiActiveGlow 0.5s ease-in-out infinite alternate;
   }
   @keyframes popMultiActiveGlow{
-    0%{ text-shadow:0 0 6px rgba(62,193,255,0.5); }
-    100%{ text-shadow:0 0 16px rgba(62,193,255,0.95); }
+    0%{ text-shadow:0 0 6px rgba(168,85,247,0.5); }
+    100%{ text-shadow:0 0 16px rgba(168,85,247,0.95); }
   }

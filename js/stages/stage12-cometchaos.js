@@ -6,6 +6,7 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { COMET_QUESTIONS, COMET_LEVELS } from '../content/stage12-cometchaos.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 
 /* =========================================================
    STAGE 12 — COMET CHAOS
@@ -96,6 +97,7 @@ function renderCometTurnBanner(){
 function loadCometLevel(index){
   state.cometShotsLeft = SHOTS_PER_TURN;
   state.cometTurnScore = 0;
+  cometFloatTexts = [];
   loadNextComet();
   document.getElementById('cometShotsDisplay').textContent = String(state.cometShotsLeft);
   document.getElementById('cometScoreDisplay').textContent = '0';
@@ -194,6 +196,10 @@ function sfxSwallow(){
    TRAIL + PARTICLES
 ========================================================= */
 let cometTrail = [];
+
+// Rising "+N" text on every target land — same shared canvas
+// float-text helper every other canvas game uses.
+let cometFloatTexts = [];
 function updateCometTrail(comet){
   cometTrail.unshift({ x: comet.x, y: comet.y, alpha: 1 });
   if(cometTrail.length > 14) cometTrail.pop();
@@ -402,9 +408,12 @@ function endCometShot(points){
 
 function landCometInTarget(comet, tx, ty, bullseye){
   comet.x = tx; comet.y = ty;
-  spawnCometParticles(tx, ty, bullseye ? '#FFD23F' : '#43D1FF', bullseye ? 46 : 28, bullseye ? 1.6 : 1.1);
+  const points = bullseye ? POINTS_BULLSEYE : POINTS_TARGET;
+  const color = bullseye ? '#FFD23F' : '#43D1FF';
+  spawnCometParticles(tx, ty, color, bullseye ? 46 : 28, bullseye ? 1.6 : 1.1);
+  spawnFloatText(cometFloatTexts, tx, ty, `+${points}`, color);
   sfxTargetHit(bullseye);
-  endCometShot(bullseye ? POINTS_BULLSEYE : POINTS_TARGET);
+  endCometShot(points);
 }
 
 function swallowComet(comet, bx, by){
@@ -421,7 +430,7 @@ function missComet(comet){
 
 function updateCometPhysics(dt){
   const comet = state.cometComet;
-  if(!comet || !comet.launched){ updateCometParticles(); return; }
+  if(!comet || !comet.launched){ updateCometParticles(); cometFloatTexts = updateFloatTexts(cometFloatTexts); return; }
   const canvas = cometCanvasResizer.getCanvas();
   const dtSec = Math.min(0.032, dt / 1000);
   const level = COMET_LEVELS[state.cometLevelIndex % COMET_LEVELS.length];
@@ -467,6 +476,7 @@ function updateCometPhysics(dt){
   }
 
   updateCometParticles();
+  cometFloatTexts = updateFloatTexts(cometFloatTexts);
 }
 
 function startCometRound(){
@@ -493,6 +503,7 @@ export function cancelCometRound(){
   state.cometComet = null;
   state.cometParticles = [];
   cometTrail = [];
+  cometFloatTexts = [];
   const playArea = document.getElementById('cometPlayArea');
   if(playArea) playArea.classList.add('idle');
   const hint = document.getElementById('cometHint');
@@ -635,6 +646,8 @@ function renderCometCanvas(){
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
+
+  drawFloatTexts(ctx, cometFloatTexts, Math.max(16, canvas.width * 0.026));
 
   // Slingshot posts + trajectory preview while aiming.
   const anchorX = canvas.width * (LAUNCH_X_PCT / 100), anchorY = canvas.height * (LAUNCH_Y_PCT / 100);

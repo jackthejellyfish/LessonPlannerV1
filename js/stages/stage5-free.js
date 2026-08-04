@@ -1,6 +1,7 @@
 import { goToStage } from '../navigation.js';
 import { escapeHtml } from '../utils.js';
 import { sfxTimeUp } from '../audio.js';
+import { getCurrentLesson } from '../lessons.js';
 import { WORD_BANK, SCAFFOLD_FRAMES } from '../content/stage5-free.js';
 
 /* =========================================================
@@ -8,6 +9,7 @@ import { WORD_BANK, SCAFFOLD_FRAMES } from '../content/stage5-free.js';
 ========================================================= */
 
 export function renderWordBank(){
+  document.getElementById('freeIntro').textContent = getCurrentLesson().freeIntro;
   document.getElementById('wordBank').innerHTML = WORD_BANK.map(([base, comp]) => `
     <span class="wordbank-chip">${escapeHtml(base)} → <strong>${escapeHtml(comp)}</strong></span>
   `).join('');

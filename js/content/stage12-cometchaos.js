@@ -4,18 +4,45 @@
    canvas.width, y of canvas.height — same convention as Sky
    Slingshot's pigs/blocks).
 ========================================================= */
-export const COMET_QUESTIONS = [
-  { prompt: "What is the comparative of 'young'?", answer: "younger" },
-  { prompt: "What is the comparative of 'clean'?", answer: "cleaner" },
-  { prompt: "What is the comparative of 'cheap'?", answer: "cheaper" },
-  { prompt: "What is the comparative of 'safe'?", answer: "safer" },
-  { prompt: "What is the comparative of 'wide'?", answer: "wider" },
-  { prompt: "What is the comparative of 'deep'?", answer: "deeper" },
-  { prompt: "What is the comparative of 'gentle'?", answer: "gentler" },
-  { prompt: "What is the comparative of 'famous'?", answer: "more famous" },
-  { prompt: "What is the comparative of 'little'? (it's irregular!)", answer: "less" },
-  { prompt: "What is the comparative of 'many'? (it's irregular!)", answer: "more" }
-];
+const LESSON_CONTENT = {
+  comparatives: {
+    COMET_QUESTIONS: [
+      { prompt: "What is the comparative of 'young'?", answer: "younger" },
+      { prompt: "What is the comparative of 'clean'?", answer: "cleaner" },
+      { prompt: "What is the comparative of 'cheap'?", answer: "cheaper" },
+      { prompt: "What is the comparative of 'safe'?", answer: "safer" },
+      { prompt: "What is the comparative of 'wide'?", answer: "wider" },
+      { prompt: "What is the comparative of 'deep'?", answer: "deeper" },
+      { prompt: "What is the comparative of 'gentle'?", answer: "gentler" },
+      { prompt: "What is the comparative of 'famous'?", answer: "more famous" },
+      { prompt: "What is the comparative of 'little'? (it's irregular!)", answer: "less" },
+      { prompt: "What is the comparative of 'many'? (it's irregular!)", answer: "more" }
+    ]
+  },
+  health: {
+    COMET_QUESTIONS: [
+      { prompt: "He's got a stomach ache, but he keeps eating cake. What shouldn't he do?", answer: "He shouldn't eat too much." },
+      { prompt: "She's got a cold, but she wants to go outside without a coat. What shouldn't she do?", answer: "She shouldn't go outside without a coat." },
+      { prompt: "He's got a sore throat, but he wants to shout at the match. What shouldn't he do?", answer: "He shouldn't shout." },
+      { prompt: "She's tired, but she wants to stay up all night. What shouldn't she do?", answer: "She shouldn't stay up late." },
+      { prompt: "He's got a headache, but he wants to play loud music. What shouldn't he do?", answer: "He shouldn't play loud music." },
+      { prompt: "They've got backaches, but they keep carrying heavy bags. What shouldn't they do?", answer: "They shouldn't carry heavy bags." },
+      { prompt: "She's got a fever, but she wants to go to school. What shouldn't she do?", answer: "She shouldn't go to school." },
+      { prompt: "He's got a cough, but he wants to eat ice cream. What shouldn't he do?", answer: "He shouldn't eat ice cream." },
+      { prompt: "She's got an earache, but she wants to listen to loud music. What shouldn't she do?", answer: "She shouldn't listen to loud music." },
+      { prompt: "He's got a toothache, but he wants to eat sweets. What shouldn't he do?", answer: "He shouldn't eat sweets." }
+    ]
+  }
+};
+
+export const COMET_QUESTIONS = [];
+
+export function applyLesson(id){
+  const data = LESSON_CONTENT[id] || LESSON_CONTENT.comparatives;
+  COMET_QUESTIONS.length = 0;
+  COMET_QUESTIONS.push(...data.COMET_QUESTIONS);
+}
+applyLesson('comparatives');
 
 export const COMET_LEVELS = [
   {

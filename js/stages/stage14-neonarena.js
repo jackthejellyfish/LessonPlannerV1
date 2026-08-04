@@ -6,6 +6,11 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { NEON_QUESTIONS } from '../content/stage14-neonarena.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+
+// Rising "+N" text on every kill — same shared canvas float-text helper
+// every other canvas game uses.
+let neonFloatTexts = [];
 
 /* =========================================================
    STAGE 14 — NEON ARENA
@@ -336,6 +341,7 @@ function updateNeonShrapnel(dtSec, canvas){
         document.getElementById('neonScoreDisplay').textContent = String(state.neonScore);
         const count = e.type === 'warden' ? 50 : e.type === 'juggernaut' ? 34 : 20;
         spawnNeonParticles((e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), count, e.type === 'warden' ? 1.8 : 1);
+        spawnFloatText(neonFloatTexts, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, `+${e.points}`, neonEnemyColor(e.type));
         sfxNeonDestroy(e.type === 'warden' ? 1.4 : e.type === 'juggernaut' ? 1 : 0.5);
       }
     }
@@ -516,12 +522,18 @@ function updateNeonBullets(dtSec, canvas){
         b.hit = true;
         e.hp -= b.big ? 2 : 1;
         e.hitFlash = 1;
+        // A small spark burst on every hit, not just a kill — before this,
+        // particles only fired on the finishing blow, so a multi-hit
+        // enemy (juggernaut/warden) felt like it was absorbing shots with
+        // no feedback at all until it finally died.
+        spawnNeonParticles((b.x / 100) * canvas.width, (b.y / 100) * canvas.height, neonEnemyColor(e.type), 8, 0.7);
         if(e.hp <= 0){
           e.dead = true;
           state.neonScore += e.points;
           document.getElementById('neonScoreDisplay').textContent = String(state.neonScore);
           const count = e.type === 'warden' ? 50 : e.type === 'juggernaut' ? 34 : 20;
           spawnNeonParticles((e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), count, e.type === 'warden' ? 1.8 : 1);
+          spawnFloatText(neonFloatTexts, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, `+${e.points}`, neonEnemyColor(e.type));
           sfxNeonDestroy(e.type === 'warden' ? 1.4 : e.type === 'juggernaut' ? 1 : 0.5);
         } else {
           e.radiusPct = e.baseRadiusPct * (0.6 + 0.4 * (e.hp / e.maxHp));
@@ -562,6 +574,7 @@ function updateNeonGame(dt){
   state.neonPickups = state.neonPickups.filter(pu => !pu.collected && (performance.now() - pu.spawnedAt) < 7000);
 
   updateNeonParticles();
+  neonFloatTexts = updateFloatTexts(neonFloatTexts);
 }
 
 /* =========================================================
@@ -618,7 +631,13 @@ function drawNeonPickup(ctx, canvas, pu, now){
   const scale = neonScale(canvas);
   const pulse = 0.7 + 0.3 * Math.sin(now / 160);
   const color = neonPickupColor(pu.type);
-  const r = 5 * scale;
+  // Bumped from 5 to 11 (~2.2x) — at 5 a power-up was smaller than even
+  // the smallest enemy on screen and easy to miss entirely. Every shape
+  // below is built from fractions of r, so this one constant scales the
+  // whole pickup. Collection hitbox (updateNeonGame, a separate fixed
+  // constant) is intentionally left untouched — this is a visibility
+  // fix, not a difficulty change.
+  const r = 11 * scale;
   ctx.save();
   ctx.globalAlpha = pulse;
   ctx.shadowColor = color; ctx.shadowBlur = 18 * scale;
@@ -754,12 +773,10 @@ function renderNeonCanvas(){
   for(const pu of state.neonPickups) drawNeonPickup(ctx, canvas, pu, now);
   for(const e of state.neonEnemies) drawNeonEnemy(ctx, canvas, e, now);
 
-  // Same simple elongated-ellipse look as Star Defender's own projectile
-  // (drawInvShip/renderInvCanvas — a plain ctx.ellipse, narrow width,
-  // longer length, glow via shadowBlur) per explicit ask to make these
-  // two games' projectiles match — Star Defender's only ever travel
-  // straight up so its ellipse needs no rotation, but Neon's bullets fly
-  // in any direction, so the same shape rotates to face travel here.
+  // Thin projectile lines instead of filled ellipses — a short, narrow
+  // stroked segment along the travel direction reads as a fast-moving
+  // bolt rather than a pill/capsule shape. Same total length as the old
+  // ellipse (baseR*2.6 each way from center), just much narrower.
   for(const b of state.neonBullets){
     const x = (b.x / 100) * canvas.width, y = (b.y / 100) * canvas.height;
     const baseR = Math.max(1, (b.big ? NEON_BULLET_RADIUS_BIG_PCT : NEON_BULLET_RADIUS_PCT) / 100 * canvas.width);
@@ -768,16 +785,19 @@ function renderNeonCanvas(){
     ctx.rotate(Math.atan2(b.vy, b.vx) - Math.PI / 2);
     ctx.shadowColor = b.big ? NEON_POWER_COLOR : NEON_PLAYER_COLOR;
     ctx.shadowBlur = 8 * scale;
-    ctx.fillStyle = b.big ? NEON_POWER_COLOR : '#E7FFC2';
+    ctx.strokeStyle = b.big ? NEON_POWER_COLOR : '#E7FFC2';
+    ctx.lineWidth = baseR * 0.55;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.ellipse(0, 0, baseR * 0.85, baseR * 2.6, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(0, -baseR * 2.6);
+    ctx.lineTo(0, baseR * 2.6);
+    ctx.stroke();
     ctx.restore();
   }
 
-  // Nova Bomb shrapnel — same elongated-ellipse language as the bullets
-  // above, tinted in the bomb's own red so a detonation clearly reads as
-  // "many small fast fragments", not more player bullets.
+  // Nova Bomb shrapnel — same thin-line language as the bullets above,
+  // tinted in the bomb's own red so a detonation clearly reads as "many
+  // small fast fragments", not more player bullets.
   for(const s of state.neonShrapnel){
     const x = (s.x / 100) * canvas.width, y = (s.y / 100) * canvas.height;
     const baseR = Math.max(1, 0.8 / 100 * canvas.width);
@@ -786,10 +806,13 @@ function renderNeonCanvas(){
     ctx.rotate(Math.atan2(s.vy, s.vx) - Math.PI / 2);
     ctx.shadowColor = NEON_BOMB_COLOR;
     ctx.shadowBlur = 8 * scale;
-    ctx.fillStyle = '#FFC48A';
+    ctx.strokeStyle = '#FFC48A';
+    ctx.lineWidth = baseR * 0.55;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.ellipse(0, 0, baseR * 0.8, baseR * 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(0, -baseR * 2.2);
+    ctx.lineTo(0, baseR * 2.2);
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -801,6 +824,8 @@ function renderNeonCanvas(){
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
+
+  drawFloatTexts(ctx, neonFloatTexts, Math.max(16, 20 * scale));
 
   drawNeonPlayer(ctx, canvas);
 
@@ -833,6 +858,7 @@ function startNeonRound(){
   state.neonEnemies = [];
   state.neonPickups = [];
   state.neonParticles = [];
+  neonFloatTexts = [];
   state.neonPowerActive = false;
   state.neonOverdriveActive = false;
   state.neonSpreadActive = false;
@@ -887,6 +913,7 @@ export function cancelNeonRound(){
   state.neonRoundRAF = null;
   clearNeonBossTimeout();
   neonTouchTarget = null;
+  neonFloatTexts = [];
   Object.keys(neonKeysDown).forEach(k => neonKeysDown[k] = false);
   if(state.neonRoundActive){
     state.neonRoundActive = false;

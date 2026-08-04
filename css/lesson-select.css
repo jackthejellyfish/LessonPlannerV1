@@ -1,0 +1,63 @@
+/* =========================================================
+   LESSON SELECT — landing screen shown before Stage 1 until a
+   lesson topic is picked. Full-viewport overlay, independent of
+   .wrap's max-width layout, styled with the same tokens/hover
+   language as every other card on the page (team setup legends,
+   .free-card, etc.) rather than a new visual language.
+========================================================= */
+.lesson-select{
+  position:fixed; inset:0; z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  padding: clamp(16px, 4vh, 40px);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(92,138,130,0.14), transparent 45%),
+    radial-gradient(circle at 80% 75%, rgba(133,119,168,0.14), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(191,154,84,0.09), transparent 50%),
+    var(--paper);
+}
+.lesson-select-inner{ max-width:760px; width:100%; text-align:center; }
+.lesson-select-eyebrow{
+  font-family:var(--font-display); font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+  font-size:clamp(12px, 1.6vh, 14px); color:var(--muted); margin:0 0 8px;
+}
+.lesson-select-inner h1{ font-size:clamp(30px, 5.5vh, 46px); font-weight:800; }
+.lesson-select-sub{
+  color:var(--muted); font-size:clamp(14px, 2vh, 17px); margin:12px 0 clamp(24px, 4vh, 40px);
+}
+.lesson-cards{
+  display:flex; flex-wrap:wrap; gap:18px; justify-content:center;
+}
+.lesson-card{
+  flex:1 1 280px; max-width:340px; text-align:left; cursor:pointer;
+  font-family:var(--font-body); color:inherit; appearance:none;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px 22px 20px; display:flex; flex-direction:column; gap:10px;
+  transition: transform 0.32s cubic-bezier(.34,1.56,.64,1), box-shadow 0.32s ease, border-color 0.25s ease;
+}
+.lesson-card:hover, .lesson-card:focus-visible{
+  transform:translateY(-4px); border-color:var(--card-color, var(--primary));
+  box-shadow:0 12px 26px color-mix(in srgb, var(--card-color, var(--primary)) 25%, transparent);
+  outline:none;
+}
+.lesson-card:active{ transform:translateY(-1px) scale(0.99); transition-duration:0.08s; }
+.lesson-card-dot{
+  width:14px; height:14px; border-radius:50%; background:var(--card-color, var(--primary));
+}
+.lesson-card h2{ font-size:clamp(19px, 2.6vh, 23px); font-weight:800; }
+.lesson-card p{ color:var(--muted); font-size:clamp(13px, 1.8vh, 15px); line-height:1.5; margin:0; flex:1; }
+.lesson-card-cta{
+  font-family:var(--font-display); font-weight:700; color:var(--card-color, var(--primary));
+  font-size:clamp(13px, 1.8vh, 15px);
+}
+
+/* ---- "Change lesson" button (mute/compact-toggle's own circular style).
+   Stacked BELOW the mute button (top:74px, same right:20px) rather than
+   beside it — the empty margin to the right of .wrap's max-width is only
+   as wide as the mute button itself (confirmed by inspection: the
+   15-step stepper's own max-width already reaches nearly that far), so a
+   second button at the same top:20px row collided with the "Fruit Ninja"
+   step label. Stacking down keeps both buttons in that same proven-clear
+   margin column instead of widening into stepper content. .compact-toggle
+   (right:74px, top:20px, fullscreen-only) never coexists with this in a
+   way that overlaps either. ---- */
+.change-lesson-toggle{ top:74px; }
