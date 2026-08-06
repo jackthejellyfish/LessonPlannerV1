@@ -11,24 +11,35 @@
    game. One bottom strip holds all the game "chrome"; everything
    above it is pure play area.
 ========================================================= */
-/* Nav stays visible during games (was display:none) — moving between
-   stages while a game is open used to require leaving fullscreen mode
-   first. Pinned to the top the same way the footer is already pinned to
-   the bottom below, but deliberately NOT restyled otherwise — same
+/* Nav stays visible during games by default (was display:none) — moving
+   between stages while a game is open used to require leaving fullscreen
+   mode first. Pinned to the top the same way the footer is already pinned
+   to the bottom below, but deliberately NOT restyled otherwise — same
    circles, same labels, same light background as every other page, per
    explicit feedback that the nav must look identical everywhere rather
-   than getting its own shrunk-down "in-game" appearance. padding-right
-   clears the mute/compact-mode button cluster (top:20/74px, right:
-   20/74px, z-index:60 — above this bar's z-index:55) so the last step
-   never renders underneath them, the same overlap bug fixed once
-   already for the normal stepper (see js/lessons.js's change-lesson
-   button placement). */
+   than getting its own shrunk-down "in-game" appearance. #hideNavBtn (see
+   below) lets a teacher opt back OUT of this per-game when they want the
+   old edge-to-edge no-chrome look instead. padding-right clears the mute/
+   compact/hide-nav button cluster (top:20px, right:20/74/128px, z-
+   index:60 — above this bar's z-index:55) so the last step never renders
+   underneath them, the same overlap bug fixed once already for the
+   normal stepper (see js/lessons.js's change-lesson button placement). */
 body.fullscreen-game .stepper{
   display:flex; position:fixed; top:0; left:0; right:0; z-index:55;
   max-width:none; margin:0;
   background:var(--surface);
   border-bottom:1px solid var(--line);
-  padding: clamp(10px,1.8vh,18px) 140px clamp(10px,1.8vh,18px) clamp(14px,2.5vw,32px);
+  padding: clamp(10px,1.8vh,18px) 200px clamp(10px,1.8vh,18px) clamp(14px,2.5vw,32px);
+}
+/* ---- Hide-nav opt-out ----
+   Toggled by #hideNavBtn (js/main.js), independent of compact mode:
+   drops the stepper bar entirely for a fully edge-to-edge game, the
+   look fullscreen mode had before the nav was pinned back on above.
+   Resets the top reservation from .stage-body below since there's no
+   stepper left to clear. */
+body.fullscreen-game.hide-nav .stepper{ display:none; }
+body.fullscreen-game.hide-nav .stage:not(.hidden) .stage-body{
+  padding-top: clamp(10px, 1.8vh, 20px);
 }
 body.fullscreen-game .wrap{ max-width:none; }
 
@@ -162,6 +173,14 @@ body.fullscreen-game .pop-float-text{ font-size:clamp(28px, 3vw, 46px); }
 .compact-toggle{ display:none; }
 body.fullscreen-game .compact-toggle{ display:flex; right:74px; }
 body.fullscreen-game.compact-game .compact-toggle{ background:var(--primary); color:#fff; }
+
+/* ---- Hide-nav toggle ----
+   Only meaningful (and only shown) while a game owns the screen; sits
+   one slot further out than the compact toggle so all three fullscreen-
+   only buttons (mute/compact/hide-nav) form one row without overlapping. */
+.navhide-toggle{ display:none; }
+body.fullscreen-game .navhide-toggle{ display:flex; right:128px; }
+body.fullscreen-game.hide-nav .navhide-toggle{ background:var(--primary); color:#fff; }
 
 body.fullscreen-game.compact-game .stage:not(.hidden){
   inset:auto; top:50%; left:50%; transform:translate(-50%, -50%);

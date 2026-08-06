@@ -104,6 +104,17 @@ document.getElementById('compactModeBtn').addEventListener('click', () => {
   resizeCurrentStageCanvas();
 });
 
+// Hide-nav: lets a teacher opt back out of the always-visible fullscreen
+// stepper (see css/fullscreen-game.css) for a fully edge-to-edge game
+// with no chrome at all. Independent of compact mode and, like it,
+// persists as you move between games until toggled off again.
+document.getElementById('hideNavBtn').addEventListener('click', () => {
+  const hidden = document.body.classList.toggle('hide-nav');
+  const btn = document.getElementById('hideNavBtn');
+  btn.setAttribute('aria-label', hidden ? 'Show the top navigation bar' : 'Hide the top navigation bar for a distraction-free fullscreen game');
+  resizeCurrentStageCanvas();
+});
+
 // Compact mode's footer floats as a position:absolute overlay at the
 // bottom of the shrunk stage box, so .stage-body reserves space for it
 // via padding-bottom — but the footer's real height varies per game
