@@ -8,6 +8,7 @@ import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { confirmDialog } from '../confirmDialog.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses, local module state like Plinko's own
@@ -230,13 +231,12 @@ function spawnInvEnemy(){
   });
 }
 
-let invShakeUntil = 0;
-let invShakeMag = 0;
-const INV_SHAKE_DURATION_MS = 180;
-function triggerInvShake(mag){
-  invShakeUntil = performance.now() + INV_SHAKE_DURATION_MS;
-  invShakeMag = mag;
-}
+// Now built on the shared js/canvasEffects.js helper (this file's own
+// version was one of 3 near-identical copies found across the app —
+// Sky Slingshot and Plinko each independently typed out the same
+// {shakeUntil,shakeMag} + ctx.translate trick — so this is the same
+// behavior, just one shared implementation going forward).
+let invShake = createShakeState();
 
 // A small burst at the ship's barrel every time it fires — makes each
 // shot read as a real event instead of just a bolt silently appearing.
@@ -386,7 +386,7 @@ function updateInvGame(dt){
           // small canvas-shake trick as Sky Slingshot's impact feedback.
           // Every kill now gets a scaled-down version of the same shake so
           // all hits feel like they land, not just bosses.
-          triggerInvShake(enemy.type === 'boss' ? 8 : enemy.type === 'brute' ? 4 : 2);
+          triggerShake(invShake, enemy.type === 'boss' ? 8 : enemy.type === 'brute' ? 4 : 2);
         } else {
           // A hit that doesn't destroy it still visibly wears it down —
           // shrinks toward 60% of its original size as HP drops, so a
@@ -467,12 +467,7 @@ function renderInvCanvas(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.save();
-  const shakeNow = performance.now();
-  if(shakeNow < invShakeUntil){
-    const remaining = (invShakeUntil - shakeNow) / INV_SHAKE_DURATION_MS;
-    const mag = invShakeMag * remaining;
-    ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
-  }
+  applyShake(ctx, invShake);
 
   if(!state.invStars || state.invStars.length === 0){
     state.invStars = Array.from({ length: 45 }, () => ({

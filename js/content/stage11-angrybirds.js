@@ -88,14 +88,17 @@ export const BIRD_LEVELS = [
     ]
   },
   {
-    // Two 2-block towers + two 1-block towers + 1 ground pot.
+    // Two 2-block towers + two 1-block towers + 1 ground pot. Base of
+    // the left tower is explosive (2026-08) — first level to introduce
+    // it, deliberately placed under the chief pot so a good shot chain-
+    // detonates the whole tower, pot included, in one blast.
     pigs: [
       { x: 52, y: 67.4, r: 2.5, value: 25 }, { x: 78, y: 67.4, r: 2.5 },
       { x: 65, y: 76.3, r: 2.5 }, { x: 92, y: 76.3, r: 2.5 },
       { x: 40, y: 84, r: 2.5 }
     ],
     blocks: [
-      { x: 52, y: 83.5, w: 3.2, h: 9 }, { x: 52, y: 74.5, w: 3.2, h: 9 },
+      { x: 52, y: 83.5, w: 3.2, h: 9, type: 'explosive' }, { x: 52, y: 74.5, w: 3.2, h: 9 },
       { x: 78, y: 83.5, w: 3.2, h: 9 }, { x: 78, y: 74.5, w: 3.2, h: 9 },
       { x: 65, y: 83.5, w: 3.2, h: 9 }, { x: 92, y: 83.5, w: 3.2, h: 9 }
     ]
@@ -117,8 +120,11 @@ export const BIRD_LEVELS = [
   },
   {
     // Hardest: two 3-block towers + two 2-block towers + 1 ground pot.
+    // The chief pot on top of the tallest tower sways side to side
+    // (2026-08) — the hardest-to-reach target is now also a moving one,
+    // fitting this level's own "hardest" billing.
     pigs: [
-      { x: 55, y: 58.4, r: 2.3, value: 25 }, { x: 88, y: 58.4, r: 2.3 },
+      { x: 55, y: 58.4, r: 2.3, value: 25, moving: true }, { x: 88, y: 58.4, r: 2.3 },
       { x: 70, y: 67.4, r: 2.3 }, { x: 98, y: 67.4, r: 2.3 },
       { x: 40, y: 84, r: 2.3 }
     ],
@@ -136,13 +142,16 @@ export const BIRD_LEVELS = [
     // and the pot down together, since the collapse check is a genuine
     // x-overlap test, not a same-x-only stack (see triggerCollapse).
     // Two easy ground pots on the flanks keep a total miss on the bridge
-    // from being a total zero.
+    // from being a total zero. Left support is explosive (2026-08) —
+    // taking it out chain-detonates through the lintel to the pot too,
+    // an even bigger payoff for the level's signature "bring it all
+    // down together" moment than a normal hit already was.
     pigs: [
       { x: 35, y: 84, r: 2.6 }, { x: 95, y: 84, r: 2.6 },
       { x: 65, y: 69.8, r: 3.2, value: 25 }
     ],
     blocks: [
-      { x: 52, y: 83.5, w: 3, h: 9 }, { x: 78, y: 83.5, w: 3, h: 9 },
+      { x: 52, y: 83.5, w: 3, h: 9, type: 'explosive' }, { x: 78, y: 83.5, w: 3, h: 9 },
       { x: 65, y: 77, w: 30, h: 4 }
     ]
   },
@@ -150,10 +159,12 @@ export const BIRD_LEVELS = [
     // "Skyline": a row of short pedestals with small pots, one tall
     // 2-block pedestal in the middle topped with a chief pot — a clear
     // "go for the middle" bonus target framed by easier flanking shots,
-    // instead of every target being roughly the same height/value.
+    // instead of every target being roughly the same height/value. That
+    // chief pot now sways (2026-08) — the marquee target of the level is
+    // also its trickiest shot, not just its highest-value one.
     pigs: [
       { x: 45, y: 76.6, r: 2.4 }, { x: 58, y: 76.6, r: 2.4 },
-      { x: 71, y: 66.8, r: 3.2, value: 25 },
+      { x: 71, y: 66.8, r: 3.2, value: 25, moving: true },
       { x: 84, y: 76.6, r: 2.4 }, { x: 97, y: 76.6, r: 2.4 }
     ],
     blocks: [

@@ -6,7 +6,17 @@
    position:relative) and flies outward from (xPct, yPct),
    expressed as a percentage of that container's own size.
 ========================================================= */
+// Every other particle system in the app (canvas-based: Ball Pop, Plinko,
+// Star Defender, Neon Arena, etc.) filters its live-particle array every
+// frame and caps expensive effects past a live-count threshold. This is
+// the one DOM-based system with neither — today it's only ever reachable
+// once per question (gated by state.mcAnswered/semiChecked before the
+// call site), so it can't currently be spammed, but a hard ceiling here
+// costs nothing and removes it as a variable if that ever changes.
+const MAX_LIVE_BURST_PARTICLES = 240; // 20 questions worth of simultaneous bursts
+
 export function burstParticles(container, xPct, yPct, color){
+  if(document.querySelectorAll('.particle').length >= MAX_LIVE_BURST_PARTICLES) return;
   const count = 12;
   for(let i = 0; i < count; i++){
     const p = document.createElement('div');

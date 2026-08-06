@@ -1,12 +1,13 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, beep } from '../audio.js';
+import { ensureAudio, beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { BIRDS_QUESTIONS, BIRD_LEVELS } from '../content/stage11-angrybirds.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
 
 /* =========================================================
    STAGE 11 — SKY SLINGSHOT (Sahara desert overhaul)
@@ -68,6 +69,33 @@ const SANDSTONE_EDGE = '#A9702F';
 const POT_FILL = '#C9713F';
 const POT_BAND = '#8A4A26';
 const POT_HIGHLIGHT = '#F0C08A';
+const EXPLOSIVE_FILL = '#E4574B';
+const EXPLOSIVE_GLOW = '#FF8B3D';
+
+/* =========================================================
+   NEW MECHANICS (2026-08): explosive blocks, a multi-hit combo bonus,
+   and swaying pots — see content/stage11-angrybirds.js's header
+   comment for which of the 8 levels carry which. All three are
+   additive: a level/object without these fields plays exactly as
+   before.
+========================================================= */
+const POINTS_EXPLOSIVE_BONUS = 5; // on top of POINTS_BLOCK for the explosive block itself
+const EXPLOSIVE_RADIUS_PCT = 14;  // chain-detonation radius, % of canvas width
+const COMBO_BONUS_PER_HIT = 4;    // added for the 3rd hit onward in one shot
+const PIG_SWAY_AMPLITUDE_PCT = 6;
+const PIG_SWAY_SPEED = 1.4;       // radians of sine phase per second
+// Same "scale canvas-drawn effects relative to a reference width" trick
+// as Star Defender's canvasScale()/INV_REFERENCE_WIDTH — used only for
+// the new shockwave rings, which came from that file's default sizing.
+const BIRDS_REFERENCE_WIDTH = 900;
+
+// A moving pot's true x is only ever computed here — both collision
+// detection and rendering call this, so a shot can never "miss" against
+// a position the player didn't actually see it at, or vice versa.
+function pigLiveXPct(pig, nowMs){
+  if(!pig.moving) return pig.x;
+  return pig.x + Math.sin((nowMs / 1000) * PIG_SWAY_SPEED) * PIG_SWAY_AMPLITUDE_PCT;
+}
 
 let birdsRowColors = [];
 
@@ -114,6 +142,9 @@ function loadBirdsLevel(index){
   state.birdsShotsLeft = SHOTS_PER_TURN;
   state.birdsTurnScore = 0;
   birdsFloatTexts = [];
+  birdsShockwaves = [];
+  birdsShake = createShakeState();
+  birdsHitsThisShot = 0;
   loadNextBird();
   document.getElementById('birdsShotsDisplay').textContent = String(state.birdsShotsLeft);
   document.getElementById('birdsScoreDisplay').textContent = '0';
@@ -212,14 +243,17 @@ let birdsFloatTexts = [];
 // to the whole canvas draw in renderBirdsCanvas. Added per feedback that
 // impacts weren't "satisfying"; a hit that only removed a sprite and
 // spawned a few particles read as flat next to the bigger pull-back and
-// faster shots elsewhere in this rework.
-let birdsShakeUntil = 0;
-let birdsShakeMag = 0;
-const SHAKE_DURATION_MS = 180;
-function triggerShake(mag){
-  birdsShakeUntil = performance.now() + SHAKE_DURATION_MS;
-  birdsShakeMag = mag;
-}
+// faster shots elsewhere in this rework. Now built on the shared
+// js/canvasEffects.js helper (this file's own version was the pattern's
+// origin — Star Defender/Plinko each independently copied it — so this
+// is the same behavior, just one shared implementation going forward).
+let birdsShake = createShakeState();
+
+// Shockwave rings on the biggest moments (explosive blocks, big combos)
+// — same shared helper, new to this game (previously only particles +
+// shake marked a hit, with nothing distinguishing an explosive/combo
+// moment from a routine one).
+let birdsShockwaves = [];
 
 function updateBirdsTrail(bird){
   birdsTrail.unshift({ x: bird.x, y: bird.y, alpha: 1 });
@@ -247,6 +281,58 @@ function updateBirdsParticles(){
     p.alpha -= p.decay; p.size *= 0.97;
   }
   state.birdsParticles = state.birdsParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+}
+
+/* =========================================================
+   COMBO — how many blocks/pots this ONE shot has scored against so far
+   (a rolling/bouncing shot can rack up several across multiple frames,
+   not just the first impact). Reset once per turn in loadBirdsLevel,
+   since there's only ever one shot. The 3rd hit onward stacks a bonus
+   on top of whatever those objects were already worth — rewards a shot
+   that clips a lot for MORE than just the sum of its parts, addressing
+   the exact thing multi-hit shots were missing before.
+========================================================= */
+let birdsHitsThisShot = 0;
+
+function registerBirdsHit(px, py){
+  birdsHitsThisShot++;
+  if(birdsHitsThisShot < 3) return;
+  state.birdsTurnScore += COMBO_BONUS_PER_HIT;
+  document.getElementById('birdsScoreDisplay').textContent = String(state.birdsTurnScore);
+  spawnFloatText(birdsFloatTexts, px, py - 8, `COMBO x${birdsHitsThisShot}!`, '#7CFFEA', -1.6);
+  spawnShockwave(birdsShockwaves, px, py, '#7CFFEA', { big: birdsHitsThisShot >= 4 });
+  triggerShake(birdsShake, Math.min(10, 4 + birdsHitsThisShot));
+  sfxRisingChime([700, 900, 1100, 1300].slice(0, Math.min(4, birdsHitsThisShot - 1)), { stagger: 0.045, duration: 0.09 });
+}
+
+// A wider chain-detonation around an explosive block — everything
+// within EXPLOSIVE_RADIUS_PCT that's still alive gets destroyed (and
+// scored) outright, not just toppled the way a normal collapse does;
+// triggerCollapse still runs for each one too, so whatever was resting
+// on THEM keeps falling exactly as it would from a direct hit.
+function triggerExplosion(centerBlock, canvas){
+  const cx = centerBlock.x, cy = centerBlock.y;
+  const bx = canvas.width * (cx / 100), by = canvas.height * (cy / 100);
+  spawnBirdsParticles(bx, by, EXPLOSIVE_GLOW, 40);
+  spawnShockwave(birdsShockwaves, bx, by, EXPLOSIVE_GLOW, { big: true });
+  triggerShake(birdsShake, 12);
+  sfxImpact(1.3);
+
+  const pool = [...state.birdsBlocks, ...state.birdsPigs];
+  for(const obj of pool){
+    if(obj === centerBlock || !obj.alive || obj.falling) continue;
+    if(Math.hypot(obj.x - cx, obj.y - cy) > EXPLOSIVE_RADIUS_PCT) continue;
+    obj.alive = false;
+    const isPig = obj.w === undefined;
+    const value = isPig ? (obj.value != null ? obj.value : POINTS_PIG) : POINTS_BLOCK;
+    state.birdsTurnScore += value;
+    document.getElementById('birdsScoreDisplay').textContent = String(state.birdsTurnScore);
+    const ox = canvas.width * (obj.x / 100), oy = canvas.height * (obj.y / 100);
+    spawnBirdsParticles(ox, oy, isPig ? POT_FILL : SANDSTONE_FILL, 16);
+    spawnFloatText(birdsFloatTexts, ox, oy, `+${value}`, isPig ? POT_FILL : SANDSTONE_FILL);
+    registerBirdsHit(ox, oy);
+    triggerCollapse(obj);
+  }
 }
 
 /* =========================================================
@@ -464,6 +550,7 @@ function updateBirdsPhysics(dt){
   updateFallingObjects(dtSec, canvas);
   updateBirdsParticles();
   birdsFloatTexts = updateFloatTexts(birdsFloatTexts);
+  birdsShockwaves = updateShockwaves(birdsShockwaves);
 
   const bird = state.birdsBird;
   if(!bird || !bird.launched) return;
@@ -519,12 +606,22 @@ function updateBirdsPhysics(dt){
     const bw = canvas.width * (block.w / 100), bh = canvas.height * (block.h / 100);
     if(circleRectHit(bird.x, bird.y, bird.r, bx, by, bw, bh)){
       block.alive = false;
-      state.birdsTurnScore += POINTS_BLOCK;
-      document.getElementById('birdsScoreDisplay').textContent = String(state.birdsTurnScore);
-      spawnBirdsParticles(bx, by, SANDSTONE_FILL, 20);
-      spawnFloatText(birdsFloatTexts, bx, by, `+${POINTS_BLOCK}`, SANDSTONE_FILL);
-      sfxThud();
-      triggerShake(5);
+      if(block.type === 'explosive'){
+        const total = POINTS_BLOCK + POINTS_EXPLOSIVE_BONUS;
+        state.birdsTurnScore += total;
+        document.getElementById('birdsScoreDisplay').textContent = String(state.birdsTurnScore);
+        spawnFloatText(birdsFloatTexts, bx, by, `+${total}`, EXPLOSIVE_GLOW);
+        registerBirdsHit(bx, by);
+        triggerExplosion(block, canvas); // its own particles/shockwave/shake/sfx — bigger than a normal hit's
+      } else {
+        state.birdsTurnScore += POINTS_BLOCK;
+        document.getElementById('birdsScoreDisplay').textContent = String(state.birdsTurnScore);
+        spawnBirdsParticles(bx, by, SANDSTONE_FILL, 20);
+        spawnFloatText(birdsFloatTexts, bx, by, `+${POINTS_BLOCK}`, SANDSTONE_FILL);
+        sfxThud();
+        triggerShake(birdsShake, 5);
+        registerBirdsHit(bx, by);
+      }
       triggerCollapse(block);
       bird.vx *= 0.6; bird.vy *= 0.6;
       bird.vx += (Math.random() - 0.5) * 80;
@@ -533,7 +630,11 @@ function updateBirdsPhysics(dt){
   }
   for(const pig of state.birdsPigs){
     if(!pig.alive || pig.falling) continue;
-    const px = canvas.width * (pig.x / 100), py = canvas.height * (pig.y / 100), pr = canvas.width * (pig.r / 100);
+    // Live (possibly swaying) position — the same value the render loop
+    // draws the pot at, so a shot can never hit/miss somewhere the
+    // player didn't actually see it.
+    const pigXPct = pigLiveXPct(pig, performance.now());
+    const px = canvas.width * (pigXPct / 100), py = canvas.height * (pig.y / 100), pr = canvas.width * (pig.r / 100);
     const dx = bird.x - px, dy = bird.y - py;
     if(Math.hypot(dx, dy) < bird.r + pr){
       pig.alive = false;
@@ -545,7 +646,8 @@ function updateBirdsPhysics(dt){
       sfxPigPop();
       // Bigger pots (worth more) land a bigger shake — scales the "juice"
       // with how good a hit it was, not a flat amount every time.
-      triggerShake(6 + value * 0.15);
+      triggerShake(birdsShake, 6 + value * 0.15);
+      registerBirdsHit(px, py);
       triggerCollapse(pig);
       bird.vx *= 0.7; bird.vy *= 0.7;
       break;
@@ -592,6 +694,7 @@ export function cancelBirdsRound(){
   state.birdsParticles = [];
   birdsTrail = [];
   birdsFloatTexts = [];
+  birdsShockwaves = [];
   const playArea = document.getElementById('birdsPlayArea');
   if(playArea) playArea.classList.add('idle');
   const hint = document.getElementById('birdsHint');
@@ -728,12 +831,7 @@ function renderBirdsCanvas(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.save();
-  const shakeNow = performance.now();
-  if(shakeNow < birdsShakeUntil){
-    const remaining = (birdsShakeUntil - shakeNow) / SHAKE_DURATION_MS;
-    const mag = birdsShakeMag * remaining;
-    ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
-  }
+  applyShake(ctx, birdsShake);
 
   const groundY = canvas.height * (GROUND_Y_PCT / 100);
   drawBirdsBackground(ctx, canvas, groundY);
@@ -749,14 +847,38 @@ function renderBirdsCanvas(){
     if(block.falling){ bx = block.fallX; by = block.fallY; rot = block.rotation || 0; }
     else { bx = canvas.width * (block.x / 100); by = canvas.height * (block.y / 100); }
     const bw = canvas.width * (block.w / 100), bh = canvas.height * (block.h / 100);
+    const isExplosive = block.type === 'explosive';
     ctx.save();
     ctx.translate(bx, by);
     ctx.rotate(rot);
-    ctx.fillStyle = SANDSTONE_FILL;
-    ctx.strokeStyle = SANDSTONE_EDGE; ctx.lineWidth = 2;
+    // A slow pulsing glow marks an explosive block as "special" before
+    // it's ever hit — same "communicate value/danger at a glance"
+    // language as the chief pots' gold band.
+    if(isExplosive){
+      ctx.shadowColor = EXPLOSIVE_GLOW;
+      ctx.shadowBlur = 10 + 6 * Math.sin(performance.now() / 160);
+    }
+    ctx.fillStyle = isExplosive ? EXPLOSIVE_FILL : SANDSTONE_FILL;
+    ctx.strokeStyle = isExplosive ? EXPLOSIVE_GLOW : SANDSTONE_EDGE; ctx.lineWidth = isExplosive ? 3 : 2;
     ctx.beginPath();
     ctx.roundRect(-bw / 2, -bh / 2, bw, bh, 4);
     ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+    if(isExplosive){
+      // A small starburst mark — same silhouette idea as Fruit Ninja's
+      // bomb fuse, reused here as the "this one's different" cue.
+      ctx.fillStyle = '#FFE3A8';
+      ctx.beginPath();
+      const spikes = 5, r1 = bw * 0.16, r2 = bw * 0.07;
+      for(let i = 0; i < spikes * 2; i++){
+        const rad = i % 2 === 0 ? r1 : r2;
+        const a = (Math.PI / spikes) * i;
+        const spx = Math.sin(a) * rad, spy = -Math.cos(a) * rad;
+        if(i === 0) ctx.moveTo(spx, spy); else ctx.lineTo(spx, spy);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -770,7 +892,7 @@ function renderBirdsCanvas(){
     if(!pig.alive) continue;
     let px, py, rot = 0;
     if(pig.falling){ px = pig.fallX; py = pig.fallY; rot = pig.rotation || 0; }
-    else { px = canvas.width * (pig.x / 100); py = canvas.height * (pig.y / 100); }
+    else { px = canvas.width * (pigLiveXPct(pig, performance.now()) / 100); py = canvas.height * (pig.y / 100); }
     const pr = canvas.width * (pig.r / 100);
     const value = pig.value != null ? pig.value : POINTS_PIG;
     const bandColor = value >= 25 ? '#D9A62B' : POT_BAND;
@@ -813,6 +935,7 @@ function renderBirdsCanvas(){
     ctx.restore();
   }
 
+  drawShockwaves(ctx, birdsShockwaves, canvas.width / BIRDS_REFERENCE_WIDTH);
   drawFloatTexts(ctx, birdsFloatTexts, Math.max(16, canvas.width * 0.024));
 
   // Trajectory preview + sling bands while aiming. Band color/glow

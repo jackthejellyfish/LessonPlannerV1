@@ -6,6 +6,7 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { PLINKO_QUESTIONS, BALL_TYPES, SLOT_VALUES } from '../content/stage10-plinko.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
 
 /* =========================================================
    STAGE 10 — PLINKO DROP
@@ -49,16 +50,12 @@ let plinkoLandFlash = { slotIndex: -1, strength: 0, big: false };
 let plinkoFloatTexts = []; // rising "+N" score text: {x,y,text,color,alpha,vy}
 
 // Screen shake on a big moment (a bonus-peg pop, or a 100+ point land) —
-// same small canvas-translate trick as Sky Slingshot's triggerShake.
-// Added per feedback that other games' impact moments could use some of
-// the same "juice" Sky Slingshot's shake landed well.
-let plinkoShakeUntil = 0;
-let plinkoShakeMag = 0;
-const PLINKO_SHAKE_DURATION_MS = 170;
-function triggerPlinkoShake(mag){
-  plinkoShakeUntil = performance.now() + PLINKO_SHAKE_DURATION_MS;
-  plinkoShakeMag = mag;
-}
+// now built on the shared js/canvasEffects.js helper (this file's own
+// version was one of 3 near-identical copies found across the app —
+// Sky Slingshot and Star Defender each independently typed out the same
+// {shakeUntil,shakeMag} + ctx.translate trick — so this is the same
+// behavior, just one shared implementation going forward).
+let plinkoShake = createShakeState();
 
 /* =========================================================
    SETUP
@@ -510,7 +507,7 @@ function updatePlinkoBalls(dt){
             ball.vx += (Math.random() - 0.5) * 500;
             ball.vy -= Math.random() * 150 + 40;
             sfxExplosion();
-            triggerPlinkoShake(6);
+            triggerShake(plinkoShake, 6);
           } else {
             sfxPegPoint();
           }
@@ -595,7 +592,7 @@ function landPlinkoBall(ball, bounds){
 
   const style = slotTierStyle(points);
   spawnPlinkoParticles(settleX, settleY, ball.glow, points >= 100 ? 70 : points >= 25 ? 45 : 26, points >= 100 ? 1.8 : 1.2);
-  if(points >= 100) triggerPlinkoShake(9);
+  if(points >= 100) triggerShake(plinkoShake, 9);
   sfxSlotLand(points);
 
   // Drives the winning slot's flash/scale-up in renderPlinkoCanvas, plus
@@ -657,12 +654,7 @@ function renderPlinkoCanvas(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.save();
-  const shakeNow = performance.now();
-  if(shakeNow < plinkoShakeUntil){
-    const remaining = (plinkoShakeUntil - shakeNow) / PLINKO_SHAKE_DURATION_MS;
-    const mag = plinkoShakeMag * remaining;
-    ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
-  }
+  applyShake(ctx, plinkoShake);
 
   const bg = ctx.createRadialGradient(canvas.width / 2, 0, 0, canvas.width / 2, canvas.height, canvas.height);
   bg.addColorStop(0, '#241F4D');

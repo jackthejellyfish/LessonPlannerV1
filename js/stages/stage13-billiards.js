@@ -7,10 +7,21 @@ import { BILLIARDS_QUESTIONS, BILLIARDS_BALLS } from '../content/stage13-billiar
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
 
 // Rising "+N" text on every pocketed ball — same shared canvas
 // float-text helper every other canvas game uses.
 let billiardsFloatTexts = [];
+// Shake + shockwave on a pocket capture — new (2026-08 consistency
+// pass): this was previously the flattest feedback in the app, every
+// ball (1-6pt) getting the identical 22-particle/3-note treatment with
+// no scaling at all. Same shared js/canvasEffects.js helper every other
+// game now uses.
+let billiardsShake = createShakeState();
+let billiardsShockwaves = [];
+// Same "scale canvas-drawn effects relative to a reference width" trick
+// as Star Defender's canvasScale() — used only for the shockwave rings.
+const BILLIARDS_REFERENCE_WIDTH = 900;
 
 /* =========================================================
    STAGE 13 — BILLIARDS
@@ -134,21 +145,45 @@ function randomTablePoint(bounds, r, xMinFrac, xMaxFrac){
 // Randomizes the whole rack — including the cue ball — every turn, instead
 // of one fixed layout, per feedback that a static table felt stale.
 // Rejection-sampling keeps every ball a minimum distance apart so nothing
-// spawns overlapping. The cue ball is still biased to the left third of the
-// table (a loose "break position") so the aiming feel stays familiar turn to
-// turn even though the exact spot moves.
-function placeBallsRandomly(bounds, r){
+// spawns overlapping, AND a minimum distance from every pocket — this
+// second check used to not exist at all, which meant a ball could spawn
+// with its center already inside a pocket's own capture radius. The
+// capture check in billiardsPhysicsStep is a pure position test with no
+// velocity guard (deliberately — see the comment there), so a ball
+// spawning that close got captured/sunk on the very first physics tick
+// of the round, before the player had done anything ("balls fall in on
+// their own"). The cue ball is still biased to the left third of the
+// table (a loose "break position") so the aiming feel stays familiar turn
+// to turn even though the exact spot moves.
+function placeBallsRandomly(bounds, r, pockets, pocketR){
   const minSep = r * MIN_BALL_SEPARATION_FACTOR;
+  // Generous margin beyond the raw capture radius — not just "technically
+  // not captured yet" but a visually clear gap, and enough slack that the
+  // ball-vs-ball separation nudge (if two candidates land close together
+  // and get pushed apart post-placement) can't shove one back in.
+  const minPocketDist = pocketR + r * 1.5;
   const placed = [];
+  function tooCloseToPocket(p){
+    return pockets.some(pk => Math.hypot(p.x - pk.x, p.y - pk.y) < minPocketDist);
+  }
   function place(xMinFrac, xMaxFrac){
     for(let attempt = 0; attempt < 80; attempt++){
       const p = randomTablePoint(bounds, r, xMinFrac, xMaxFrac);
+      if(tooCloseToPocket(p)) continue;
       if(placed.every(q => Math.hypot(p.x - q.x, p.y - q.y) >= minSep)){
         placed.push(p);
         return p;
       }
     }
-    const fallback = randomTablePoint(bounds, r, xMinFrac, xMaxFrac); // rare — table's just crowded
+    // Rare — table's crowded enough that no spot cleared both checks in 80
+    // tries. Spawning inside a pocket (an instant, input-less "scratch")
+    // is worse than merely spawning close to another ball, so give pocket-
+    // avoidance its own dedicated second pass before giving up entirely.
+    for(let attempt = 0; attempt < 40; attempt++){
+      const p = randomTablePoint(bounds, r, xMinFrac, xMaxFrac);
+      if(!tooCloseToPocket(p)){ placed.push(p); return p; }
+    }
+    const fallback = randomTablePoint(bounds, r, xMinFrac, xMaxFrac);
     placed.push(fallback);
     return fallback;
   }
@@ -169,7 +204,9 @@ function loadBilliardsRack(){
   const bounds = billiardsTableBounds(canvas);
   const tableScale = bounds.right - bounds.left;
   const r = tableScale * (BALL_RADIUS_PCT / 100);
-  const { cuePos, objectPositions } = placeBallsRandomly(bounds, r);
+  const pockets = billiardsPockets(canvas);
+  const pocketR = tableScale * (POCKET_RADIUS_PCT / 100);
+  const { cuePos, objectPositions } = placeBallsRandomly(bounds, r, pockets, pocketR);
   const objectBalls = BILLIARDS_BALLS.map((b, i) => ({
     x: objectPositions[i].x, y: objectPositions[i].y,
     vx: 0, vy: 0, angle: 0, r, value: b.value, color: b.color, isCue: false, pocketed: false
@@ -188,6 +225,8 @@ function loadBilliardsRack(){
   state.billiardsTurnScore = 0;
   state.billiardsShotFired = false;
   billiardsFloatTexts = [];
+  billiardsShockwaves = [];
+  billiardsShake = createShakeState();
   cueAwaitingStrike = true;
   document.getElementById('billiardsScoreDisplay').textContent = '0';
 }
@@ -417,10 +456,18 @@ function pocketBall(ball, pocketPos){
   ball.vx = 0; ball.vy = 0;
   spawnBilliardsParticles(pocketPos.x, pocketPos.y, ball.isCue ? '#cfe0f5' : ball.color, 22, 1.2);
   sfxPocket(ball.isCue);
-  if(!ball.isCue){
+  if(ball.isCue){
+    triggerShake(billiardsShake, 5); // a scratch is its own small moment, even though it scores nothing
+  } else {
     state.billiardsTurnScore += ball.value;
     document.getElementById('billiardsScoreDisplay').textContent = String(state.billiardsTurnScore);
     spawnFloatText(billiardsFloatTexts, pocketPos.x, pocketPos.y, `+${ball.value}`, ball.color);
+    // Bigger-value balls land a bigger shake + a shockwave ring — same
+    // "scale the juice with how good the hit was" convention Sky
+    // Slingshot/Comet Chaos use; every ball previously got the exact
+    // same feedback regardless of its 5-50pt value.
+    triggerShake(billiardsShake, 4 + ball.value * 0.12);
+    spawnShockwave(billiardsShockwaves, pocketPos.x, pocketPos.y, ball.color, { big: ball.value >= 25 });
   }
 }
 
@@ -539,6 +586,7 @@ function billiardsPhysicsStep(dtSec, bounds, pockets, pocketR, friction){
 function updateBilliardsPhysics(dt){
   updateBilliardsParticles();
   billiardsFloatTexts = updateFloatTexts(billiardsFloatTexts);
+  billiardsShockwaves = updateShockwaves(billiardsShockwaves);
   if(!state.billiardsRoundActive || !state.billiardsBalls.length) return;
   const canvas = billiardsCanvasResizer.getCanvas();
   const bounds = billiardsTableBounds(canvas);
@@ -597,6 +645,7 @@ export function cancelBilliardsRound(){
   state.billiardsBalls = [];
   state.billiardsParticles = [];
   billiardsFloatTexts = [];
+  billiardsShockwaves = [];
   const playArea = document.getElementById('billiardsPlayArea');
   if(playArea) playArea.classList.add('idle');
   const hint = document.getElementById('billiardsHint');
@@ -650,6 +699,9 @@ function renderBilliardsCanvas(){
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  ctx.save();
+  applyShake(ctx, billiardsShake);
+
   ctx.fillStyle = '#EAF6F2';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -694,6 +746,7 @@ function renderBilliardsCanvas(){
     ctx.restore();
   }
 
+  drawShockwaves(ctx, billiardsShockwaves, canvas.width / BILLIARDS_REFERENCE_WIDTH);
   drawFloatTexts(ctx, billiardsFloatTexts, Math.max(16, tableScale * 0.05));
 
   const cue = state.billiardsBalls && state.billiardsBalls.find(b => b.isCue);
@@ -781,6 +834,8 @@ function renderBilliardsCanvas(){
       ctx.restore();
     }
   }
+
+  ctx.restore(); // matches the shake ctx.save() near the top of this function
 }
 
 /* =========================================================

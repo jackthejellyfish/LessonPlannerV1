@@ -7,10 +7,22 @@ import { NEON_QUESTIONS } from '../content/stage14-neonarena.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses.
 let neonFloatTexts = [];
+// Shake + shockwave on a Warden (boss) kill — new (2026-08 consistency
+// pass): this was the one "big moment" in the app with no ring at all,
+// mirroring Star Defender's own boss-kill treatment. Same shared
+// js/canvasEffects.js helper every other game now uses.
+let neonShake = createShakeState();
+let neonShockwaves = [];
+function triggerNeonWardenFanfare(e, canvas){
+  if(e.type !== 'warden') return;
+  triggerShake(neonShake, 10);
+  spawnShockwave(neonShockwaves, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), { big: true });
+}
 
 /* =========================================================
    STAGE 14 — NEON ARENA
@@ -343,6 +355,7 @@ function updateNeonShrapnel(dtSec, canvas){
         spawnNeonParticles((e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), count, e.type === 'warden' ? 1.8 : 1);
         spawnFloatText(neonFloatTexts, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, `+${e.points}`, neonEnemyColor(e.type));
         sfxNeonDestroy(e.type === 'warden' ? 1.4 : e.type === 'juggernaut' ? 1 : 0.5);
+        triggerNeonWardenFanfare(e, canvas);
       }
     }
   }
@@ -535,6 +548,7 @@ function updateNeonBullets(dtSec, canvas){
           spawnNeonParticles((e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), count, e.type === 'warden' ? 1.8 : 1);
           spawnFloatText(neonFloatTexts, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, `+${e.points}`, neonEnemyColor(e.type));
           sfxNeonDestroy(e.type === 'warden' ? 1.4 : e.type === 'juggernaut' ? 1 : 0.5);
+          triggerNeonWardenFanfare(e, canvas);
         } else {
           e.radiusPct = e.baseRadiusPct * (0.6 + 0.4 * (e.hp / e.maxHp));
           sfxNeonHitEnemy();
@@ -575,6 +589,7 @@ function updateNeonGame(dt){
 
   updateNeonParticles();
   neonFloatTexts = updateFloatTexts(neonFloatTexts);
+  neonShockwaves = updateShockwaves(neonShockwaves);
 }
 
 /* =========================================================
@@ -765,6 +780,10 @@ function renderNeonCanvas(){
   const canvas = neonCanvasResizer.getCanvas();
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
+
+  ctx.save();
+  applyShake(ctx, neonShake);
+
   renderNeonBackground(ctx, canvas);
 
   const scale = neonScale(canvas);
@@ -825,6 +844,7 @@ function renderNeonCanvas(){
     ctx.restore();
   }
 
+  drawShockwaves(ctx, neonShockwaves, scale);
   drawFloatTexts(ctx, neonFloatTexts, Math.max(16, 20 * scale));
 
   drawNeonPlayer(ctx, canvas);
@@ -842,6 +862,8 @@ function renderNeonCanvas(){
   if(state.neonPowerActive) drawIndicator('◆ POWER CORE', NEON_POWER_COLOR);
   if(state.neonOverdriveActive) drawIndicator('▲ OVERDRIVE', NEON_OVERDRIVE_COLOR);
   if(state.neonSpreadActive) drawIndicator('✦ SPREAD CORE', NEON_SPREAD_COLOR);
+
+  ctx.restore(); // matches the shake ctx.save() near the top of this function
 }
 
 /* =========================================================
@@ -859,6 +881,8 @@ function startNeonRound(){
   state.neonPickups = [];
   state.neonParticles = [];
   neonFloatTexts = [];
+  neonShockwaves = [];
+  neonShake = createShakeState();
   state.neonPowerActive = false;
   state.neonOverdriveActive = false;
   state.neonSpreadActive = false;
@@ -914,6 +938,7 @@ export function cancelNeonRound(){
   clearNeonBossTimeout();
   neonTouchTarget = null;
   neonFloatTexts = [];
+  neonShockwaves = [];
   Object.keys(neonKeysDown).forEach(k => neonKeysDown[k] = false);
   if(state.neonRoundActive){
     state.neonRoundActive = false;

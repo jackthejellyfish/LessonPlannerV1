@@ -1,33 +1,61 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio } from '../audio.js';
+import { ensureAudio, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { FRUIT_QUESTIONS } from '../content/stage15-fruitninja.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
 
 /* =========================================================
    STAGE 15 — FRUIT NINJA
    Team-turn structure identical to every other canvas game: answer a
    question, then play a fixed 10-second round. Placeholder shapes
-   (circle/square/triangle) launch up from the bottom under gravity and
-   arc back down; swiping (mouse-drag or touch) across one slices it —
-   it splits into two halves that fly apart and fall/fade on their own,
-   same "real physics, not just a disappearing sprite" spirit as every
-   other game's impact feedback here. Cut detection is a simple point-
-   to-segment distance test against each shape's own radius, run once
-   per new trail point against every live shape — with well under 20
-   shapes on screen at once this is trivial, no spatial partitioning
-   needed (same reasoning as Billiards' O(n²) ball collisions).
+   (circle/square/triangle, plus bomb/golden — see below) launch up
+   from the bottom under gravity and arc back down; swiping (mouse-drag
+   or touch) across one slices it — it splits into two halves that fly
+   apart and fall/fade on their own, same "real physics, not just a
+   disappearing sprite" spirit as every other game's impact feedback
+   here. Cut detection is a simple point-to-segment distance test
+   against each shape's own radius, run once per new trail point
+   against every live shape — with well under 20 shapes on screen at
+   once this is trivial, no spatial partitioning needed (same reasoning
+   as Billiards' O(n²) ball collisions).
+
+   Combo/bomb/golden-fruit additions (2026-08) use the shared
+   js/canvasEffects.js shake+shockwave helpers and audio.js's
+   sfxImpact/sfxRisingChime — same shared vocabulary now used across
+   every game's "big moment" feedback, rather than reinventing another
+   one-off version here.
 ========================================================= */
 const FRUIT_ROUND_SECONDS = 10;
 const FRUIT_GRAVITY = 130; // %/second² — shapes launch up, arc, and fall back under this; lowered from 160 for a gentler, slower fall
 const FRUIT_TRAIL_MAX_AGE_MS = 160;
+// Same "scale canvas-drawn effects relative to a reference width" trick
+// as Star Defender's canvasScale()/INV_REFERENCE_WIDTH — used only for
+// the new shockwave rings below, which came from that file's default
+// sizing (tuned against this same reference width).
+const FRUIT_REFERENCE_WIDTH = 900;
 
 const FRUIT_SHAPE_TYPES = ['circle', 'square', 'triangle'];
+// Bomb/golden are spawned OUTSIDE this rotation (see spawnFruitShape) —
+// a fixed per-spawn chance each, not "one more entry in the array,"
+// since they need to stay rare rather than as common as the 3 base
+// shapes.
+const FRUIT_BOMB_CHANCE = 0.12;
+const FRUIT_GOLDEN_CHANCE = 0.08;
+// A fast continuous swipe naturally crosses several shapes close
+// together in time — this window is what turns that into a recognized
+// "combo" instead of just several separate +1s. 220ms comfortably
+// covers one swipe gesture without also chaining together two
+// deliberately separate slices.
+const FRUIT_COMBO_WINDOW_MS = 220;
+
 function fruitShapeColor(type){
+  if(type === 'bomb') return '#2B2B3A';
+  if(type === 'golden') return '#FFD23F';
   return type === 'circle' ? '#F2B705' : type === 'square' ? '#3DB88D' : '#FF6B6B';
 }
 
@@ -59,6 +87,19 @@ let fruitRowColors = [];
 // variable rather than `state` since it's transient render data, not
 // game data (same reasoning as fruitSwipeTrail).
 let fruitFloatTexts = [];
+// Same "transient render data, not game data" reasoning for the new
+// shake/shockwave/combo/flash state below.
+let fruitShake = createShakeState();
+let fruitShockwaves = [];
+let fruitComboCount = 0;
+let fruitLastCutAt = 0;
+let fruitFlashUntil = 0;
+let fruitFlashColor = '#FF4444';
+const FRUIT_FLASH_DURATION_MS = 220;
+function triggerFruitFlash(color, durationMs = FRUIT_FLASH_DURATION_MS){
+  fruitFlashUntil = performance.now() + durationMs;
+  fruitFlashColor = color;
+}
 
 export function renderFruitTeamInputs(count){
   renderTeamSetupRows('fruitTeamInputs', 'fruitAddTeamBtn', count, fruitRowColors, renderFruitTeamInputs);
@@ -146,7 +187,10 @@ function updateFruitParticles(){
    spirit as every other timed mini-game here).
 ========================================================= */
 function spawnFruitShape(){
-  const type = FRUIT_SHAPE_TYPES[Math.floor(Math.random() * FRUIT_SHAPE_TYPES.length)];
+  const roll = Math.random();
+  const type = roll < FRUIT_BOMB_CHANCE ? 'bomb'
+    : roll < FRUIT_BOMB_CHANCE + FRUIT_GOLDEN_CHANCE ? 'golden'
+    : FRUIT_SHAPE_TYPES[Math.floor(Math.random() * FRUIT_SHAPE_TYPES.length)];
   state.fruitShapes.push({
     half: false,
     x: 15 + Math.random() * 70, y: 108,
@@ -167,15 +211,61 @@ function spawnFruitShape(){
 // slightly upward) before gravity takes back over — the "interesting
 // physics" of the cut itself, not just a particle burst standing in
 // for it. Halves fade out on their own (see updateFruitShapes) and
-// can't be cut again — one point per shape.
+// can't be cut again.
+//
+// Three shape types now score differently: a bomb PENALIZES (and
+// breaks any combo in progress — a bomb is a mistake, not part of a
+// good swipe), a golden fruit is a rare bonus worth more with its own
+// richer fanfare, and slicing 2+ shapes within FRUIT_COMBO_WINDOW_MS of
+// each other (the natural result of one fast continuous swipe) stacks
+// an escalating combo bonus on top of the normal shapes.
 function cutFruitShape(shape, canvas){
-  state.fruitScore += 1;
-  document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
-  sfxFruitSlice();
-
   const px = (shape.x / 100) * canvas.width, py = (shape.y / 100) * canvas.height;
-  spawnFruitParticles(px, py, shape.color, 16, 1);
-  spawnFloatText(fruitFloatTexts, px, py, '+1', shape.color);
+
+  if(shape.type === 'bomb'){
+    state.fruitScore = Math.max(0, state.fruitScore - 2);
+    document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
+    spawnFruitParticles(px, py, '#FF6B5B', 22, 1.3);
+    spawnShockwave(fruitShockwaves, px, py, '#FF4444', { big: true });
+    spawnFloatText(fruitFloatTexts, px, py, '−2', '#FF4444');
+    triggerFruitFlash('#FF4444');
+    triggerShake(fruitShake, 7);
+    sfxImpact(1.1);
+    fruitComboCount = 0; // a bomb is a mistake, not a slice to chain off
+  } else {
+    const isGolden = shape.type === 'golden';
+    const gained = isGolden ? 3 : 1;
+    state.fruitScore += gained;
+    document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
+    spawnFruitParticles(px, py, shape.color, isGolden ? 26 : 16, isGolden ? 1.4 : 1);
+    spawnFloatText(fruitFloatTexts, px, py, `+${gained}`, shape.color);
+    if(isGolden){
+      spawnShockwave(fruitShockwaves, px, py, '#FFD23F', {});
+      triggerShake(fruitShake, 3);
+      sfxRisingChime([880, 1108, 1318, 1568]);
+    } else {
+      sfxFruitSlice();
+    }
+
+    // Combo — see FRUIT_COMBO_WINDOW_MS above. Evaluated live (right at
+    // the cut that crosses the threshold) rather than waiting for the
+    // swipe to end, so the "DOUBLE!"/"TRIPLE!" callout lands the instant
+    // it happens, matching the real-time feel every other "big moment"
+    // in this app has.
+    const now = performance.now();
+    fruitComboCount = (now - fruitLastCutAt < FRUIT_COMBO_WINDOW_MS) ? fruitComboCount + 1 : 1;
+    fruitLastCutAt = now;
+    if(fruitComboCount >= 2){
+      const bonus = fruitComboCount - 1;
+      state.fruitScore += bonus;
+      document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
+      const label = fruitComboCount === 2 ? 'DOUBLE!' : fruitComboCount === 3 ? 'TRIPLE!' : `COMBO x${fruitComboCount}!`;
+      spawnFloatText(fruitFloatTexts, px, py - 6, label, '#7CFFEA', -1.6);
+      spawnShockwave(fruitShockwaves, px, py, '#7CFFEA', { big: fruitComboCount >= 3 });
+      triggerShake(fruitShake, Math.min(9, 3 + fruitComboCount));
+      sfxRisingChime([700, 900, 1100, 1300].slice(0, Math.min(4, fruitComboCount)), { stagger: 0.045, duration: 0.09 });
+    }
+  }
 
   const kick = 32;
   [-1, 1].forEach(side => {
@@ -290,7 +380,18 @@ function drawFruitShape(ctx, canvas, s){
   ctx.shadowBlur = 10;
   ctx.fillStyle = s.color;
   ctx.beginPath();
-  if(s.type === 'circle'){
+  if(s.type === 'bomb' && !s.half){
+    // 8-point spiky burst — same silhouette language as Ball Pop's bomb
+    // ball (clip-path polygon), redrawn as a canvas path since this
+    // game has no per-entity DOM nodes.
+    const spikes = 8;
+    for(let i = 0; i < spikes * 2; i++){
+      const rad = i % 2 === 0 ? r : r * 0.55;
+      const a = (Math.PI / spikes) * i;
+      const px = Math.sin(a) * rad, py = -Math.cos(a) * rad;
+      if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+  } else if(s.type === 'circle' || s.type === 'golden'){
     ctx.arc(0, 0, r, 0, Math.PI * 2);
   } else if(s.type === 'square'){
     ctx.rect(-r, -r, r * 2, r * 2);
@@ -299,6 +400,25 @@ function drawFruitShape(ctx, canvas, s){
   }
   ctx.closePath();
   ctx.fill();
+  // A bright, slow-pulsing fuse dot on top marks a bomb as "don't slice
+  // this" at a glance, distinct from the 3 flat-colored regular shapes.
+  if(s.type === 'bomb' && !s.half){
+    ctx.shadowColor = '#FF4444'; ctx.shadowBlur = 14;
+    ctx.fillStyle = '#FF6B5B';
+    ctx.beginPath();
+    ctx.arc(0, -r * 0.9, r * (0.16 + 0.05 * Math.sin(performance.now() / 90)), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // A thin bright outer ring reads as "special/valuable" for the rare
+  // golden fruit, on top of its already-heavier glow above.
+  if(s.type === 'golden' && !s.half){
+    ctx.strokeStyle = '#FFF6D9';
+    ctx.lineWidth = Math.max(1.5, r * 0.12);
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(performance.now() / 120);
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 1.15, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -306,7 +426,28 @@ function renderFruitCanvas(){
   const canvas = fruitCanvasResizer.getCanvas();
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
+
+  // Whole render wrapped in the shared shake helper — same technique
+  // (and now the same shared function) Star Defender/Sky Slingshot/
+  // Plinko use: translate once at the top, everything drawn after
+  // inherits the jitter until restore().
+  ctx.save();
+  applyShake(ctx, fruitShake);
+
   renderFruitBackground(ctx, canvas);
+
+  // A bomb slice briefly tints the whole scene — same "impact flash"
+  // language as Ball Pop's mega-explosion play-area flash, drawn here
+  // as a translucent canvas overlay since this game has no DOM chrome
+  // over the play area to toggle a CSS class on.
+  if(performance.now() < fruitFlashUntil){
+    const remaining = Math.max(0, (fruitFlashUntil - performance.now()) / FRUIT_FLASH_DURATION_MS);
+    ctx.save();
+    ctx.globalAlpha = remaining * 0.35;
+    ctx.fillStyle = fruitFlashColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
 
   for(const s of state.fruitShapes) drawFruitShape(ctx, canvas, s);
 
@@ -342,7 +483,13 @@ function renderFruitCanvas(){
     ctx.restore();
   }
 
+  // Same "reference width" scaling convention Star Defender's
+  // canvasScale() uses, so the shared helper's default ring sizes read
+  // at a consistent visual size in fullscreen vs. compact mode here too.
+  drawShockwaves(ctx, fruitShockwaves, canvas.width / FRUIT_REFERENCE_WIDTH);
   drawFloatTexts(ctx, fruitFloatTexts, Math.max(16, canvas.width * 0.028));
+
+  ctx.restore();
 }
 
 /* =========================================================
@@ -356,6 +503,11 @@ function startFruitRound(){
   state.fruitParticles = [];
   state.fruitSwipeTrail = [];
   fruitFloatTexts = [];
+  fruitShockwaves = [];
+  fruitShake = createShakeState();
+  fruitComboCount = 0;
+  fruitLastCutAt = 0;
+  fruitFlashUntil = 0;
   fruitDragging = false;
   fruitLastPoint = null;
 
@@ -392,6 +544,7 @@ function startFruitRound(){
     updateFruitTrail();
     updateFruitParticles();
     fruitFloatTexts = updateFloatTexts(fruitFloatTexts);
+    fruitShockwaves = updateShockwaves(fruitShockwaves);
     renderFruitCanvas();
 
     if(remaining <= 0){ finishFruitRound(); return; }

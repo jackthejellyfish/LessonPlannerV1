@@ -26,6 +26,32 @@
     --font-body: 'Inter', sans-serif;
   }
   *{box-sizing:border-box;}
+  /* Defensive hardening for the touchscreen classroom display this app
+     actually gets used on: `manipulation` drops the browser's default
+     double-tap-to-zoom gesture DETECTION delay (a ~300ms wait-and-see
+     window on every tap, on some browser/OS combos) — under a burst of
+     genuinely rapid multi-finger tapping that delay/detection logic is
+     itself extra per-tap work, and a known contributor to duplicate/
+     "ghost" click events. Every clickable thing in this app is a real
+     <button> (mc-option/chip/step/judge-btn/pop-ball/etc. all use the
+     element, never a styled <div>), so one rule here covers all of it;
+     `canvas` gets the same treatment for the 9 game stages' click-to-
+     play/aim surfaces. Tap-highlight removed for the same reason — the
+     flash overlay is itself a compositor cost, multiplied across many
+     near-simultaneous taps from different fingers. */
+  button, canvas{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  /* On a touch-only device, :hover can "stick" after a tap (varies by
+     browser/OS) — harmless for a single button, but this app's bouncy
+     hover language (see below) is applied to a LOT of buttons at once
+     (mc-options, chip banks, ball-pop legend, team lists). Disabling the
+     transition entirely when there's no real pointer to hover with costs
+     nothing visually (touch users never see a hover mid-transition
+     either way) and removes a class of simultaneous-repaint cost under
+     rapid multi-touch input. */
+  @media (hover:none){
+    .btn, .step .circle, .mc-option, .chip, .judge-btn, .lesson-card,
+    .rule-toggle, .demo-dot, .qs-tab, .mute-toggle{ transition:none !important; }
+  }
   html, body{ height:100%; }
   body{
     margin:0;
@@ -151,10 +177,21 @@
      sets display:none, so the moment it's removed the element is freshly
      laid out and `.stage:not(.hidden)`'s animation plays from scratch
      every time, the same way it would on first paint. */
+  /* opacity only — this used to also animate transform:translateY(10px→0),
+     which fought compact mode's own static centering transform
+     (body.fullscreen-game.compact-game .stage:not(.hidden){transform:
+     translate(-50%,-50%)} in fullscreen-game.css): a CSS animation wins
+     the cascade for any property it touches for its own duration, so for
+     this animation's 0.4s the box rendered without the centering
+     translate at all (sitting with its top-left corner at viewport
+     center, i.e. the bottom-right quadrant) before snapping to true
+     center once the animation finished and control reverted to the
+     static rule — the reported "spawns bottom-right, then recentres"
+     glitch on every game switch while compact mode was on. */
   .stage:not(.hidden){ animation: stageFadeIn 0.4s cubic-bezier(.16,1,.3,1); }
   @keyframes stageFadeIn{
-    0%{ opacity:0; transform:translateY(10px); }
-    100%{ opacity:1; transform:translateY(0); }
+    0%{ opacity:0; }
+    100%{ opacity:1; }
   }
   .stage h2{ font-size:clamp(20px, 3.2vh, 30px); margin-bottom:clamp(8px, 1.8vh, 20px); text-align:center; flex-shrink:0; }
   .stage-body{
@@ -232,7 +269,12 @@
      progress bar below it — a ring that depletes as time runs out,
      the reverse of a typical "loading" fill animation. ---- */
   .timer-row{ display:flex; justify-content:center; margin-bottom:20px; }
-  .timer-circle{ position:relative; width:70px; height:70px; }
+  /* clamp(), not a fixed 70px — a fixed size here stopped shrinking on
+     short viewports while everything around it (via vh-based clamps)
+     kept scaling down, so the ring started colliding with neighboring
+     rows the moment a monitor's aspect ratio departed from the original
+     1600x1000 dev viewport. */
+  .timer-circle{ position:relative; width:clamp(52px, 8vh, 70px); height:clamp(52px, 8vh, 70px); }
   .timer-circle svg{ width:100%; height:100%; transform:rotate(-90deg); }
   .timer-circle .timer-track{ fill:none; stroke:var(--line); stroke-width:5; }
   .timer-circle .timer-arc{
@@ -242,7 +284,7 @@
   .timer-circle .timer-arc.urgent{ stroke:var(--error); }
   .timer-circle-num{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    font-family:var(--font-display); font-weight:700; font-size:19px; color:var(--ink);
+    font-family:var(--font-display); font-weight:700; font-size:clamp(14px, 2.2vh, 19px); color:var(--ink);
   }
 
   /* ---- Stage footer nav ---- */

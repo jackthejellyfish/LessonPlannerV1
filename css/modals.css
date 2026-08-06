@@ -2,6 +2,21 @@
   .overlay{
     position:fixed; inset:0; background:rgba(33,38,45,0.55);
     display:flex; align-items:center; justify-content:center; padding:20px; z-index:60;
+    /* Neither this container nor .modal itself caps/clips height — on a
+       short viewport (e.g. a 1366x768 classroom laptop window) a modal's
+       natural content (the question modal especially, with its badge,
+       big text, and judge buttons) can be taller than 100vh. Previously
+       there was no way to reach the rest of it at all: body{overflow:
+       hidden} blocks page scroll, and this overlay had no scroll
+       mechanism of its own, so anything past the viewport edge was just
+       silently unreachable — the actual mechanism behind reported
+       "overlapping/hidden content" on smaller displays. overflow-y:auto
+       here (not on .modal) lets the modal grow to its natural full
+       height and the OVERLAY scrolls to it, so nothing clips — in
+       particular .modal-q-badge's -26px "poking out the top" offset
+       stays fully visible; putting the scroll on .modal instead would
+       clip that badge the moment scrolling engages. */
+    overflow-y:auto;
   }
   /* Every overlay (question/result/confirm — all 8 team games plus the
      shared confirm dialog funnel through this one shared rule) used to
@@ -97,17 +112,23 @@
      substantially from the rest of the modal system on purpose — this
      is the one screen every student in the room needs to read clearly
      from across a classroom, not a small confirmation dialog. */
+  /* Padding/badge here were flat px values while .modal-q-text's font-size
+     already used clamp(vh) — on a short viewport the text shrank but this
+     surrounding chrome didn't, so the two drifted out of proportion
+     (the fixed padding/badge ate a bigger and bigger share of a shorter
+     modal). clamp() throughout keeps every piece of this modal scaling
+     together instead of just the text. */
   .modal.modal-question{
-    max-width:640px; padding:56px 44px 40px;
+    max-width:640px; padding:clamp(28px,5.5vh,56px) clamp(24px,4.5vh,44px) clamp(22px,4vh,40px);
     background:
       radial-gradient(ellipse 120% 60% at 50% -10%, color-mix(in srgb, var(--primary) 10%, transparent), transparent),
       var(--surface);
   }
   .modal-question .modal-q-badge{
-    position:absolute; top:-26px; left:50%; transform:translateX(-50%);
-    width:54px; height:54px; border-radius:50%;
+    position:absolute; top:clamp(-26px,-3vh,-20px); left:50%; transform:translateX(-50%);
+    width:clamp(40px,6vh,54px); height:clamp(40px,6vh,54px); border-radius:50%;
     background:linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color:#fff; font-family:var(--font-display); font-weight:800; font-size:24px;
+    color:#fff; font-family:var(--font-display); font-weight:800; font-size:clamp(18px,2.8vh,24px);
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 6px 16px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 0 5px var(--surface);
     animation: modalBadgePop 0.35s cubic-bezier(.34,1.56,.64,1);

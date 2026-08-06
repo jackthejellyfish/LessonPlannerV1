@@ -7,6 +7,7 @@ import { COMET_QUESTIONS, COMET_LEVELS } from '../content/stage12-cometchaos.js'
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
 
 /* =========================================================
    STAGE 12 — COMET CHAOS
@@ -55,6 +56,12 @@ const MAX_FLIGHT_MS = 6000;
 const TURN_END_PAUSE_MS = 1100;
 
 const PLANET_COLORS = ['#FFD23F', '#43D1FF', '#FF8FA0', '#8B3EFF'];
+// Same "scale canvas-drawn effects relative to a reference width" trick
+// as Star Defender's canvasScale()/INV_REFERENCE_WIDTH — used for the
+// new shockwave rings below (2026-08 consistency pass: this game had no
+// shake/shockwave feedback at all despite its two strongest moments, a
+// bullseye landing and a black-hole swallow, calling out for one).
+const COMET_REFERENCE_WIDTH = 900;
 
 let cometRowColors = [];
 
@@ -98,6 +105,8 @@ function loadCometLevel(index){
   state.cometShotsLeft = SHOTS_PER_TURN;
   state.cometTurnScore = 0;
   cometFloatTexts = [];
+  cometShockwaves = [];
+  cometShake = createShakeState();
   loadNextComet();
   document.getElementById('cometShotsDisplay').textContent = String(state.cometShotsLeft);
   document.getElementById('cometScoreDisplay').textContent = '0';
@@ -200,6 +209,10 @@ let cometTrail = [];
 // Rising "+N" text on every target land — same shared canvas
 // float-text helper every other canvas game uses.
 let cometFloatTexts = [];
+// Shake + shockwave on a bullseye/swallow — new (2026-08), same shared
+// js/canvasEffects.js helper Sky Slingshot/Fruit Ninja use.
+let cometShake = createShakeState();
+let cometShockwaves = [];
 function updateCometTrail(comet){
   cometTrail.unshift({ x: comet.x, y: comet.y, alpha: 1 });
   if(cometTrail.length > 14) cometTrail.pop();
@@ -412,12 +425,21 @@ function landCometInTarget(comet, tx, ty, bullseye){
   const color = bullseye ? '#FFD23F' : '#43D1FF';
   spawnCometParticles(tx, ty, color, bullseye ? 46 : 28, bullseye ? 1.6 : 1.1);
   spawnFloatText(cometFloatTexts, tx, ty, `+${points}`, color);
+  // A bullseye is this game's biggest moment (5x a plain target's
+  // points) — gets a bigger shake + a shockwave ring; a normal target
+  // still gets a small acknowledgment shake so every landing feels like
+  // it connects, same "scale the juice with how good the hit was"
+  // convention Sky Slingshot's pot hits already use.
+  triggerShake(cometShake, bullseye ? 9 : 3);
+  spawnShockwave(cometShockwaves, tx, ty, color, { big: bullseye });
   sfxTargetHit(bullseye);
   endCometShot(points);
 }
 
 function swallowComet(comet, bx, by){
   spawnSwallowParticles(comet.x, comet.y);
+  triggerShake(cometShake, 8);
+  spawnShockwave(cometShockwaves, comet.x, comet.y, '#B26BFF', { big: true });
   sfxSwallow();
   endCometShot(0);
 }
@@ -430,7 +452,12 @@ function missComet(comet){
 
 function updateCometPhysics(dt){
   const comet = state.cometComet;
-  if(!comet || !comet.launched){ updateCometParticles(); cometFloatTexts = updateFloatTexts(cometFloatTexts); return; }
+  if(!comet || !comet.launched){
+    updateCometParticles();
+    cometFloatTexts = updateFloatTexts(cometFloatTexts);
+    cometShockwaves = updateShockwaves(cometShockwaves);
+    return;
+  }
   const canvas = cometCanvasResizer.getCanvas();
   const dtSec = Math.min(0.032, dt / 1000);
   const level = COMET_LEVELS[state.cometLevelIndex % COMET_LEVELS.length];
@@ -477,6 +504,7 @@ function updateCometPhysics(dt){
 
   updateCometParticles();
   cometFloatTexts = updateFloatTexts(cometFloatTexts);
+  cometShockwaves = updateShockwaves(cometShockwaves);
 }
 
 function startCometRound(){
@@ -504,6 +532,7 @@ export function cancelCometRound(){
   state.cometParticles = [];
   cometTrail = [];
   cometFloatTexts = [];
+  cometShockwaves = [];
   const playArea = document.getElementById('cometPlayArea');
   if(playArea) playArea.classList.add('idle');
   const hint = document.getElementById('cometHint');
@@ -564,6 +593,9 @@ function renderCometCanvas(){
   const ctx = canvas.getContext('2d');
   ensureCometStars(canvas);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  applyShake(ctx, cometShake);
 
   const bg = ctx.createRadialGradient(canvas.width * 0.5, canvas.height * 0.4, 0, canvas.width * 0.5, canvas.height * 0.4, canvas.height * 1.1);
   bg.addColorStop(0, '#241F4D');
@@ -647,6 +679,7 @@ function renderCometCanvas(){
     ctx.restore();
   }
 
+  drawShockwaves(ctx, cometShockwaves, canvas.width / COMET_REFERENCE_WIDTH);
   drawFloatTexts(ctx, cometFloatTexts, Math.max(16, canvas.width * 0.026));
 
   // Slingshot posts + trajectory preview while aiming.
@@ -697,6 +730,8 @@ function renderCometCanvas(){
     ctx.beginPath(); ctx.arc(0, 0, comet.r, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
+
+  ctx.restore(); // matches the shake ctx.save() near the top of this function
 }
 
 /* =========================================================
