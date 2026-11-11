@@ -91,6 +91,7 @@ let invRowColors = [];
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('invSetup', {
   prefix: 'inv',
+  title: 'Star Defender',
   steps: [
     'One team answers a question.',
     'Click anywhere to move your ship there and fire.',

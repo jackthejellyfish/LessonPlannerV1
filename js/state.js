@@ -8,8 +8,7 @@ export let state = {
   currentLesson: 'comparatives',
   currentStage: 1,
   completedStages: new Set(),
-  expandedRules: new Set(),  // indices of currently open rule rows — any number can be open at once
-  demoIndex: 0,
+  learnIndex: 0,             // Stage 2 slide: the rules first, then the worked examples
   mcIndex: 0,
   mcScore: 0,
   mcAnswered: false,
@@ -122,7 +121,7 @@ export function resetLessonState(lessonId = state.currentLesson){
   const wasMuted = state.muted;
   state = {
     currentLesson: lessonId,
-    currentStage: 1, completedStages: new Set(), expandedRules: new Set(), demoIndex: 0,
+    currentStage: 1, completedStages: new Set(), learnIndex: 0,
     mcIndex: 0, mcScore: 0, mcAnswered: false, mcTimerRAF: null, mcStarted: false,
     semiIndex: 0, semiScore: 0, semiBank: [], semiAnswer: [], semiChecked: false, semiTimerRAF: null, semiStarted: false,
     popTeams: [], popCurrentTeam: 0, popQuestionOrder: [], popTurnsPlayed: 0, popScore: 0, popRoundActive: false, popRoundRAF: null,

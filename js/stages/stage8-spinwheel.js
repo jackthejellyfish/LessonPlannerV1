@@ -35,6 +35,7 @@ let wheelRowColors = [];
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('wheelSetup', {
   prefix: 'wheel',
+  title: 'Spin the Wheel',
   steps: [
     'Spin the wheel to land on a question.',
     'Answer it out loud with your team.',

@@ -113,13 +113,15 @@ async function throttle(page) {
 // stepper (evaluate-click, since fullscreen stages hide the visible
 // stepper), start the game, begin a turn, then clear the warm-up question
 // modal. Same flow tests/team-games.spec.js already uses.
-async function openRound(page, { stepIndex, startBtn, beginBtn }) {
+async function openRound(page, { stepIndex, prefix }) {
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(stepIndex).evaluate((el) => el.click());
-  await page.click(startBtn);
+  // The setup screen opens on a menu now (New game / How to play).
+  await page.click(`#${prefix}NewGameBtn`);
+  await page.click(`#${prefix}StartBtn`);
   await page.waitForTimeout(300);
-  await page.click(beginBtn);
+  await page.click(`#${prefix}BeginTurnBtn`);
   await expect(page.locator('#popQuestionOverlay')).not.toHaveClass(/hidden/);
   await page.click('#popCheckBtn');
   await page.click('#popCorrectBtn');
@@ -128,7 +130,7 @@ async function openRound(page, { stepIndex, startBtn, beginBtn }) {
 
 test('perf: Ball Pop holds its frame budget under CPU throttling', async ({ page }) => {
   await throttle(page);
-  await openRound(page, { stepIndex: 5, startBtn: '#popStartBtn', beginBtn: '#popBeginTurnBtn' });
+  await openRound(page, { stepIndex: 5, prefix: 'pop' });
 
   const stats = summarise('Ball Pop', await sampleFrames(page, SAMPLE_MS));
   expect(stats.fps).toBeGreaterThan(MIN_FPS.ballpop);
@@ -136,7 +138,7 @@ test('perf: Ball Pop holds its frame budget under CPU throttling', async ({ page
 
 test('perf: Fruit Ninja holds its frame budget under CPU throttling', async ({ page }) => {
   await throttle(page);
-  await openRound(page, { stepIndex: 11, startBtn: '#fruitStartBtn', beginBtn: '#fruitBeginTurnBtn' });
+  await openRound(page, { stepIndex: 11, prefix: 'fruit' });
 
   const stats = summarise('Fruit Ninja', await sampleFrames(page, SAMPLE_MS));
   expect(stats.fps).toBeGreaterThan(MIN_FPS.fruit);

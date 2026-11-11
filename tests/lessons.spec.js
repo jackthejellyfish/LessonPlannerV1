@@ -50,11 +50,20 @@ test('every lesson renders every stage with no console errors', async ({ page })
     expect(await page.locator('#aimExamples .aim-example svg').count(),
       `${title}: stage 1 icons`).toBe(3);
 
+    // Stage 2 shows one slide at a time: every rule, then every worked
+    // example. Checking the deck length catches a lesson whose RULES or
+    // COMPARE_DEMOS array didn't load, which a single-slide check can't.
     await steps.nth(1).evaluate((el) => el.click());
-    expect(await page.locator('#ruleGrid .rule-row').count(),
-      `${title}: stage 2 rule cards`).toBeGreaterThan(1);
-    expect(await page.locator('#compareDemo svg').count(),
-      `${title}: stage 2 compare icons`).toBeGreaterThan(1);
+    expect(await page.locator('.learn-card').count(),
+      `${title}: stage 2 shows exactly one slide`).toBe(1);
+    const deck = await page.locator('.learn-dots .demo-dot').count();
+    expect(deck, `${title}: stage 2 deck length`).toBeGreaterThan(3);
+    // Step to the end so every rule AND every example renders at least
+    // once — a bad icon name or malformed rule only shows on its own
+    // slide, so a first-slide-only check would miss it.
+    for (let d = 1; d < deck; d++) await page.click('#learnNextSlideBtn');
+    expect(await page.locator('.learn-card-demo .compare-icon-frame svg').count(),
+      `${title}: stage 2 example icons`).toBe(2);
 
     await steps.nth(4).evaluate((el) => el.click());
     expect(await page.locator('#wordBank li, #wordBank .word-pair, #wordBank > *').count(),

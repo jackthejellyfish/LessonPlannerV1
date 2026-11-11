@@ -4,7 +4,7 @@
    js/stages/stage2-rules.js only contains rendering logic.
 
    RULES: {name, formula, color, examples:[[base, suffix]]} —
-   rendered as `base` → `base` + `suffix` (see renderRuleCards),
+   rendered as `base` → `base` + `suffix` (see renderLearnSlide),
    so a suffix with a leading space reads as a full continuation
    ("He" → "He should stay in bed."), not just a word ending.
 

@@ -13,9 +13,10 @@ import { speakerIconSVG } from './icons.js';
 import { applyMuteState } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
 import { getLesson, renderLessonCards } from './lessons.js';
+import { showGameIntroMenu } from './gameIntro.js';
 
 import { renderAimHeader, renderAimExamples } from './stages/stage1-aim.js';
-import { renderRuleCards, renderCompareDemo, renderPrintableRules } from './stages/stage2-rules.js';
+import { renderLearnSlide, renderPrintableRules } from './stages/stage2-rules.js';
 import { cancelMcTimer } from './stages/stage3-controlled.js';
 import { cancelSemiTimer } from './stages/stage4-guided.js';
 import { renderWordBank, renderScaffoldList, resetStopwatch, initStopwatchDisplay } from './stages/stage5-free.js';
@@ -183,12 +184,12 @@ function performFullReset(lessonId){
     document.getElementById(`${prefix}BeginTurnBtn`).classList.remove('hidden');
     document.getElementById(`${prefix}Setup`).classList.remove('hidden');
     renderTeamInputs(2);
+    showGameIntroMenu(prefix);
   });
   renderAimHeader();
   renderAimExamples();
-  renderRuleCards();
+  renderLearnSlide();
   renderPrintableRules();
-  renderCompareDemo();
   renderWordBank();
   renderScaffoldList();
   resetStopwatch();
@@ -235,9 +236,8 @@ document.getElementById('changeLessonBtn').addEventListener('click', async () =>
 renderStepper();
 renderAimHeader();
 renderAimExamples();
-renderRuleCards();
+renderLearnSlide();
 renderPrintableRules();
-renderCompareDemo();
 renderWordBank();
 renderScaffoldList();
 initStopwatchDisplay();

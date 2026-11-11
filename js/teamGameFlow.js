@@ -1,6 +1,7 @@
 import { sfxFanfare } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
 import { renderResultStandings } from './teamColorPicker.js';
+import { showGameIntroMenu } from './gameIntro.js';
 import { burstFromElement } from './particles.js';
 
 /* =========================================================
@@ -125,6 +126,7 @@ export function wireTeamManagementButtons({ prefix, getTeams, renderScoreboard, 
     document.getElementById(`${prefix}BeginTurnBtn`).classList.remove('hidden');
     document.getElementById(`${prefix}BeginTurnBtn`).disabled = false;
     document.getElementById(`${prefix}Setup`).classList.remove('hidden');
+    showGameIntroMenu(prefix);
     if(afterPlayAgain) afterPlayAgain();
   });
 }

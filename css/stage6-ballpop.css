@@ -1,7 +1,13 @@
   /* ---- Ball Pop Challenge (Stage 6) ---- */
   .pop-team-inputs{ max-width:440px; margin:0 auto 20px; display:flex; flex-direction:column; gap:14px; }
   .pop-team-row{ display:flex; align-items:center; gap:14px; }
-  .pop-team-row .dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+  /* The two-sided contrast ring: a dark hairline inside and a light halo
+     outside, so a BLACK team colour still reads against the dark
+     fullscreen footer and a WHITE one still reads against the light
+     setup panel. Both colours were added to the palette in v2.1; before
+     that every swatch was a mid-tone and neither ring was needed. */
+  .pop-team-row .dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.55); }
   .pop-team-row input{
     flex:1; background:var(--surface); border:1px solid var(--line); border-radius:8px;
     padding:12px 16px; font-family:var(--font-display); font-weight:600; font-size:19px; color:var(--ink);
@@ -34,9 +40,15 @@
     display:flex; align-items:center; justify-content:center;
     font-size:15px; box-shadow:0 3px 8px rgba(0,0,0,0.2);
   }
+  /* Matches the glossy ball createPopBall now builds inline, so the
+     points screen and the play area agree. */
   .pop-legend-swatch.normal{
     width:38px; height:38px; border-radius:50%;
-    background:radial-gradient(circle at 38% 32%, #FF6B6B 0%, #FF6B6B 55%, #C24A4A 100%);
+    background:
+      radial-gradient(circle at 33% 27%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 5%, rgba(255,255,255,0) 13%),
+      radial-gradient(circle at 74% 80%, #FF9D9D 0%, rgba(255,255,255,0) 30%),
+      radial-gradient(circle at 38% 32%, #FF7C7C 0%, #FF6B6B 55%, #B53C3C 100%);
+    box-shadow:inset 0 -6px 12px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.35);
   }
   .pop-legend-swatch.special{
     width:30px; height:30px; border-radius:50%;
@@ -97,7 +109,8 @@
     display:flex; align-items:center; gap:6px; font-weight:600;
     font-size:clamp(12px, 1.6vh, 15px); color:var(--ink);
   }
-  .pop-team-list .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .pop-team-list .dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.6); }
   .pop-team-list .pop-score{
     font-family:var(--font-display); font-weight:800;
     color:var(--tc, var(--primary));

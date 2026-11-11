@@ -9,34 +9,27 @@
 ========================================================= */
 import { escapeHtml } from './utils.js';
 
-/* The palette teams pick from. The previous set was 12 desaturated
+/* The palette teams pick from. The original set was 12 desaturated
    mid-tones derived from the app's own muted accent colours — which is
-   why it read as "a strange range of shades" rather than as colours:
-   there was no plain red, no plain blue, no yellow, and several
-   near-identical olives and mauves that two teams could not tell apart
-   from the back of a classroom.
+   why it read as "a strange range of shades" rather than as colours.
+   This is the full spectrum at full strength, plus the two every class
+   asks for first: black and white.
 
-   This is the full spectrum instead, at a saturation that stays legible
-   in BOTH places a team colour is shown: tinted 8% behind a white setup
-   row, and as a solid dot/ring on a near-black game canvas. That
-   constraint is why there is no very dark charcoal and no pastel — each
-   would disappear against one of the two backgrounds. 20 colours, laid
-   out 5 to a row. */
+   Every colour has to survive BOTH places a team colour is shown — an
+   8% tint behind a white setup row, and a solid dot on a near-black
+   game canvas — which is why black and white each needed CSS support
+   to be usable at all (an inset hairline on the swatches, a contrast
+   ring on the in-game dots). Within each row the hues step far enough
+   apart that two teams can be told apart from the back of a classroom,
+   which is the whole job: 24 colours, 6 to a row. */
 export const TEAM_COLOR_PALETTE = [
-  "#E03131", "#FF6B6B", "#FD7E14", "#F59F00", "#FACC15",
-  "#94D82D", "#37B24D", "#0CA678", "#1098AD", "#22B8CF",
-  "#0EA5E9", "#1C7ED6", "#4C6EF5", "#7950F2", "#AE3EC9",
-  "#E64980", "#F783AC", "#A9714B", "#909296", "#63E6BE"
+  "#111111", "#FFFFFF", "#8A94A6", "#E01B24", "#FF6B35", "#F59F00",
+  "#FFD93D", "#A3E048", "#2F9E44", "#00A676", "#0E9594", "#22C3DD",
+  "#0EA5E9", "#1C64D6", "#1E3A8A", "#5B5BD6", "#8B5CF6", "#B5179E",
+  "#E8366F", "#FF8FA3", "#A9714B", "#5D4037", "#64E3C2", "#495057"
 ];
 
-/* Which colours new teams get BEFORE anyone picks. Taking the palette in
-   order would hand Team 1 red and Team 2 the red next to it, so the two
-   teams that exist by default would start nearly indistinguishable —
-   exactly the problem this rework is meant to fix. This is a separate,
-   deliberately-spread order: blue, red, green, amber. Every entry must
-   also exist in TEAM_COLOR_PALETTE, or the picker would open with the
-   team's current colour not shown as selected. */
-const DEFAULT_TEAM_COLORS = ["#1C7ED6", "#E03131", "#37B24D", "#F59F00"];
+const DEFAULT_TEAM_COLORS = ["#1C64D6", "#E01B24", "#2F9E44", "#F59F00"];
 
 let openPopover = null;
 let openAnchor = null;

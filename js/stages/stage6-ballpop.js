@@ -33,6 +33,7 @@ let popRowColors = [];
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('popSetup', {
   prefix: 'pop',
+  title: 'Ball Pop Challenge',
   steps: [
     'One team answers a question.',
     'Tap every ball you can before the time runs out.',
@@ -546,14 +547,30 @@ function createPopBall({ special = false, swarm = false, xPct = null, yPct = nul
     ? POP_SPECIAL_COLOR
     : POP_BALL_COLORS[Math.floor(Math.random() * POP_BALL_COLORS.length)];
 
-  // A light two-stop gradient for a touch of depth without the heavy
-  // glossy-bevel "balloon" look — the glow ring (drawn on canvas, see
-  // renderPopCanvas) is what carries most of the visual energy now.
+  // A glossy bubble: a bright specular highlight layered over the body
+  // gradient, with a lighter rim light opposite it. Three stacked
+  // gradients rather than one, which reads as a real 3D ball instead of
+  // a flat disc — these are DOM elements, and isolation testing
+  // confirmed the DOM layer costs this game essentially nothing (the
+  // frame budget goes on canvas fill-rate, see js/canvasGlow.js), so
+  // the extra paint detail here is free. Static gradients only: no
+  // blur, no filter, nothing animated, which is what keeps it free.
+  //
   // Special balls skip this — their star gradient lives entirely in
   // CSS (.pop-ball.special), so setting an inline background here
   // would just override it.
   if(!special){
-    ball.style.background = `radial-gradient(circle at 38% 32%, ${color} 0%, ${color} 55%, ${shadeColor(color, -18)} 100%)`;
+    // The highlight is deliberately SMALL. A first pass used a 26%-radius
+    // white hotspot, which on a 140px ball covered half its face and
+    // left every ball reading as a white blob with a coloured rim
+    // rather than as a coloured ball. A tight 13% glint is what reads
+    // as gloss; the rim light below does the rest of the 3D work.
+    ball.style.background = [
+      `radial-gradient(circle at 33% 27%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 5%, rgba(255,255,255,0) 13%)`,
+      `radial-gradient(circle at 74% 80%, ${shadeColor(color, 18)} 0%, rgba(255,255,255,0) 30%)`,
+      `radial-gradient(circle at 38% 32%, ${shadeColor(color, 6)} 0%, ${color} 55%, ${shadeColor(color, -28)} 100%)`
+    ].join(', ');
+    ball.style.boxShadow = 'inset 0 -6px 12px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.35), 0 4px 14px rgba(0,0,0,0.25)';
   }
 
   if(special){

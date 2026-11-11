@@ -159,6 +159,7 @@ let neonRowColors = [];
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('neonSetup', {
   prefix: 'neon',
+  title: 'Neon Arena',
   steps: [
     'One team answers a question.',
     'Move with WASD or the arrow keys. Click to shoot.',

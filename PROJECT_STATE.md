@@ -11,6 +11,43 @@
 A feedback-driven pass. Everything below this section still describes
 the architecture accurately **except** where this section overrides it.
 
+### v2.1 (same day) — presentation rework
+
+**Stage 2 is a slideshow, not an accordion.** One rule at a time, filling
+the stage, then Next; the worked examples are slides in the SAME deck
+rather than a separate widget below, which is what lets any one slide
+have the whole screen. `renderRuleCards`/`renderCompareDemo` are gone,
+replaced by `renderLearnSlide()`; `state.expandedRules`/`state.demoIndex`
+by `state.learnIndex`. The last Next goes to stage 3.
+
+**Game setup is three views, not one screen.** `js/gameIntro.js` now
+renders a menu (game name → "New game" / "How to play"), a how-to deck
+(rules, then what everything is worth), and a bigger team screen. Only
+one view is in flow at a time, selected by `data-view` on the host.
+
+> **Gotcha:** `#{prefix}StartBtn` is no longer reachable on arrival — a
+> test or script must click `#{prefix}NewGameBtn` first. That broke four
+> existing tests when this landed.
+
+`showGameIntroMenu(prefix)` returns a game to the menu; it's called from
+`performFullReset` and from the Play Again handler, or the setup screen
+reappears on whichever view was open when the game started.
+
+**Team colours: 24, including black and white.** Both needed CSS support
+to be usable: an inset hairline on swatches and rows (white would
+otherwise vanish into the panel) and a two-sided contrast ring on the
+in-game dots (black would otherwise vanish into the dark footer). Don't
+remove either without removing those two colours.
+
+**Game art.** Fruit Ninja draws real fruit — an orange with a leaf, a
+berry, a melon slice with rind and seeds, a star for the bonus. This is
+all extra PATH work, which is a different cost from the fill-rate work
+that was the actual bottleneck, so the budget is untouched (measured:
+Ball Pop ~43fps, Fruit ~46fps after). Ball Pop's balls are glossy
+3-gradient spheres; the DOM layer was measured to cost this game
+essentially nothing. Keep the highlight SMALL — a first pass used a 26%
+hotspot and every ball read as a white blob with a coloured rim.
+
 ### Games: 9 → 6
 **Plinko and Sky Slingshot were deleted** and the remaining games
 renumbered down, the same way Comet Chaos was removed previously:

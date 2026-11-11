@@ -190,66 +190,109 @@ export function buildCompareIcon(type, valuePct, color){
 /* =========================================================
    STAGE 2 — LEARN THE RULE
 ========================================================= */
-export function renderRuleCards(){
-  const list = document.getElementById('ruleGrid');
-  list.innerHTML = RULES.map((rule, i) => {
-    const isOpen = state.expandedRules.has(i);
-    return `
-      <div class="rule-row ${isOpen ? 'open' : ''}" style="--card-color:${rule.color}">
-        <button class="rule-toggle" data-i="${i}">
-          <span>${rule.name}</span>
-          <span class="chevron">⌄</span>
-        </button>
-        ${isOpen ? `
-          <div class="rule-body">
-            <div class="rule-formula">${rule.formula}</div>
-            ${rule.examples.map(([base, suffix]) => `
-              <div class="rule-example">${base}<span class="arrow">→</span>${base}<span class="suffix">${suffix}</span></div>
-            `).join('')}
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }).join('');
+/* =========================================================
+   ONE SLIDE AT A TIME
 
-  // Each rule toggles independently — opening one doesn't close the
-  // others, so students can compare two or more spelling rules side by
-  // side instead of only ever seeing one at a time.
-  list.querySelectorAll('.rule-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const i = Number(btn.dataset.i);
-      if(state.expandedRules.has(i)) state.expandedRules.delete(i);
-      else state.expandedRules.add(i);
-      renderRuleCards();
-    });
-  });
+   This page used to show every rule as an accordion grid with the
+   worked examples underneath, so a learner met the whole grammar
+   point — up to six rules plus a comparison demo — in a single
+   screenful of small text. Per classroom feedback that this
+   overwhelms students at the moment a topic is introduced, it is now
+   a slideshow: one rule, big, then Next.
+
+   The worked examples are slides in the SAME sequence rather than a
+   separate widget below, which is what lets any one slide have the
+   whole stage to fill. So the deck is: every rule, then every
+   example, and the last Next leads into controlled practice.
+========================================================= */
+function learnSlides(){
+  return [
+    ...RULES.map(rule => ({ kind: 'rule', data: rule })),
+    ...COMPARE_DEMOS.map(demo => ({ kind: 'demo', data: demo }))
+  ];
 }
 
-export function renderCompareDemo(){
-  const demo = COMPARE_DEMOS[state.demoIndex];
+function renderRuleSlide(rule){
+  return `
+    <article class="learn-card learn-card-rule" style="--card-color:${rule.color}">
+      <h3 class="learn-rule-name">${rule.name}</h3>
+      <p class="learn-rule-formula">${rule.formula}</p>
+      <div class="learn-rule-examples">
+        ${rule.examples.map(([base, suffix]) => `
+          <div class="rule-example">${base}<span class="arrow">→</span>${base}<span class="suffix">${suffix}</span></div>
+        `).join('')}
+      </div>
+    </article>
+  `;
+}
+
+function renderDemoSlide(demo){
   // iconA/iconB let each side show a different icon type (a symptom
   // paired with its advice); demos that only set `icon` (the original
   // magnitude comparisons — two towers, one taller) fall back to using
   // that same icon/color on both sides, unchanged.
   const iconA = demo.iconA || demo.icon;
   const iconB = demo.iconB || demo.icon;
-  document.getElementById('demoLabelA').textContent = demo.labelA;
-  document.getElementById('demoLabelB').textContent = demo.labelB;
-  document.getElementById('demoIconA').innerHTML = buildCompareIcon(iconA, demo.valueA, COMPARE_ICON_COLORS[iconA]);
-  document.getElementById('demoIconB').innerHTML = buildCompareIcon(iconB, demo.valueB, COMPARE_ICON_COLORS[iconB]);
-  document.getElementById('demoCaption').innerHTML = demo.caption;
+  return `
+    <article class="learn-card learn-card-demo">
+      <div class="compare-icons">
+        <div class="compare-icon-box">
+          <div class="compare-icon-frame">${buildCompareIcon(iconA, demo.valueA, COMPARE_ICON_COLORS[iconA])}</div>
+          <span class="bar-label">${demo.labelA}</span>
+        </div>
+        <div class="compare-vs">vs</div>
+        <div class="compare-icon-box">
+          <div class="compare-icon-frame">${buildCompareIcon(iconB, demo.valueB, COMPARE_ICON_COLORS[iconB])}</div>
+          <span class="bar-label">${demo.labelB}</span>
+        </div>
+      </div>
+      <p class="compare-caption">${demo.caption}</p>
+    </article>
+  `;
+}
 
-  const nav = document.getElementById('demoNav');
-  nav.innerHTML = COMPARE_DEMOS.map((_, i) =>
-    `<button class="demo-dot ${i === state.demoIndex ? 'active' : ''}" data-i="${i}" aria-label="Example ${i+1}"></button>`
-  ).join('');
-  nav.querySelectorAll('.demo-dot').forEach(dot => {
+export function renderLearnSlide(){
+  const slides = learnSlides();
+  // Content changes with the lesson, so clamp rather than assume the
+  // stored index is still in range after a lesson switch.
+  const index = Math.max(0, Math.min(state.learnIndex, slides.length - 1));
+  state.learnIndex = index;
+  const slide = slides[index];
+
+  document.getElementById('learnSlide').innerHTML =
+    slide.kind === 'rule' ? renderRuleSlide(slide.data) : renderDemoSlide(slide.data);
+
+  // Dots double as direct navigation — a teacher revisiting one rule
+  // mid-explanation shouldn't have to click Next through the others.
+  const dots = document.getElementById('learnDots');
+  dots.innerHTML = slides.map((s, i) => `
+    <button class="demo-dot ${i === index ? 'active' : ''}${s.kind === 'demo' ? ' is-demo' : ''}"
+      data-i="${i}" type="button"
+      aria-label="${s.kind === 'rule' ? 'Rule' : 'Example'} ${i + 1} of ${slides.length}"></button>
+  `).join('');
+  dots.querySelectorAll('.demo-dot').forEach(dot => {
     dot.addEventListener('click', () => {
-      state.demoIndex = Number(dot.dataset.i);
-      renderCompareDemo();
+      state.learnIndex = Number(dot.dataset.i);
+      renderLearnSlide();
     });
   });
+
+  document.getElementById('learnPrevSlideBtn').disabled = index === 0;
+  // On the final slide the in-page Next becomes the way forward into
+  // practice, so a teacher can run the whole page from one button
+  // instead of switching to the footer at the end.
+  const next = document.getElementById('learnNextSlideBtn');
+  next.textContent = index === slides.length - 1 ? 'Next: Controlled practice →' : 'Next →';
 }
+
+document.getElementById('learnPrevSlideBtn').addEventListener('click', () => {
+  if(state.learnIndex > 0){ state.learnIndex--; renderLearnSlide(); }
+});
+document.getElementById('learnNextSlideBtn').addEventListener('click', () => {
+  if(state.learnIndex >= learnSlides().length - 1){ goToStage(3); return; }
+  state.learnIndex++;
+  renderLearnSlide();
+});
 
 document.getElementById('learnBackBtn').addEventListener('click', () => goToStage(1));
 document.getElementById('learnNextBtn').addEventListener('click', () => goToStage(3));

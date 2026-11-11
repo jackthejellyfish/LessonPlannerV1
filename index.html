@@ -96,22 +96,17 @@
       <section class="stage hidden" id="stage2">
         <h2>Learn the rule</h2>
         <div class="stage-body">
-          <div class="rule-list" id="ruleGrid"></div>
-
-          <div class="compare-demo" id="compareDemo">
-            <div class="compare-icons">
-              <div class="compare-icon-box">
-                <div class="compare-icon-frame" id="demoIconA"></div>
-                <span class="bar-label" id="demoLabelA"></span>
-              </div>
-              <div class="compare-vs">vs</div>
-              <div class="compare-icon-box">
-                <div class="compare-icon-frame" id="demoIconB"></div>
-                <span class="bar-label" id="demoLabelB"></span>
-              </div>
-            </div>
-            <p class="compare-caption" id="demoCaption"></p>
-            <div class="demo-nav" id="demoNav"></div>
+          <!-- One slide at a time: each rule, then each worked example.
+               Built by renderLearnSlide() in js/stages/stage2-rules.js. -->
+          <div class="learn-slide" id="learnSlide"></div>
+          <div class="learn-nav">
+            <button class="btn btn-ghost" id="learnPrevSlideBtn" type="button">
+              ← Previous
+            </button>
+            <div class="learn-dots" id="learnDots"></div>
+            <button class="btn btn-primary" id="learnNextSlideBtn" type="button">
+              Next →
+            </button>
           </div>
         </div>
         <div class="stage-footer">

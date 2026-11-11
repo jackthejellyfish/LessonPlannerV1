@@ -99,6 +99,7 @@ let billiardsRowColors = [];
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('billiardsSetup', {
   prefix: 'billiards',
+  title: 'Billiards',
   steps: [
     'One team answers a question.',
     'Drag back from the white ball to aim and set power.',

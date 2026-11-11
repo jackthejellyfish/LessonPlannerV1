@@ -7,42 +7,49 @@
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 3px 8px rgba(0,0,0,0.25);
   }
+  /* These mirror what drawFruitShape actually draws on the canvas — an
+     orange with a leaf, a berry, a melon slice with rind, a star and a
+     bomb — so the points screen and the play area agree. */
   .fruit-legend-swatch.circle{
-    width:26px; height:26px; border-radius:50%;
-    background: radial-gradient(circle at 35% 30%, #FFE1A8, #F2B705 60%, #A87A00);
-    box-shadow:0 0 10px rgba(242,183,5,0.6);
+    width:30px; height:30px; border-radius:50%;
+    background: radial-gradient(circle at 34% 28%, #FFD9A0, #FF9F1C 58%, #C96A00);
+    position:relative;
+  }
+  .fruit-legend-swatch.circle::after{
+    content:''; position:absolute; top:-3px; right:2px;
+    width:13px; height:7px; border-radius:50%;
+    background:#4CAF6D; transform:rotate(-28deg);
   }
   .fruit-legend-swatch.square{
-    width:24px; height:24px; border-radius:5px;
-    background: radial-gradient(circle at 35% 30%, #B8E8D8, #3DB88D 60%, #1F6B50);
-    box-shadow:0 0 10px rgba(61,184,141,0.6);
+    width:28px; height:28px; border-radius:40%;
+    background: radial-gradient(circle at 34% 26%, #D7B4FF, #9B5DE5 58%, #5B2E96);
   }
   .fruit-legend-swatch.triangle{
-    width:0; height:0;
-    border-left:13px solid transparent; border-right:13px solid transparent;
-    border-bottom:24px solid #FF6B6B;
-    filter: drop-shadow(0 0 6px rgba(255,107,107,0.6));
+    width:0; height:0; position:relative;
+    border-left:16px solid transparent; border-right:16px solid transparent;
+    border-bottom:27px solid #FF4D6D;
   }
-  /* Golden and bomb were always in the game but were never shown on the
-     setup screen — so a class could lose 2 points to a bomb having had
-     no warning it existed. Both are listed now (see js/gameIntro.js),
-     and these two swatches match what each actually looks like in play
-     (see fruitShapeColor / drawFruitShape). */
+  /* The green rind along the slice's long edge. */
+  .fruit-legend-swatch.triangle::after{
+    content:''; position:absolute; left:-15px; top:21px;
+    width:30px; height:6px; border-radius:0 0 4px 4px; background:#2E9E5B;
+  }
   .fruit-legend-swatch.golden{
-    width:26px; height:26px; border-radius:50%;
-    background: radial-gradient(circle at 35% 30%, #FFF6D9, #FFD23F 55%, #B8860B);
-    box-shadow:0 0 12px rgba(255,210,63,0.85), inset 0 0 0 2px rgba(255,246,217,0.75);
+    width:30px; height:30px;
+    background:#FFD23F;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    filter: drop-shadow(0 0 5px rgba(255,210,63,0.8));
   }
   .fruit-legend-swatch.bomb{
-    width:26px; height:26px; border-radius:50%;
+    width:28px; height:28px; border-radius:50%;
     background: radial-gradient(circle at 35% 30%, #4A4A60, #2B2B3A 60%, #15151F);
     box-shadow:0 0 10px rgba(255,68,68,0.5);
     position:relative;
   }
   /* The fuse dot, same "don't slice this" marker the canvas draws. */
   .fruit-legend-swatch.bomb::after{
-    content:''; position:absolute; top:-2px; left:50%;
-    width:8px; height:8px; margin-left:-4px; border-radius:50%;
+    content:''; position:absolute; top:-3px; left:50%;
+    width:9px; height:9px; margin-left:-4.5px; border-radius:50%;
     background:#FF6B5B; box-shadow:0 0 6px rgba(255,68,68,0.9);
   }
 

@@ -65,10 +65,15 @@ const FRUIT_GOLDEN_CHANCE = 0.09;
 // deliberately separate slices.
 const FRUIT_COMBO_WINDOW_MS = 220;
 
+// Fruit colours, not shape colours: an orange, a berry and a slice of
+// watermelon (see drawFruitShape). Each is far enough from the others
+// in hue to stay tellable apart at speed on a dark background.
 function fruitShapeColor(type){
   if(type === 'bomb') return '#2B2B3A';
   if(type === 'golden') return '#FFD23F';
-  return type === 'circle' ? '#F2B705' : type === 'square' ? '#3DB88D' : '#FF6B6B';
+  return type === 'circle' ? '#FF9F1C'      // orange
+    : type === 'square' ? '#9B5DE5'          // berry
+    : '#FF4D6D';                             // watermelon
 }
 
 /* =========================================================
@@ -121,14 +126,17 @@ function triggerFruitFlash(color, durationMs = FRUIT_FLASH_DURATION_MS){
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('fruitSetup', {
   prefix: 'fruit',
+  title: 'Fruit Ninja',
   steps: [
     'One team answers a question.',
     'Swipe or click-drag across a shape to slice it.',
     'Slice as many as you can in 15 seconds.'
   ],
   scoring: [
-    { swatch: '<span class="fruit-legend-swatch circle"></span>', label: 'Circle, square, triangle', points: '+1' },
-    { swatch: '<span class="fruit-legend-swatch golden"></span>', label: 'Golden shape', points: '+3', tone: 'bonus' },
+    { swatch: '<span class="fruit-legend-swatch circle"></span>', label: 'Orange', points: '+1' },
+    { swatch: '<span class="fruit-legend-swatch square"></span>', label: 'Berry', points: '+1' },
+    { swatch: '<span class="fruit-legend-swatch triangle"></span>', label: 'Watermelon', points: '+1' },
+    { swatch: '<span class="fruit-legend-swatch golden"></span>', label: 'Golden star', points: '+3', tone: 'bonus' },
     { swatch: '<span class="fruit-legend-swatch bomb"></span>', label: 'Bomb &mdash; do not slice!', points: '&minus;2', tone: 'bad' }
   ],
   tip: 'One long swipe through several shapes scores a combo &mdash; worth more than slicing them one at a time.'
@@ -438,6 +446,17 @@ function drawFruitShape(ctx, canvas, s){
   ctx.globalAlpha = s.half ? Math.max(0, s.alpha) : 1;
   ctx.translate(x, y);
   ctx.rotate(s.rotation);
+
+  // The three scoring shapes are drawn as actual fruit rather than a
+  // flat circle/square/triangle. The detail is all extra PATHS — a few
+  // dozen vector ops per shape — which is a different cost entirely
+  // from the fill-rate work that was this game's real bottleneck (see
+  // js/canvasGlow.js). No extra glow area, no blur, no bigger fills, so
+  // the frame budget is untouched; it just looks like fruit now.
+  //
+  // Cut halves deliberately keep the plain silhouette: a sliced piece
+  // shouldn't still have its leaf and highlight sitting on it, and it
+  // keeps the per-frame cost of the busiest moment down.
   ctx.fillStyle = s.color;
   ctx.beginPath();
   if(s.type === 'bomb' && !s.half){
@@ -451,32 +470,85 @@ function drawFruitShape(ctx, canvas, s){
       const px = Math.sin(a) * rad, py = -Math.cos(a) * rad;
       if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
+  } else if(s.type === 'golden' && !s.half){
+    // Five-pointed star — the rare bonus should be a different SHAPE,
+    // not just a gold-coloured version of an ordinary fruit.
+    for(let i = 0; i < 10; i++){
+      const rad = i % 2 === 0 ? r : r * 0.45;
+      const a = (Math.PI / 5) * i;
+      const px = Math.sin(a) * rad, py = -Math.cos(a) * rad;
+      if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
   } else if(s.type === 'circle' || s.type === 'golden'){
     ctx.arc(0, 0, r, 0, Math.PI * 2);
   } else if(s.type === 'square'){
-    ctx.rect(-r, -r, r * 2, r * 2);
+    // Rounded, slightly squashed — a berry, not a box.
+    const k = r * 0.42;
+    ctx.moveTo(-r + k, -r);
+    ctx.arcTo(r, -r, r, r, k);
+    ctx.arcTo(r, r, -r, r, k);
+    ctx.arcTo(-r, r, -r, -r, k);
+    ctx.arcTo(-r, -r, r, -r, k);
   } else {
     ctx.moveTo(0, -r); ctx.lineTo(r * 0.87, r * 0.6); ctx.lineTo(-r * 0.87, r * 0.6);
   }
   ctx.closePath();
   ctx.fill();
-  // A bright, slow-pulsing fuse dot on top marks a bomb as "don't slice
-  // this" at a glance, distinct from the 3 flat-colored regular shapes.
-  if(s.type === 'bomb' && !s.half){
-    ctx.fillStyle = '#FF6B5B';
-    ctx.beginPath();
-    ctx.arc(0, -r * 0.9, r * (0.16 + 0.05 * Math.sin(performance.now() / 90)), 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // A thin bright outer ring reads as "special/valuable" for the rare
-  // golden fruit, on top of its already-heavier glow above.
-  if(s.type === 'golden' && !s.half){
-    ctx.strokeStyle = '#FFF6D9';
-    ctx.lineWidth = Math.max(1.5, r * 0.12);
-    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(performance.now() / 120);
-    ctx.beginPath();
-    ctx.arc(0, 0, r * 1.15, 0, Math.PI * 2);
-    ctx.stroke();
+
+  if(!s.half){
+    if(s.type === 'circle'){
+      // Orange: a leaf on the stalk and a soft highlight.
+      ctx.fillStyle = '#4CAF6D';
+      ctx.beginPath();
+      ctx.ellipse(r * 0.34, -r * 0.92, r * 0.34, r * 0.16, -0.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.38)';
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.33, -r * 0.34, r * 0.3, r * 0.19, -0.7, 0, Math.PI * 2);
+      ctx.fill();
+    } else if(s.type === 'square'){
+      // Berry: a lighter top face and a glint.
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.beginPath();
+      ctx.ellipse(0, -r * 0.4, r * 0.72, r * 0.34, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.36, -r * 0.44, r * 0.19, r * 0.12, -0.6, 0, Math.PI * 2);
+      ctx.fill();
+    } else if(s.type === 'triangle'){
+      // Watermelon slice: a green rind along the long edge, a pale pith
+      // line inside it, and two seeds in the flesh.
+      ctx.fillStyle = '#2E9E5B';
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.87, r * 0.6);
+      ctx.lineTo(r * 0.87, r * 0.6);
+      ctx.lineTo(r * 0.7, r * 0.26);
+      ctx.lineTo(-r * 0.7, r * 0.26);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.fillRect(-r * 0.72, r * 0.2, r * 1.44, r * 0.08);
+      ctx.fillStyle = '#3A2018';
+      for(const sx of [-0.28, 0.28]){
+        ctx.beginPath();
+        ctx.ellipse(r * sx, -r * 0.05, r * 0.09, r * 0.14, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if(s.type === 'golden'){
+      // A bright core so the star reads as lit from within.
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.26, 0, Math.PI * 2);
+      ctx.fill();
+    } else if(s.type === 'bomb'){
+      // A bright, slow-pulsing fuse marks a bomb as "don't slice this"
+      // at a glance.
+      ctx.fillStyle = '#FF6B5B';
+      ctx.beginPath();
+      ctx.arc(0, -r * 0.9, r * (0.16 + 0.05 * Math.sin(performance.now() / 90)), 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   ctx.restore();
 }
