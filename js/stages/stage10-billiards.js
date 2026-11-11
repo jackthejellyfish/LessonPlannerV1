@@ -3,7 +3,8 @@ import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
 import { beep } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
-import { BILLIARDS_QUESTIONS, BILLIARDS_BALLS } from '../content/stage13-billiards.js';
+import { renderGameIntro } from '../gameIntro.js';
+import { BILLIARDS_QUESTIONS, BILLIARDS_BALLS } from '../content/stage10-billiards.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
@@ -24,11 +25,11 @@ let billiardsShockwaves = [];
 const BILLIARDS_REFERENCE_WIDTH = 900;
 
 /* =========================================================
-   STAGE 13 — BILLIARDS
+   STAGE 10 — BILLIARDS
    Team-turn structure: answer a question, then take exactly ONE shot
    — drag away from the cue ball to pull the cue stick back, release
    to strike, same pull-back-and-release convention already proven in
-   Sky Slingshot and Comet Chaos. The table re-racks fresh every turn
+   Sky Slingshot. The table re-racks fresh every turn
    (same "clean slate each turn" spirit as Sky Slingshot's level
    reset), so there's always a full set of 6 object balls to aim at.
 
@@ -92,6 +93,23 @@ const TURN_END_PAUSE_MS = 1200;
 const CAPTURE_ANIM_MS = 280; // pocket "drop" animation duration, see startBallCapture
 
 let billiardsRowColors = [];
+
+// Builds this stage's two-column setup screen (rules left, teams
+// right). MUST run before anything below queries the buttons it
+// creates - see js/gameIntro.js for why each stage calls this itself.
+renderGameIntro('billiardsSetup', {
+  prefix: 'billiards',
+  steps: [
+    'One team answers a question.',
+    'Drag back from the white ball to aim and set power.',
+    'Release to shoot. You only get ONE shot.'
+  ],
+  scoring: [
+    { swatch: '<span class="billiards-legend-swatch object"></span>', label: 'Pot a coloured ball', points: '+5 to +50' },
+    { swatch: '<span class="billiards-legend-swatch cue"></span>', label: 'Pot the white ball', points: 'no points', tone: 'bad' }
+  ],
+  tip: 'Aim slightly to the side of a ball, not dead straight at it &mdash; a glancing hit is what sends it toward a pocket.'
+});
 
 export function renderBilliardsTeamInputs(count){
   renderTeamSetupRows('billiardsTeamInputs', 'billiardsAddTeamBtn', count, billiardsRowColors, renderBilliardsTeamInputs);
@@ -352,7 +370,7 @@ function billiardsPockets(canvas){
 
 /* =========================================================
    AIM / DRAG INPUT — pull back away from the cue ball, release to
-   strike, same convention as Sky Slingshot/Comet Chaos's computePull.
+   strike, same convention as Sky Slingshot's computePull.
 ========================================================= */
 let dragging = false;
 let dragStart = null;
@@ -464,8 +482,8 @@ function pocketBall(ball, pocketPos){
     spawnFloatText(billiardsFloatTexts, pocketPos.x, pocketPos.y, `+${ball.value}`, ball.color);
     // Bigger-value balls land a bigger shake + a shockwave ring — same
     // "scale the juice with how good the hit was" convention Sky
-    // Slingshot/Comet Chaos use; every ball previously got the exact
-    // same feedback regardless of its 5-50pt value.
+    // Slingshot uses; every ball previously got the exact same
+    // feedback regardless of its 5-50pt value.
     triggerShake(billiardsShake, 4 + ball.value * 0.12);
     spawnShockwave(billiardsShockwaves, pocketPos.x, pocketPos.y, ball.color, { big: ball.value >= 25 });
   }
@@ -848,9 +866,8 @@ wireTeamManagementButtons({
   cancelRound: cancelBilliardsRound
 });
 
-document.getElementById('billiardsBackBtn').addEventListener('click', () => goToStage(12));
-// Wired here (the target stage's own file), not in stage12 — same
-// existing convention as qsNextStageBtn/plinkoNextStageBtn/
-// birdsNextStageBtn: a "Next" button's click handler lives in the file
-// for the stage it goes TO.
-document.getElementById('cometNextStageBtn').addEventListener('click', () => goToStage(13));
+document.getElementById('billiardsBackBtn').addEventListener('click', () => goToStage(9));
+// Wired here (the target stage's own file), not in stage9 — same
+// existing convention throughout: a "Next" button's click handler lives
+// in the file for the stage it goes TO.
+document.getElementById('qsNextStageBtn').addEventListener('click', () => goToStage(10));

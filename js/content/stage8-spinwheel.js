@@ -38,6 +38,48 @@ const LESSON_CONTENT = {
       { prompt: "He's got a backache. What shouldn't he do?", answer: "He shouldn't carry heavy bags.", points: 25 },
       { prompt: "I've got a stomach ache. What should I do?", answer: "I should see a doctor.", points: 30 }
     ]
+  },
+  'comparatives-superlatives': {
+    WHEEL_QUESTIONS: [
+      { prompt: "Compare: an elephant and a mouse. (big)", answer: "An elephant is bigger than a mouse.", points: 10 },
+      { prompt: "Which is the best day of the week, and why?", answer: "e.g. Saturday is the best day because...", points: 100 },
+      { prompt: "Compare: a car and a bicycle. (fast)", answer: "A car is faster than a bicycle.", points: 15 },
+      { prompt: "Compare: winter and summer. (cold)", answer: "Winter is colder than summer.", points: 5 },
+      { prompt: "What is the most beautiful place you know?", answer: "e.g. The most beautiful place is...", points: 200 },
+      { prompt: "Compare: maths and English. (easy)", answer: "e.g. English is easier than maths.", points: 20 },
+      { prompt: "Compare: your bag and your friend's bag. (heavy)", answer: "e.g. My bag is heavier than my friend's.", points: 1 },
+      { prompt: "Who is the tallest person in your family?", answer: "e.g. My father is the tallest.", points: 50 },
+      { prompt: "Compare: a phone and a laptop. (expensive)", answer: "A laptop is more expensive than a phone.", points: 25 },
+      { prompt: "What is the worst film you have ever seen?", answer: "e.g. The worst film I've seen is...", points: 30 }
+    ]
+  },
+  'will-wont': {
+    WHEEL_QUESTIONS: [
+      { prompt: "What will you do after school today?", answer: "e.g. I will go home and do my homework.", points: 10 },
+      { prompt: "What will the weather be like tomorrow?", answer: "e.g. It will be sunny tomorrow.", points: 100 },
+      { prompt: "Make it negative: 'He will come to the party.'", answer: "He won't come to the party.", points: 15 },
+      { prompt: "What won't you do this weekend?", answer: "e.g. I won't get up early.", points: 5 },
+      { prompt: "Where will you be in ten years?", answer: "e.g. I will be at university.", points: 200 },
+      { prompt: "Make a question: 'you / help / me'", answer: "Will you help me?", points: 20 },
+      { prompt: "What will people use instead of cars in 2100?", answer: "e.g. People will use flying cars.", points: 1 },
+      { prompt: "Make it negative: 'They will win the match.'", answer: "They won't win the match.", points: 50 },
+      { prompt: "Make a promise using 'won't'.", answer: "e.g. I won't tell anyone.", points: 25 },
+      { prompt: "What will you eat for dinner tonight?", answer: "e.g. I will eat rice and chicken.", points: 30 }
+    ]
+  },
+  'present-perfect': {
+    WHEEL_QUESTIONS: [
+      { prompt: "Have you ever been to another country? Which one?", answer: "e.g. Yes, I have been to Thailand.", points: 10 },
+      { prompt: "Name three things you have done today.", answer: "e.g. I have eaten breakfast, I have...", points: 100 },
+      { prompt: "Make it negative: 'She has finished her work.'", answer: "She hasn't finished her work.", points: 15 },
+      { prompt: "Have you ever eaten something very strange?", answer: "e.g. Yes, I have eaten...", points: 5 },
+      { prompt: "What is the best film you have ever seen?", answer: "e.g. The best film I have seen is...", points: 200 },
+      { prompt: "Make a question: 'you / ever / ride / a horse'", answer: "Have you ever ridden a horse?", points: 20 },
+      { prompt: "Name something you have never done.", answer: "e.g. I have never flown in a helicopter.", points: 1 },
+      { prompt: "Make it negative: 'They have eaten lunch.'", answer: "They haven't eaten lunch.", points: 50 },
+      { prompt: "Has anyone in your family won a prize?", answer: "e.g. Yes, my sister has won a medal.", points: 25 },
+      { prompt: "What have you learned in English this year?", answer: "e.g. I have learned the present perfect.", points: 30 }
+    ]
   }
 };
 

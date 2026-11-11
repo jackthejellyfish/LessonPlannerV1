@@ -66,12 +66,18 @@ export function drawShockwaves(ctx, list, scale = 1){
     const t = (performance.now() - sw.createdAt) / sw.durationMs;
     if(t >= 1) continue;
     const r = sw.maxRadius * scale * (0.3 + t * 1.3);
+    // Was shadowBlur on the stroke. A ring is already a thin bright
+    // shape on a dark field; a second wider, fainter ring reads as the
+    // same bloom without asking the renderer to blur anything.
     ctx.save();
-    ctx.globalAlpha = 1 - t;
+    ctx.globalAlpha = (1 - t) * 0.35;
     ctx.strokeStyle = sw.color;
+    ctx.lineWidth = sw.lineWidth * scale * 3.5;
+    ctx.beginPath();
+    ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1 - t;
     ctx.lineWidth = sw.lineWidth * scale;
-    ctx.shadowColor = sw.color;
-    ctx.shadowBlur = 12 * scale;
     ctx.beginPath();
     ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2);
     ctx.stroke();

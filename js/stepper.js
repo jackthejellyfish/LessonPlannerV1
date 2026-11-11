@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { goToStage } from './navigation.js';
 
-export const STAGE_LABELS = ["Aim", "Learn", "Controlled", "Guided", "Free practice", "Ball Pop", "Star Defender", "Spin Wheel", "Questions", "Plinko", "Sky Slingshot", "Comet Chaos", "Billiards", "Neon Arena", "Fruit Ninja"];
+export const STAGE_LABELS = ["Aim", "Learn", "Controlled", "Guided", "Free practice", "Ball Pop", "Star Defender", "Spin Wheel", "Questions", "Billiards", "Neon Arena", "Fruit Ninja"];
 
 export function renderStepper(){
   const stepper = document.getElementById('stepper');

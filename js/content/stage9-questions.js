@@ -71,6 +71,108 @@ const LESSON_CONTENT = {
           {prompt:"Compare two illnesses you know. What should you do for each one? Write at least 3 sentences."},
         ]},
     ]
+  },
+  'comparatives-superlatives': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Fill in the blank with the correct comparative or superlative.",
+        questions:[
+          {prompt:"The Nile is ___ river in the world. (long)", answer:"the longest"},
+          {prompt:"A cheetah is ___ than a horse. (fast)", answer:"faster"},
+          {prompt:"This is ___ day of the year. (hot)", answer:"the hottest"},
+          {prompt:"My bag is ___ than yours. (heavy)", answer:"heavier"},
+          {prompt:"She is ___ student in the class. (good)", answer:"the best"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+        questions:[
+          {chips:["My","sister","is","taller","than","me","."],answer:"My sister is taller than me ."},
+          {chips:["Everest","is","the","tallest","mountain","."],answer:"Everest is the tallest mountain ."},
+          {chips:["It","is","hotter","in","July","than","in","May","."],answer:"It is hotter in July than in May ."},
+          {chips:["That","was","the","worst","film","ever","."],answer:"That was the worst film ever ."},
+          {chips:["Gold","is","more","expensive","than","silver","."],answer:"Gold is more expensive than silver ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence using the word given.",
+        questions:[
+          {prompt:'Write a sentence using "bigger".',               hint:'___ is bigger than ___.'},
+          {prompt:'Write a sentence using "the biggest".',          hint:'___ is the biggest ___ in ___.'},
+          {prompt:'Write a sentence using "better".',               hint:'___ is better than ___ because\u2026'},
+          {prompt:'Write a sentence using "the most beautiful".',   hint:'___ is the most beautiful ___ I know.'},
+          {prompt:'Write a sentence using "more expensive".',       hint:'___ is more expensive than ___.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3\u20135 sentences. Use comparatives AND superlatives.",
+        questions:[
+          {prompt:"Compare three animals. Which is the biggest? Write at least 3 sentences."},
+          {prompt:"Compare three foods you like. Which is the best? Write at least 3 sentences."},
+          {prompt:"Compare three places you know. Which is the most beautiful? Write at least 3 sentences."},
+        ]},
+    ]
+  },
+  'will-wont': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Fill in the blank with will or won\u2019t.",
+        questions:[
+          {prompt:"It\u2019s very cloudy. I think it ___ rain. (will)", answer:"will"},
+          {prompt:"He never studies, so he ___ pass the test. (won\u2019t)", answer:"won\u2019t"},
+          {prompt:"Don\u2019t worry \u2014 I ___ tell anyone. (won\u2019t)", answer:"won\u2019t"},
+          {prompt:"She ___ be twelve next birthday. (will)", answer:"will"},
+          {prompt:"It\u2019s freezing outside. You ___ need a coat. (will)", answer:"will"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+        questions:[
+          {chips:["I","will","call","you","tomorrow","."],answer:"I will call you tomorrow ."},
+          {chips:["She","won't","be","late","again","."],answer:"She won't be late again ."},
+          {chips:["Will","you","help","me","please","?"],answer:"Will you help me please ?"},
+          {chips:["They","will","win","the","match","."],answer:"They will win the match ."},
+          {chips:["We","won't","forget","your","birthday","."],answer:"We won't forget your birthday ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence about the future.",
+        questions:[
+          {prompt:'Write a sentence using "will".',                  hint:'Tomorrow I will ___.'},
+          {prompt:'Write a sentence using "won\u2019t".',            hint:'Next week I won\u2019t ___.'},
+          {prompt:'Write a question using "Will".',                  hint:'Will you ___?'},
+          {prompt:'Write a promise using "won\u2019t".',             hint:'I promise I won\u2019t ___.'},
+          {prompt:'Write a prediction about the year 2100.',         hint:'In 2100, people will ___.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3\u20135 sentences using will and won\u2019t as much as you can.",
+        questions:[
+          {prompt:"What will you do next weekend? Write at least 3 sentences."},
+          {prompt:"What will your life be like in ten years? Write at least 3 sentences."},
+          {prompt:"Make three predictions about the future of your city. Write at least 3 sentences."},
+        ]},
+    ]
+  },
+  'present-perfect': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Fill in the blank with have or has.",
+        questions:[
+          {prompt:"I ___ visited Japan twice. (have)", answer:"have"},
+          {prompt:"She ___ finished her homework. (has)", answer:"has"},
+          {prompt:"They ___ never eaten sushi. (have)", answer:"have"},
+          {prompt:"My brother ___ broken his arm. (has)", answer:"has"},
+          {prompt:"___ you ever ridden a horse? (Have)", answer:"Have"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+        questions:[
+          {chips:["I","have","visited","Japan","twice","."],answer:"I have visited Japan twice ."},
+          {chips:["She","has","finished","her","homework","."],answer:"She has finished her homework ."},
+          {chips:["Have","you","ever","eaten","sushi","?"],answer:"Have you ever eaten sushi ?"},
+          {chips:["They","haven't","arrived","yet","."],answer:"They haven't arrived yet ."},
+          {chips:["He","has","never","been","to","London","."],answer:"He has never been to London ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence in the present perfect.",
+        questions:[
+          {prompt:'Write a sentence using "have visited".',      hint:'I have visited ___.'},
+          {prompt:'Write a sentence using "has finished".',      hint:'___ has finished ___.'},
+          {prompt:'Write a sentence using "have never".',        hint:'I have never ___.'},
+          {prompt:'Write a question using "Have you ever".',     hint:'Have you ever ___?'},
+          {prompt:'Write a sentence using "hasn\u2019t".',       hint:'___ hasn\u2019t ___ yet.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3\u20135 sentences using the present perfect as much as you can.",
+        questions:[
+          {prompt:"Write about three things you have done this year. Write at least 3 sentences."},
+          {prompt:"Write about three things you have never done, but would like to. Write at least 3 sentences."},
+          {prompt:"Interview a partner: what have they done that you haven\u2019t? Write at least 3 sentences."},
+        ]},
+    ]
   }
 };
 

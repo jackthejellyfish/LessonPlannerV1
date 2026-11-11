@@ -36,6 +36,45 @@ export const LESSONS = [
     printWorksheetTitle: 'Health: Should & Shouldn’t — Practice Worksheet',
     printFooter: 'Health: Should & Shouldn’t — Interactive Lesson',
     mcQuestionTemplate: (word) => `You've got ${word}. What should you do?`
+  },
+  {
+    id: 'comparatives-superlatives',
+    title: 'Comparatives & Superlatives',
+    tagline: 'Compare two things \u2014 then say which one is the best of all.',
+    objective: 'By the end of this lesson, you will be able to form comparative and superlative adjectives and use them to compare two or more things.',
+    freeIntro: 'Think of three people, animals, or things you know. Say or write five sentences comparing them \u2014 use comparatives AND superlatives, out loud with a partner.',
+    pageTitle: 'Comparatives & Superlatives \u2014 Interactive Lesson',
+    printRulesTitle: 'Comparatives & Superlatives \u2014 Rules Reference',
+    printRulesSubtitle: 'Spelling rules for comparative and superlative adjectives',
+    printWorksheetTitle: 'Comparatives & Superlatives \u2014 Practice Worksheet',
+    printFooter: 'Comparatives & Superlatives \u2014 Interactive Lesson',
+    mcQuestionTemplate: (word) => `What are the comparative and superlative of '${word}'?`
+  },
+  {
+    id: 'will-wont',
+    title: 'Will & Won\u2019t',
+    tagline: 'Talk about the future \u2014 predictions, promises and offers.',
+    objective: 'By the end of this lesson, you will be able to talk about the future using will and won\u2019t.',
+    freeIntro: 'Think about next year. Say or write five sentences about what you will and won\u2019t do, out loud with a partner.',
+    pageTitle: 'Will & Won\u2019t \u2014 Interactive Lesson',
+    printRulesTitle: 'Will & Won\u2019t \u2014 Rules Reference',
+    printRulesSubtitle: 'Talking about the future with will and won\u2019t',
+    printWorksheetTitle: 'Will & Won\u2019t \u2014 Practice Worksheet',
+    printFooter: 'Will & Won\u2019t \u2014 Interactive Lesson',
+    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+  },
+  {
+    id: 'present-perfect',
+    title: 'Present Perfect',
+    tagline: 'Talk about your experiences and things that have already happened.',
+    objective: 'By the end of this lesson, you will be able to use the present perfect (have/has + past participle) to talk about experiences.',
+    freeIntro: 'Think about your life so far. Say or write five sentences about things you have and haven\u2019t done, out loud with a partner.',
+    pageTitle: 'Present Perfect \u2014 Interactive Lesson',
+    printRulesTitle: 'Present Perfect \u2014 Rules Reference',
+    printRulesSubtitle: 'Talking about experience with have/has + past participle',
+    printWorksheetTitle: 'Present Perfect \u2014 Practice Worksheet',
+    printFooter: 'Present Perfect \u2014 Interactive Lesson',
+    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
   }
 ];
 
@@ -48,7 +87,11 @@ export function getLesson(id){
 // than inventing a new palette just for this screen. `onSelect(id)` is
 // supplied by main.js, which owns the actual lesson-switch/full-reset
 // flow — this module only knows how to list and render lessons.
-const CARD_COLORS = ['var(--rule-a)', 'var(--rule-b)', 'var(--rule-c)', 'var(--rule-d)'];
+// Five lessons now, and the four --rule accents would make card 5 a
+// repeat of card 1 — so the cycle gets a fifth entry. --primary-dark is
+// already in the palette (it is the button hover colour), so this adds a
+// distinct card colour without inventing a new one for this screen.
+const CARD_COLORS = ['var(--rule-a)', 'var(--rule-b)', 'var(--rule-c)', 'var(--rule-d)', 'var(--primary-dark)'];
 
 export function renderLessonCards(onSelect){
   const container = document.getElementById('lessonCards');

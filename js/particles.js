@@ -6,7 +6,7 @@
    position:relative) and flies outward from (xPct, yPct),
    expressed as a percentage of that container's own size.
 ========================================================= */
-// Every other particle system in the app (canvas-based: Ball Pop, Plinko,
+// Every other particle system in the app (canvas-based: Ball Pop,
 // Star Defender, Neon Arena, etc.) filters its live-particle array every
 // frame and caps expensive effects past a live-count threshold. This is
 // the one DOM-based system with neither — today it's only ever reachable

@@ -1,10 +1,12 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, beep, sfxIncorrect, sfxTimeUp } from '../audio.js';
+import { ensureAudio, beep, sfxIncorrect, sfxTimeUp, audioOut } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
+import { renderGameIntro } from '../gameIntro.js';
 import { POP_QUESTIONS } from '../content/stage6-ballpop.js';
 import { createCanvasResizer } from '../canvasGame.js';
+import { drawGlow, createLowResLayer } from '../canvasGlow.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 
 /* =========================================================
@@ -25,6 +27,26 @@ export const POP_ROUND_SECONDS = 10;
 // input rows) — persists across "+ Add team" re-renders and survives
 // until "Start game" reads it into state.popTeams.
 let popRowColors = [];
+
+// Builds this stage's two-column setup screen (rules left, teams
+// right). MUST run before anything below queries the buttons it
+// creates - see js/gameIntro.js for why each stage calls this itself.
+renderGameIntro('popSetup', {
+  prefix: 'pop',
+  steps: [
+    'One team answers a question.',
+    'Tap every ball you can before the time runs out.',
+    'You get 10 seconds. Highest score wins.'
+  ],
+  scoring: [
+    { swatch: '<span class="pop-legend-swatch normal"></span>', label: 'Normal ball', points: '+1' },
+    { swatch: '<span class="pop-legend-swatch gem"></span>', label: 'Gem', points: '+3', tone: 'bonus' },
+    { swatch: '<span class="pop-legend-swatch special"></span>', label: 'Special ball', points: 'splits into 4', tone: 'bonus' },
+    { swatch: '<span class="pop-legend-swatch multi"></span>', label: 'Multiplier', points: 'double for 4s', tone: 'bonus' },
+    { swatch: '<span class="pop-legend-swatch bomb"></span>', label: 'Bomb &mdash; do not tap!', points: '&minus;1', tone: 'bad' }
+  ],
+  tip: 'Go for the gems and the multiplier first &mdash; they are worth far more than racing through the normal balls.'
+});
 
 export function renderPopTeamInputs(count){
   renderTeamSetupRows('popTeamInputs', 'popAddTeamBtn', count, popRowColors, renderPopTeamInputs);
@@ -84,7 +106,7 @@ function sfxPop(streak){
   osc.frequency.setValueAtTime(base, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(base * 1.8, ctx.currentTime + 0.08);
   gain.gain.value = 0.18;
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(audioOut());
   gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
   osc.start();
   osc.stop(ctx.currentTime + 0.12);
@@ -106,7 +128,7 @@ function sfxMegaExplosion(){
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass'; filter.frequency.value = 1800;
   const gain = ctx.createGain(); gain.gain.value = 0.32;
-  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.connect(filter).connect(gain).connect(audioOut());
   noise.start();
   [660, 880, 1100, 1320].forEach((f, i) => beep(f, 0.2, 'triangle', 0.22, i * 0.07));
 }
@@ -195,7 +217,10 @@ function showFloatingText(container, xPct, yPct, text, color, extraClass = ''){
    circles costs one clear+loop, not 40 separate DOM nodes each
    carrying their own animation.
 ========================================================= */
-const popCanvasResizer = createCanvasResizer('popParticleCanvas', 'popPlayArea');
+// Half resolution on top of the shared cap: this canvas draws ONLY
+// glow rings and particles behind real DOM ball buttons, so there is no
+// crisp edge for the upscale to soften.
+const popCanvasResizer = createCanvasResizer('popParticleCanvas', 'popPlayArea', null, { renderScale: 0.42 });
 export function resizePopCanvas(){ popCanvasResizer.resize(); }
 
 // Cache the 2D context per canvas element instead of calling
@@ -220,6 +245,12 @@ function getPopCtx(canvas){
 // for staying smooth.
 const POP_PARTICLE_GLOW_LIMIT = 60;
 
+// Safety net against a stacked-event cascade (e.g. a mega explosion
+// landing while a couple of swarm-ball pops are still fading) piling up
+// hundreds of simultaneously-alive particles — trims the OLDEST ones
+// (already the most faded/least noticeable) rather than the newest.
+const POP_PARTICLE_HARD_CAP = 200;
+
 function spawnPopParticles(xPx, yPx, count = 40, speedMult = 1, sizeMult = 1){
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
@@ -234,6 +265,9 @@ function spawnPopParticles(xPx, yPx, count = 40, speedMult = 1, sizeMult = 1){
       size: (Math.random() * 10 + 3) * sizeMult,
       color: `hsl(${hue}, 100%, ${58 + Math.floor(Math.random() * 18)}%)`
     });
+  }
+  if(state.popParticles.length > POP_PARTICLE_HARD_CAP){
+    state.popParticles.splice(0, state.popParticles.length - POP_PARTICLE_HARD_CAP);
   }
 }
 
@@ -300,6 +334,10 @@ function updatePopParticles(){
   state.popParticles = state.popParticles.filter(p => p.alpha > 0 && p.size > 0.3);
 }
 
+// The bokeh field is composited at quarter resolution and upscaled —
+// see createLowResLayer's header for the measurements behind that.
+const popBlobLayer = createLowResLayer(0.25);
+
 function renderPopCanvas(){
   const canvas = popCanvasResizer.getCanvas();
   if(!canvas) return;
@@ -316,37 +354,42 @@ function renderPopCanvas(){
       r: 0.08 + Math.random() * 0.12,
       vx: (Math.random() - 0.5) * 0.00018,
       vy: (Math.random() - 0.5) * 0.00012,
-      color: ['rgba(178,102,255,', 'rgba(49,230,224,', 'rgba(255,210,63,', 'rgba(255,107,107,'][i % 4],
-      phase: Math.random() * Math.PI * 2,
-      gradient: null, gradientR: 0
+      color: ['#B266FF', '#31E6E0', '#FFD23F', '#FF6B6B'][i % 4],
+      phase: Math.random() * Math.PI * 2
     }));
   }
-  for(const b of state.popBgBlobs){
-    b.x += b.vx; b.y += b.vy;
-    if(b.x < -b.r) b.x = 1 + b.r;
-    if(b.x > 1 + b.r) b.x = -b.r;
-    if(b.y < -b.r) b.y = 1 + b.r;
-    if(b.y > 1 + b.r) b.y = -b.r;
-    // Pulse via globalAlpha (a cheap per-draw scalar) instead of baking
-    // the alpha into the gradient's color stops — that lets the
-    // gradient itself (the expensive part to build) be cached and
-    // reused across frames instead of recreated 8x every single frame.
-    const alphaRatio = 0.6 + 0.4 * Math.sin(Date.now() / 1800 + b.phase); // 0.2..1.0, scales the 0.1 baked-in max below
-    const x = b.x * canvas.width, y = b.y * canvas.height, r = b.r * canvas.width;
-    if(!b.gradient || b.gradientR !== r){
-      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
-      grad.addColorStop(0, b.color + '0.1)');
-      grad.addColorStop(1, b.color + '0)');
-      b.gradient = grad;
-      b.gradientR = r;
+  // These 8 blobs were, by measurement, the single most expensive thing
+  // in this entire app: 50.0ms/frame with them vs 16.7ms without, on an
+  // otherwise EMPTY stage — no balls, no particles (see
+  // tests/perf.spec.js and js/canvasGlow.js's header). The cost was
+  // re-rasterizing eight big alpha-blended radial gradients across the
+  // whole canvas every frame. Caching the gradient object (the previous
+  // optimization here) didn't help, because building the gradient was
+  // never the expensive part — FILLING it was. Now each blob is a
+  // pre-rasterized sprite that's simply blitted, which looks identical
+  // and costs a small fraction of the time. Drift and pulse are
+  // unchanged: both are applied at blit time.
+  popBlobLayer(ctx, canvas, (lctx, lw, lh) => {
+    for(const b of state.popBgBlobs){
+      b.x += b.vx; b.y += b.vy;
+      if(b.x < -b.r) b.x = 1 + b.r;
+      if(b.x > 1 + b.r) b.x = -b.r;
+      if(b.y < -b.r) b.y = 1 + b.r;
+      if(b.y > 1 + b.r) b.y = -b.r;
+      const alphaRatio = 0.6 + 0.4 * Math.sin(Date.now() / 1800 + b.phase); // 0.2..1.0, scaling the 0.1 peak below
+      // Radius scales off WIDTH (as it always has, so a blob keeps its
+      // proportions), but the centre's y must scale off HEIGHT.
+      drawGlow(lctx, b.x * lw, b.y * lh, b.r * lw, b.color, alphaRatio * 0.1);
     }
-    ctx.save();
-    ctx.globalAlpha = alphaRatio;
-    ctx.translate(x, y);
-    ctx.fillStyle = b.gradient;
-    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
+  });
+
+  // Above POP_PARTICLE_GLOW_LIMIT live particles, a bomb/mega moment is
+  // already under load — drop shadowBlur everywhere this frame (both
+  // the ring glow below AND the particle glow further down), not just
+  // on particles. shadowBlur is the single most expensive thing this
+  // canvas draws every frame; computed once here, ahead of the ring
+  // loop, instead of only gating the particle loop the way this used to.
+  const particleGlowOn = state.popParticles.length <= POP_PARTICLE_GLOW_LIMIT;
 
   // Pulsing glow ring behind every live ball — same idea as the
   // reference game's canvas-drawn glow (shadowBlur + a sine pulse),
@@ -375,32 +418,52 @@ function renderPopCanvas(){
     const pulsePeriod = (anim.bomb || anim.gem) ? 120 : 220;
     const glowPulse = 0.7 + 0.3 * Math.sin(Date.now() / pulsePeriod);
 
+    // The glow used to be ctx.shadowBlur on the ring stroke. shadowBlur
+    // makes the renderer rasterize and blur a copy of the shape every
+    // frame, per ball — with the backdrop blobs fixed (above), this was
+    // what was left of Ball Pop's frame budget. A pre-rasterized glow
+    // sprite blitted behind a plain, unblurred stroke is visually the
+    // same bloom for a fraction of the cost.
+    const ringRadius = radius + ringPadding;
+    if(particleGlowOn){
+      const spread = anim.special ? 20 : (anim.gem || anim.swarm || anim.multi ? 16 : 26);
+      drawGlow(ctx, xPx, yPx, ringRadius + spread, anim.color, anim.alpha * glowPulse * 0.5, 1.6);
+    }
     ctx.save();
     ctx.globalAlpha = anim.alpha * glowPulse;
-    ctx.shadowColor = anim.color;
-    ctx.shadowBlur = anim.special ? 20 : (anim.gem || anim.swarm || anim.multi ? 16 : 26);
     ctx.strokeStyle = anim.color;
     ctx.lineWidth = (anim.gem || anim.special || anim.swarm || anim.multi) ? 2 : 3;
     ctx.beginPath();
-    ctx.arc(xPx, yPx, radius + ringPadding, 0, Math.PI * 2);
+    ctx.arc(xPx, yPx, ringRadius, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
 
-  const particleGlowOn = state.popParticles.length <= POP_PARTICLE_GLOW_LIMIT;
+  // One save/restore for the whole particle batch instead of one pair
+  // per particle — with up to 200 particles alive at once, that's up to
+  // 200 fewer save/restore calls per frame. shadowBlur is explicitly
+  // reset to 0 when glow is off (rather than relying on restore(), which
+  // no longer runs per-iteration) so it can't leak from a previous frame.
+  // Particles are drawn as plain solid discs — no per-particle glow of
+  // any kind. They previously had shadowBlur, and a cached-sprite halo
+  // was tried as the replacement; measurement showed that with up to
+  // 200 particles alive during a pop burst, even a cheap blit per
+  // particle is 200 extra alpha-blended draws in the one frame that can
+  // least afford them. At this size, on this background, the halo was
+  // barely perceptible anyway — the glow that actually reads is the
+  // ring behind each BALL (above), which is a handful of draws, not
+  // hundreds. 'lighter' recovers the bloom for free: overlapping
+  // particles add together, which is what a burst should do.
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   for(const p of state.popParticles){
-    ctx.save();
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    if(particleGlowOn){
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 12;
-    }
     ctx.beginPath();
     ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
+  ctx.restore();
 }
 
 export function startPopParticleLoop(){
@@ -520,13 +583,15 @@ function removePopBall(ball, anim){
 // floating text, score bump. Used by every ball type. `amount` (default
 // 1) is the actual points just awarded — shown directly instead of a
 // hardcoded "+1" so a doubled pop (see popMultiplierActive) reads "+2".
-function popBallFeedback(ballLayer, xPct, yPct, color, amount = 1){
+// `particleCount` (default 40, the normal-ball burst size) lets a swarm
+// pop request a smaller burst — see spawnPopSwarm's click handler.
+function popBallFeedback(ballLayer, xPct, yPct, color, amount = 1, particleCount = 40){
   spawnShockwave(ballLayer, xPct, yPct, color);
 
   const canvas = popCanvasResizer.getCanvas();
   const pxX = (xPct / 100) * canvas.width;
   const pxY = (yPct / 100) * canvas.height;
-  spawnPopParticles(pxX, pxY);
+  spawnPopParticles(pxX, pxY, particleCount);
 
   showFloatingText(ballLayer, xPct, yPct, `+${amount}`, color);
 
@@ -561,8 +626,12 @@ function spawnPopBall(){
 // A much bigger, multi-ring burst for popping the special ball — reads
 // as a genuine "mega" event, not just a slightly larger normal pop.
 // Three staggered shockwave rings (the middle one flashes white),
-// ~4x the particles at higher speed/size, "BONUS!" instead of "+1",
-// and a brief warm flash across the whole play area border.
+// ~1.75x the particles at higher speed/size, "BONUS!" instead of "+1",
+// and a brief warm flash across the whole play area border. Particle
+// count trimmed from an original 150 (was ~4x a normal burst) — the
+// rings/flash/text already carry the "mega" read, and 150 particles
+// plus the swarm balls this triggers next was the single biggest
+// contributor to Ball Pop's reported lag on lower-powered displays.
 function spawnMegaExplosion(ballLayer, xPct, yPct, color){
   [0, 90, 180].forEach((delay, i) => {
     setTimeout(() => {
@@ -583,13 +652,17 @@ function spawnMegaExplosion(ballLayer, xPct, yPct, color){
   const canvas = popCanvasResizer.getCanvas();
   const pxX = (xPct / 100) * canvas.width;
   const pxY = (yPct / 100) * canvas.height;
-  spawnPopParticles(pxX, pxY, 150, 1.8, 1.4);
+  spawnPopParticles(pxX, pxY, 70, 1.8, 1.4);
 
   showFloatingText(ballLayer, xPct, yPct, 'BONUS!', color, 'mega');
 
   const playArea = document.getElementById('popPlayArea');
   playArea.classList.add('mega-flash');
   setTimeout(() => playArea.classList.remove('mega-flash'), 380);
+  // The biggest single moment in this game had no physical shake at
+  // all, unlike a bomb pop (see popBombFeedback's shakePlayArea() call)
+  // — same reflow-retrigger shake, reused rather than duplicated.
+  shakePlayArea();
 
   sfxMegaExplosion();
 
@@ -666,7 +739,11 @@ function spawnPopSwarm(count){
       const amount = popMultiplierActive() ? 2 : 1;
       state.popScore += amount;
       sfxPop(state.popScore);
-      popBallFeedback(ballLayer, xPct, yPct, color, amount);
+      // Smaller burst than a normal pop (16 vs the default 40) — up to
+      // 4 of these can fire in quick succession right after the mega
+      // explosion's own 70-particle burst, so keeping each one light
+      // matters more here than for a single standalone pop.
+      popBallFeedback(ballLayer, xPct, yPct, color, amount, 16);
       removePopBall(ball, anim);
       state.popSwarmRemaining--;
       if(state.popSwarmRemaining <= 0) spawnPopBall();

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css/lesson-select.css" />
     <link rel="stylesheet" href="css/modals.css" />
     <link rel="stylesheet" href="css/team-color-picker.css" />
+    <link rel="stylesheet" href="css/game-intro.css" />
     <link rel="stylesheet" href="css/stage2-rules.css" />
     <link rel="stylesheet" href="css/stage3-controlled.css" />
     <link rel="stylesheet" href="css/stage4-guided.css" />
@@ -21,12 +22,9 @@
     <link rel="stylesheet" href="css/stage7-stardefender.css" />
     <link rel="stylesheet" href="css/stage8-spinwheel.css" />
     <link rel="stylesheet" href="css/stage9-questions.css" />
-    <link rel="stylesheet" href="css/stage10-plinko.css" />
-    <link rel="stylesheet" href="css/stage11-angrybirds.css" />
-    <link rel="stylesheet" href="css/stage12-cometchaos.css" />
-    <link rel="stylesheet" href="css/stage13-billiards.css" />
-    <link rel="stylesheet" href="css/stage14-neonarena.css" />
-    <link rel="stylesheet" href="css/stage15-fruitninja.css" />
+    <link rel="stylesheet" href="css/stage10-billiards.css" />
+    <link rel="stylesheet" href="css/stage11-neonarena.css" />
+    <link rel="stylesheet" href="css/stage12-fruitninja.css" />
     <link rel="stylesheet" href="css/fullscreen-game.css" />
     <link rel="stylesheet" href="css/print.css" />
   </head>
@@ -311,54 +309,7 @@
       <section class="stage hidden" id="stage6">
         <h2>Ball Pop Challenge</h2>
         <div class="stage-body">
-          <div id="popSetup">
-            <p class="free-intro">
-              Pop as many balls as you can in 10 seconds.
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="pop-legend-swatch normal"></span>
-                </div>
-                <span class="pop-legend-points">+1</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="pop-legend-swatch special"></span>
-                </div>
-                <span class="pop-legend-points">→ 4 balls</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="pop-legend-swatch gem"></span>
-                </div>
-                <span class="pop-legend-points gem-points">+3</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="pop-legend-swatch bomb"></span>
-                </div>
-                <span class="pop-legend-points bomb-points">−1</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="pop-legend-swatch multi"></span>
-                </div>
-                <span class="pop-legend-points gem-points">×2 (4s)</span>
-              </div>
-            </div>
-
-            <div class="pop-team-inputs" id="popTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="popAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="popStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
+          <div id="popSetup"></div>
 
           <div id="popGame" class="hidden pop-game-layout">
             <div class="pop-sidebar">
@@ -447,67 +398,7 @@
       <section class="stage hidden" id="stage7">
         <h2>Star Defender</h2>
         <div class="stage-body">
-          <div id="invSetup">
-            <p class="free-intro">
-              Answer a question, then defend for 20 seconds. Click anywhere on
-              the battlefield to move and fire.
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="inv-legend-swatch scout"></span>
-                </div>
-                <span class="pop-legend-points">1 hit · +1</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="inv-legend-swatch brute"></span>
-                </div>
-                <span class="pop-legend-points">3 hits · +3</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="inv-legend-swatch dart"></span>
-                </div>
-                <span class="pop-legend-points">Fast · +2</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="inv-legend-swatch boss"></span>
-                </div>
-                <span class="pop-legend-points bomb-points">Boss · +15</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="inv-legend-swatch pickup"></span>
-                </div>
-                <span class="pop-legend-points gem-points">Rapid fire</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="inv-legend-swatch machinegun"></span>
-                </div>
-                <span class="pop-legend-points gem-points">Machine gun</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="inv-legend-swatch heart">♥</span>
-                </div>
-                <span class="pop-legend-points">Shield</span>
-              </div>
-            </div>
-
-            <div class="pop-team-inputs" id="invTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="invAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="invStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
+          <div id="invSetup"></div>
 
           <div id="invGame" class="hidden pop-game-layout">
             <div class="pop-sidebar">
@@ -593,21 +484,7 @@
       <section class="stage hidden" id="stage8">
         <h2>Spin the Wheel</h2>
         <div class="stage-body">
-          <div id="wheelSetup">
-            <p class="free-intro">
-              Spin the wheel to land on a question — bigger numbers are worth
-              more points. Answer correctly to score!
-            </p>
-            <div class="pop-team-inputs" id="wheelTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="wheelAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="wheelStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
+          <div id="wheelSetup"></div>
 
           <div id="wheelGame" class="hidden pop-game-layout">
             <div class="pop-sidebar">
@@ -727,459 +604,17 @@
               ↺ Restart lesson
             </button>
             <button class="btn btn-primary" id="qsNextStageBtn" type="button">
-              Next: Plinko →
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- STAGE 10: PLINKO DROP -->
-      <section class="stage hidden" id="stage10">
-        <h2>Plinko Drop</h2>
-        <div class="stage-body">
-          <div id="plinkoSetup">
-            <p class="free-intro">
-              Answer a question, choose your ball, then drop it down the board.
-              New ball types unlock as you play!
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="plinko-peg-legend-swatch normal"></span>
-                </div>
-                <span class="pop-legend-points"
-                  >Peg · +1, destroyed on hit</span
-                >
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="plinko-peg-legend-swatch bonus"></span>
-                </div>
-                <span class="pop-legend-points gem-points"
-                  >Bonus peg · +5, explodes</span
-                >
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="plinko-peg-legend-swatch neutral"></span>
-                </div>
-                <span class="pop-legend-points"
-                  >Dead peg · no points, stays</span
-                >
-              </div>
-            </div>
-
-            <div class="pop-legend" id="plinkoBallLegend"></div>
-
-            <div class="pop-team-inputs" id="plinkoTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="plinkoAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="plinkoStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
-
-          <div id="plinkoGame" class="hidden pop-game-layout">
-            <div class="pop-sidebar">
-              <ul class="pop-team-list" id="plinkoTeamList"></ul>
-              <div class="pop-turn-box">
-                <span id="plinkoTurnBanner"></span>
-                <div class="pop-sidebar-actions">
-                  <button
-                    class="pop-sidebar-reset"
-                    id="plinkoResetScoresBtn"
-                    type="button"
-                  >
-                    Reset scores
-                  </button>
-                  <button
-                    class="pop-sidebar-reset"
-                    id="plinkoChangeTeamsBtn"
-                    type="button"
-                  >
-                    Change teams
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="pop-main">
-              <div class="pop-hud-card">
-                <div class="pop-hud">
-                  <div>
-                    <span class="pop-hud-label">Question</span
-                    ><span class="pop-hud-num" id="plinkoQDisplay">1/10</span>
-                  </div>
-                  <div>
-                    <span class="pop-hud-label">Ball</span
-                    ><span class="pop-hud-num" id="plinkoBallDisplay">—</span>
-                  </div>
-                </div>
-              </div>
-
-              <div id="plinkoPlayArea" class="inv-play-area idle">
-                <canvas id="plinkoCanvas" class="inv-canvas"></canvas>
-                <div
-                  id="plinkoBallPicker"
-                  class="plinko-ball-picker hidden"
-                ></div>
-                <button
-                  class="btn btn-primary"
-                  id="plinkoBeginTurnBtn"
-                  type="button"
-                >
-                  Begin turn
-                </button>
-                <div class="game-over-banner hidden" id="plinkoGameOverBanner">
-                  <div class="game-over-title">Game over</div>
-                  <div class="game-over-winner" id="plinkoGameOverWinner"></div>
-                </div>
-              </div>
-
-              <button
-                class="btn btn-primary hidden"
-                id="plinkoPlayAgainBtn"
-                type="button"
-              >
-                Play again
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="stage-footer">
-          <button class="btn btn-ghost" id="plinkoBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
-            <button
-              class="btn btn-primary"
-              id="plinkoNextStageBtn"
-              type="button"
-            >
-              Next: Sky Slingshot →
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- STAGE 11: SKY SLINGSHOT -->
-      <section class="stage hidden" id="stage11">
-        <h2>Sky Slingshot</h2>
-        <div class="stage-body">
-          <div id="birdsSetup">
-            <p class="free-intro">
-              Answer a question, then drag anywhere on the board to pull back
-              and release — you get ONE shot, so knock down the base of a tower
-              and watch it collapse! New towers appear as you play.
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="birds-legend-swatch pig"></span>
-                </div>
-                <span class="pop-legend-points">Pot · +10 to +25</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="birds-legend-swatch block"></span>
-                </div>
-                <span class="pop-legend-points">Block · +3</span>
-              </div>
-            </div>
-
-            <div class="pop-team-inputs" id="birdsTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="birdsAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="birdsStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
-
-          <div id="birdsGame" class="hidden pop-game-layout">
-            <div class="pop-sidebar">
-              <ul class="pop-team-list" id="birdsTeamList"></ul>
-              <div class="pop-turn-box">
-                <span id="birdsTurnBanner"></span>
-                <div class="pop-sidebar-actions">
-                  <button
-                    class="pop-sidebar-reset"
-                    id="birdsResetScoresBtn"
-                    type="button"
-                  >
-                    Reset scores
-                  </button>
-                  <button
-                    class="pop-sidebar-reset"
-                    id="birdsChangeTeamsBtn"
-                    type="button"
-                  >
-                    Change teams
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="pop-main">
-              <div class="pop-hud-card">
-                <div class="pop-hud">
-                  <div>
-                    <span class="pop-hud-label">Question</span
-                    ><span class="pop-hud-num" id="birdsQDisplay">1/10</span>
-                  </div>
-                  <div>
-                    <span class="pop-hud-label">Shots left</span
-                    ><span class="pop-hud-num" id="birdsShotsDisplay">1</span>
-                  </div>
-                  <div>
-                    <span class="pop-hud-label">Turn score</span
-                    ><span class="pop-hud-num" id="birdsScoreDisplay">0</span>
-                  </div>
-                </div>
-              </div>
-
-              <div id="birdsPlayArea" class="inv-play-area idle">
-                <canvas id="birdsCanvas" class="inv-canvas"></canvas>
-                <p class="birds-hint hidden" id="birdsHint">
-                  One shot — drag back and release. Aim for the base of a tower!
-                </p>
-                <button
-                  class="btn btn-primary"
-                  id="birdsBeginTurnBtn"
-                  type="button"
-                >
-                  Begin turn
-                </button>
-                <div class="game-over-banner hidden" id="birdsGameOverBanner">
-                  <div class="game-over-title">Game over</div>
-                  <div class="game-over-winner" id="birdsGameOverWinner"></div>
-                </div>
-              </div>
-
-              <button
-                class="btn btn-primary hidden"
-                id="birdsPlayAgainBtn"
-                type="button"
-              >
-                Play again
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="stage-footer">
-          <button class="btn btn-ghost" id="birdsBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
-            <button
-              class="btn btn-primary"
-              id="birdsNextStageBtn"
-              type="button"
-            >
-              Next: Comet Chaos →
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- STAGE 12: COMET CHAOS -->
-      <section class="stage hidden" id="stage12">
-        <h2>Comet Chaos</h2>
-        <div class="stage-body">
-          <div id="cometSetup">
-            <p class="free-intro">
-              Answer a question, then drag anywhere on the board to pull back
-              and release — your comet gets pulled and flung around by planet
-              gravity, so watch it curve! Land in the glowing target for points,
-              but stay clear of the black hole.
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="comet-legend-swatch comet"></span>
-                </div>
-                <span class="pop-legend-points">Comet</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="comet-legend-swatch planet"></span>
-                </div>
-                <span class="pop-legend-points"
-                  >Planet — pulls your comet in</span
-                >
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="comet-legend-swatch target"></span>
-                </div>
-                <span class="pop-legend-points"
-                  >Target · +20 (bullseye +50)</span
-                >
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="comet-legend-swatch blackhole"></span>
-                </div>
-                <span class="pop-legend-points"
-                  >Black hole — swallows your shot</span
-                >
-              </div>
-            </div>
-
-            <div class="pop-team-inputs" id="cometTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="cometAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="cometStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
-
-          <div id="cometGame" class="hidden pop-game-layout">
-            <div class="pop-sidebar">
-              <ul class="pop-team-list" id="cometTeamList"></ul>
-              <div class="pop-turn-box">
-                <span id="cometTurnBanner"></span>
-                <div class="pop-sidebar-actions">
-                  <button
-                    class="pop-sidebar-reset"
-                    id="cometResetScoresBtn"
-                    type="button"
-                  >
-                    Reset scores
-                  </button>
-                  <button
-                    class="pop-sidebar-reset"
-                    id="cometChangeTeamsBtn"
-                    type="button"
-                  >
-                    Change teams
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="pop-main">
-              <div class="pop-hud-card">
-                <div class="pop-hud">
-                  <div>
-                    <span class="pop-hud-label">Question</span
-                    ><span class="pop-hud-num" id="cometQDisplay">1/10</span>
-                  </div>
-                  <div>
-                    <span class="pop-hud-label">Comets left</span
-                    ><span class="pop-hud-num" id="cometShotsDisplay">3</span>
-                  </div>
-                  <div>
-                    <span class="pop-hud-label">Turn score</span
-                    ><span class="pop-hud-num" id="cometScoreDisplay">0</span>
-                  </div>
-                </div>
-              </div>
-
-              <div id="cometPlayArea" class="inv-play-area idle">
-                <canvas id="cometCanvas" class="inv-canvas"></canvas>
-                <p class="comet-hint hidden" id="cometHint">
-                  Drag anywhere on the board to pull back, release to launch!
-                </p>
-                <button
-                  class="btn btn-primary"
-                  id="cometBeginTurnBtn"
-                  type="button"
-                >
-                  Begin turn
-                </button>
-                <div class="game-over-banner hidden" id="cometGameOverBanner">
-                  <div class="game-over-title">Game over</div>
-                  <div class="game-over-winner" id="cometGameOverWinner"></div>
-                </div>
-              </div>
-
-              <button
-                class="btn btn-primary hidden"
-                id="cometPlayAgainBtn"
-                type="button"
-              >
-                Play again
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="stage-footer">
-          <button class="btn btn-ghost" id="cometBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
-            <button
-              class="btn btn-primary"
-              id="cometNextStageBtn"
-              type="button"
-            >
               Next: Billiards →
             </button>
           </div>
         </div>
       </section>
 
-      <!-- STAGE 13: BILLIARDS -->
-      <section class="stage hidden" id="stage13">
+      <!-- STAGE 10: BILLIARDS -->
+      <section class="stage hidden" id="stage10">
         <h2>Billiards</h2>
         <div class="stage-body">
-          <div id="billiardsSetup">
-            <p class="free-intro">
-              Answer a question, then drag away from the cue ball to pull back
-              and release — you get ONE shot, so line it up carefully! Sink the
-              colored balls for points.
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="billiards-legend-swatch cue"></span>
-                </div>
-                <span class="pop-legend-points"
-                  >Cue ball — don't pocket this one!</span
-                >
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="billiards-legend-swatch object"></span>
-                </div>
-                <span class="pop-legend-points">Colored balls · +5 to +50</span>
-              </div>
-            </div>
-
-            <div class="pop-team-inputs" id="billiardsTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button
-                class="btn btn-ghost"
-                id="billiardsAddTeamBtn"
-                type="button"
-              >
-                + Add team
-              </button>
-              <button
-                class="btn btn-primary"
-                id="billiardsStartBtn"
-                type="button"
-              >
-                Start game
-              </button>
-            </div>
-          </div>
+          <div id="billiardsSetup"></div>
 
           <div id="billiardsGame" class="hidden pop-game-layout">
             <div class="pop-sidebar">
@@ -1274,78 +709,11 @@
         </div>
       </section>
 
-      <!-- STAGE 14: NEON ARENA -->
-      <section class="stage hidden" id="stage14">
+      <!-- STAGE 11: NEON ARENA -->
+      <section class="stage hidden" id="stage11">
         <h2>Neon Arena</h2>
         <div class="stage-body">
-          <div id="neonSetup">
-            <p class="free-intro">
-              Answer a question, then survive 20 seconds in the arena. Move with
-              WASD or the arrow keys, click (or tap) to shoot. Touching an enemy
-              costs a life — walk over glowing pickups to power up!
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch drifter"></span>
-                </div>
-                <span class="pop-legend-points">Drifter · +1</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch zapper"></span>
-                </div>
-                <span class="pop-legend-points">Zapper · +2</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch juggernaut"></span>
-                </div>
-                <span class="pop-legend-points">Juggernaut · +3</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch warden"></span>
-                </div>
-                <span class="pop-legend-points bomb-points">Warden · +15</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch power"></span>
-                </div>
-                <span class="pop-legend-points gem-points">Power Core</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch overdrive"></span>
-                </div>
-                <span class="pop-legend-points gem-points">Overdrive</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch spread"></span>
-                </div>
-                <span class="pop-legend-points gem-points">Spread Core</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="neon-legend-swatch bomb"></span>
-                </div>
-                <span class="pop-legend-points gem-points">Nova Bomb</span>
-              </div>
-            </div>
-
-            <div class="pop-team-inputs" id="neonTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="neonAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="neonStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
+          <div id="neonSetup"></div>
 
           <div id="neonGame" class="hidden pop-game-layout">
             <div class="pop-sidebar">
@@ -1434,48 +802,11 @@
         </div>
       </section>
 
-      <!-- STAGE 15: FRUIT NINJA -->
-      <section class="stage hidden" id="stage15">
+      <!-- STAGE 12: FRUIT NINJA -->
+      <section class="stage hidden" id="stage12">
         <h2>Fruit Ninja</h2>
         <div class="stage-body">
-          <div id="fruitSetup">
-            <p class="free-intro">
-              Answer a question, then slice as many shapes as you can in 10
-              seconds. Swipe (or click-drag) across the play area to cut a
-              shape in two — a shape only counts once it's actually sliced!
-            </p>
-
-            <div class="pop-legend">
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="fruit-legend-swatch circle"></span>
-                </div>
-                <span class="pop-legend-points">Circle · +1</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="fruit-legend-swatch square"></span>
-                </div>
-                <span class="pop-legend-points">Square · +1</span>
-              </div>
-              <div class="pop-legend-item">
-                <div class="pop-legend-swatch-box">
-                  <span class="fruit-legend-swatch triangle"></span>
-                </div>
-                <span class="pop-legend-points">Triangle · +1</span>
-              </div>
-            </div>
-
-            <div class="pop-team-inputs" id="fruitTeamInputs"></div>
-            <div class="pop-setup-actions">
-              <button class="btn btn-ghost" id="fruitAddTeamBtn" type="button">
-                + Add team
-              </button>
-              <button class="btn btn-primary" id="fruitStartBtn" type="button">
-                Start game
-              </button>
-            </div>
-          </div>
+          <div id="fruitSetup"></div>
 
           <div id="fruitGame" class="hidden pop-game-layout">
             <div class="pop-sidebar">

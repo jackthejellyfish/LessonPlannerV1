@@ -29,6 +29,48 @@ const LESSON_CONTENT = {
       { prompt: "I've got a backache. What should you do?", answer: "You should rest." },
       { prompt: "I've got an earache. What should you do?", answer: "You should see a doctor." }
     ]
+  },
+  'comparatives-superlatives': {
+    POP_QUESTIONS: [
+      { prompt: "What is the superlative of 'tall'?", answer: "the tallest" },
+      { prompt: "What is the superlative of 'big'?", answer: "the biggest" },
+      { prompt: "What is the superlative of 'nice'?", answer: "the nicest" },
+      { prompt: "What is the superlative of 'hot'?", answer: "the hottest" },
+      { prompt: "What is the superlative of 'happy'?", answer: "the happiest" },
+      { prompt: "What is the superlative of 'safe'?", answer: "the safest" },
+      { prompt: "What is the superlative of 'easy'?", answer: "the easiest" },
+      { prompt: "What is the superlative of 'busy'?", answer: "the busiest" },
+      { prompt: "What is the superlative of 'good'? (it's irregular!)", answer: "the best" },
+      { prompt: "What is the superlative of 'bad'? (it's irregular!)", answer: "the worst" }
+    ]
+  },
+  'will-wont': {
+    POP_QUESTIONS: [
+      { prompt: "What is the short form of 'I will'?", answer: "I'll" },
+      { prompt: "What is the short form of 'you will'?", answer: "you'll" },
+      { prompt: "What is the short form of 'he will'?", answer: "he'll" },
+      { prompt: "What is the short form of 'she will'?", answer: "she'll" },
+      { prompt: "What is the short form of 'we will'?", answer: "we'll" },
+      { prompt: "What is the short form of 'they will'?", answer: "they'll" },
+      { prompt: "What is the short form of 'it will'?", answer: "it'll" },
+      { prompt: "What is the short form of 'will not'?", answer: "won't" },
+      { prompt: "What is the short form of 'that will'?", answer: "that'll" },
+      { prompt: "'I'll' is the short form of which two words?", answer: "I will" }
+    ]
+  },
+  'present-perfect': {
+    POP_QUESTIONS: [
+      { prompt: "What is the past participle of 'go'?", answer: "gone (or been)" },
+      { prompt: "What is the past participle of 'eat'?", answer: "eaten" },
+      { prompt: "What is the past participle of 'see'?", answer: "seen" },
+      { prompt: "What is the past participle of 'do'?", answer: "done" },
+      { prompt: "What is the past participle of 'win'?", answer: "won" },
+      { prompt: "What is the past participle of 'write'?", answer: "written" },
+      { prompt: "What is the past participle of 'take'?", answer: "taken" },
+      { prompt: "What is the past participle of 'break'?", answer: "broken" },
+      { prompt: "What is the past participle of 'buy'?", answer: "bought" },
+      { prompt: "What is the past participle of 'be'?", answer: "been" }
+    ]
   }
 };
 

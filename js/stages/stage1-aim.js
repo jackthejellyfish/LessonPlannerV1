@@ -47,6 +47,51 @@ function buildAimIcon(type){
       <circle cx="35" cy="32" r="4" fill="var(--paper)"/>
     </svg>`;
   }
+  // --- Will/Won't + Present Perfect lesson icons. Same flat-shape
+  // vocabulary as the cases above (a couple of primitives per icon, no
+  // detail that won't survive being shown at 70px on a classroom
+  // screen) so a new lesson stays a data entry, not a drawing job.
+  if(type === 'cloud'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <circle cx="36" cy="32" r="16" fill="var(--rule-b)"/>
+      <circle cx="56" cy="28" r="20" fill="var(--rule-b)"/>
+      <circle cx="74" cy="36" r="13" fill="var(--rule-b)"/>
+      <rect x="34" y="36" width="42" height="14" rx="7" fill="var(--rule-b)"/>
+      <path d="M40 58 L36 68 M56 58 L52 68 M72 58 L68 68" stroke="var(--rule-a)" stroke-width="4" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'rocket'){
+    return `<svg viewBox="0 0 60 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M30 4 C40 16 44 30 44 44 L16 44 C16 30 20 16 30 4 Z" fill="var(--rule-c)"/>
+      <circle cx="30" cy="26" r="6" fill="var(--paper)"/>
+      <polygon points="16,38 6,52 16,50" fill="var(--rule-a)"/>
+      <polygon points="44,38 54,52 44,50" fill="var(--rule-a)"/>
+      <path d="M24 48 L30 66 L36 48 Z" fill="var(--rule-d)"/>
+    </svg>`;
+  }
+  if(type === 'trophy'){
+    return `<svg viewBox="0 0 70 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M20 8 L50 8 L48 32 Q35 44 22 32 Z" fill="var(--rule-d)"/>
+      <path d="M20 14 Q8 14 10 24 Q12 32 22 30" fill="none" stroke="var(--rule-d)" stroke-width="4"/>
+      <path d="M50 14 Q62 14 60 24 Q58 32 48 30" fill="none" stroke="var(--rule-d)" stroke-width="4"/>
+      <rect x="31" y="40" width="8" height="12" fill="var(--muted)"/>
+      <rect x="20" y="52" width="30" height="8" rx="3" fill="var(--muted)"/>
+    </svg>`;
+  }
+  if(type === 'suitcase'){
+    return `<svg viewBox="0 0 80 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M30 18 Q30 8 40 8 Q50 8 50 18" fill="none" stroke="var(--muted)" stroke-width="4"/>
+      <rect x="12" y="18" width="56" height="40" rx="6" fill="var(--rule-c)"/>
+      <rect x="36" y="18" width="8" height="40" fill="var(--paper)" opacity="0.65"/>
+    </svg>`;
+  }
+  if(type === 'book'){
+    return `<svg viewBox="0 0 80 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M40 18 Q26 10 10 14 L10 56 Q26 52 40 60 Z" fill="var(--rule-a)"/>
+      <path d="M40 18 Q54 10 70 14 L70 56 Q54 52 40 60 Z" fill="var(--rule-b)"/>
+      <line x1="40" y1="18" x2="40" y2="60" stroke="var(--paper)" stroke-width="3"/>
+    </svg>`;
+  }
   return '';
 }
 

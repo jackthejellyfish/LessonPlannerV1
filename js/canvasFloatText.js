@@ -18,16 +18,22 @@ export function updateFloatTexts(list, decay = 0.013){
   return list.filter(t => t.alpha > 0);
 }
 
+// The glow behind this text used to be ctx.shadowBlur, which re-blurs
+// the glyphs every frame. A dark stroked outline costs a fraction of
+// that and does the real job better anyway — the point was never the
+// bloom, it was keeping "+3" readable against a bright particle burst.
 export function drawFloatTexts(ctx, list, fontPx){
+  ctx.save();
+  ctx.font = `bold ${fontPx}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(2, fontPx * 0.16);
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
   for(const t of list){
-    ctx.save();
     ctx.globalAlpha = Math.max(0, t.alpha);
+    ctx.strokeText(t.text, t.x, t.y);
     ctx.fillStyle = t.color;
-    ctx.shadowColor = t.color;
-    ctx.shadowBlur = 10;
-    ctx.font = `bold ${fontPx}px sans-serif`;
-    ctx.textAlign = 'center';
     ctx.fillText(t.text, t.x, t.y);
-    ctx.restore();
   }
+  ctx.restore();
 }

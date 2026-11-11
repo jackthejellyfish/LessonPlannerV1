@@ -19,6 +19,27 @@ const LESSON_CONTENT = {
       { icon: 'tooth', sentenceHtml: 'He’s got a toothache. He <span class="hl">should</span> see a dentist.' },
       { icon: 'plate', sentenceHtml: 'She’s got a stomach ache. She <span class="hl">shouldn’t</span> eat too much.' }
     ]
+  },
+  'comparatives-superlatives': {
+    AIM_EXAMPLES: [
+      { icon: 'elephant', sentenceHtml: 'The elephant is <span class="hl">bigger</span> than the mouse. It is <span class="hl">the biggest</span> animal here.' },
+      { icon: 'mountain', sentenceHtml: 'Everest is <span class="hl">taller</span> than Fuji. It is <span class="hl">the tallest</span> mountain in the world.' },
+      { icon: 'speed', sentenceHtml: 'A cheetah is <span class="hl">faster</span> than a horse. It is <span class="hl">the fastest</span> animal on land.' }
+    ]
+  },
+  'will-wont': {
+    AIM_EXAMPLES: [
+      { icon: 'cloud', sentenceHtml: 'Look at those clouds. It <span class="hl">will</span> rain this afternoon.' },
+      { icon: 'rocket', sentenceHtml: 'One day, people <span class="hl">will</span> live on Mars.' },
+      { icon: 'trophy', sentenceHtml: 'He never practises, so he <span class="hl">won\u2019t</span> win the cup.' }
+    ]
+  },
+  'present-perfect': {
+    AIM_EXAMPLES: [
+      { icon: 'suitcase', sentenceHtml: 'She <span class="hl">has visited</span> six different countries.' },
+      { icon: 'book', sentenceHtml: 'I <span class="hl">have finished</span> my book already.' },
+      { icon: 'trophy', sentenceHtml: 'They <span class="hl">have never won</span> a medal before.' }
+    ]
   }
 };
 

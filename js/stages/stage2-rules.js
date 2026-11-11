@@ -106,6 +106,84 @@ export function buildCompareIcon(type, valuePct, color){
       <circle cx="20" cy="54" r="6" fill="var(--paper)"/>
     </svg>`;
   }
+  // --- Will/Won't lesson icons: a situation paired with its
+  // prediction. Paired, not magnitude-based, so `scale` only adds a
+  // little size variety (same convention as the health icons above).
+  if(type === 'cloud'){
+    const r = 15 * scale;
+    return `<svg viewBox="0 0 80 70" width="80" height="70">
+      <circle cx="30" cy="30" r="${r}" fill="${color}"/>
+      <circle cx="46" cy="26" r="${r * 1.25}" fill="${color}"/>
+      <circle cx="60" cy="32" r="${r * 0.85}" fill="${color}"/>
+      <rect x="28" y="32" width="34" height="12" rx="6" fill="${color}"/>
+      <path d="M34 52 L30 64 M48 52 L44 64 M60 52 L56 64" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'umbrella'){
+    const w = 26 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M${35 - w} 34 Q35 ${34 - w} ${35 + w} 34 Z" fill="${color}"/>
+      <line x1="35" y1="34" x2="35" y2="58" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+      <path d="M35 58 q0 8 -8 8" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'clock'){
+    const r = 22 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <circle cx="35" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="5"/>
+      <line x1="35" y1="36" x2="35" y2="${36 - r * 0.55}" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+      <line x1="35" y1="36" x2="${35 + r * 0.4}" y2="36" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'rocket'){
+    const h = 40 * scale;
+    return `<svg viewBox="0 0 60 70" width="60" height="70">
+      <path d="M30 ${56 - h} C40 ${56 - h + 12} 44 ${56 - h + 26} 44 56 L16 56 C16 ${56 - h + 26} 20 ${56 - h + 12} 30 ${56 - h} Z" fill="${color}"/>
+      <circle cx="30" cy="${56 - h * 0.55}" r="5" fill="var(--paper)"/>
+      <polygon points="16,50 6,62 16,60" fill="${color}"/>
+      <polygon points="44,50 54,62 44,60" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'book'){
+    const w = 30 * scale;
+    return `<svg viewBox="0 0 80 70" width="80" height="70">
+      <path d="M40 22 Q${40 - w} 14 ${40 - w - 6} 18 L${40 - w - 6} 54 Q${40 - w} 50 40 58 Z" fill="${color}"/>
+      <path d="M40 22 Q${40 + w} 14 ${40 + w + 6} 18 L${40 + w + 6} 54 Q${40 + w} 50 40 58 Z" fill="${color}" opacity="0.72"/>
+      <line x1="40" y1="22" x2="40" y2="58" stroke="var(--paper)" stroke-width="3"/>
+    </svg>`;
+  }
+  if(type === 'trophy'){
+    const sc = scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M${35 - 15 * sc} 12 L${35 + 15 * sc} 12 L${35 + 13 * sc} ${12 + 24 * sc} Q35 ${12 + 36 * sc} ${35 - 13 * sc} ${12 + 24 * sc} Z" fill="${color}"/>
+      <rect x="31" y="${12 + 34 * sc}" width="8" height="${10 * sc}" fill="${color}"/>
+      <rect x="22" y="${12 + 44 * sc}" width="26" height="7" rx="3" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'cake'){
+    const w = 36 * scale;
+    return `<svg viewBox="0 0 80 70" width="80" height="70">
+      <rect x="${40 - w / 2}" y="34" width="${w}" height="24" rx="4" fill="${color}"/>
+      <path d="M${40 - w / 2} 34 q ${w / 4} 8 ${w / 2} 0 q ${w / 4} -8 ${w / 2} 0 v -4 h ${-w} Z" fill="${color}" opacity="0.6"/>
+      <line x1="40" y1="30" x2="40" y2="20" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="40" cy="16" r="4" fill="var(--rule-d)"/>
+    </svg>`;
+  }
+  if(type === 'suitcase'){
+    const w = 48 * scale;
+    return `<svg viewBox="0 0 80 70" width="80" height="70">
+      <path d="M32 22 Q32 13 40 13 Q48 13 48 22" fill="none" stroke="${color}" stroke-width="4"/>
+      <rect x="${40 - w / 2}" y="22" width="${w}" height="${w * 0.72}" rx="6" fill="${color}"/>
+      <rect x="36" y="22" width="8" height="${w * 0.72}" fill="var(--paper)" opacity="0.6"/>
+    </svg>`;
+  }
+  if(type === 'tick'){
+    const sc = scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <circle cx="35" cy="36" r="${24 * sc}" fill="${color}" opacity="0.18"/>
+      <path d="M${35 - 13 * sc} 36 L${35 - 3 * sc} ${36 + 11 * sc} L${35 + 15 * sc} ${36 - 12 * sc}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+  }
   return '';
 }
 

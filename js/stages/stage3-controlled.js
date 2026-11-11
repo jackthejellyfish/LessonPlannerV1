@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml } from '../utils.js';
-import { sfxCorrect, sfxIncorrect, sfxTick, sfxTimeUp } from '../audio.js';
+import { sfxCorrect, sfxIncorrect, sfxCountdownTick, sfxTimeUp } from '../audio.js';
 import { burstFromElement } from '../particles.js';
 import { setTimerRing, TIMER_RING_CIRCUMFERENCE } from '../timerRing.js';
 import { getCurrentLesson } from '../lessons.js';
@@ -33,7 +33,7 @@ export function startMcTimer(){
 
     if(wholeSecond !== lastWhole){
       lastWhole = wholeSecond;
-      if(wholeSecond > 0 && wholeSecond <= 5) sfxTick();
+      if(wholeSecond > 0 && wholeSecond <= 5) sfxCountdownTick(wholeSecond);
     }
 
     if(remaining <= 0){

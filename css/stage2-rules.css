@@ -24,8 +24,17 @@
   .rule-row.open .rule-toggle .chevron{ transform:rotate(180deg); }
   .rule-body{ padding:0 clamp(16px,2.2vw,22px) clamp(8px,1.4vh,16px); }
   .rule-formula{ font-size:clamp(14px,2vh,18px); color:var(--muted); margin-bottom:clamp(5px,1.1vh,13px); text-align:center; }
-  .rule-example{ font-size:clamp(16px,2.5vh,22px); font-weight:600; display:flex; align-items:baseline; justify-content:center; gap:4px; margin-bottom:clamp(1px,0.6vh,7px); }
-  .rule-example .suffix{ color:var(--card-color); }
+  /* gap:0, NOT the 4px this used to use. The two lesson shapes need
+     opposite things here: a word-transformation lesson wants
+     "tall" + "er" to read as "taller" with no gap, while a
+     sentence-continuation lesson wants "He" + " should stay in bed."
+     to keep its space. A flex gap gave every lesson the space, so
+     comparatives rendered as "tall -> tall er". Letting the suffix
+     string carry its own leading space is what actually distinguishes
+     the two — and white-space:pre-wrap is required for that, since a
+     flex item's leading whitespace is otherwise collapsed away. */
+  .rule-example{ font-size:clamp(16px,2.5vh,22px); font-weight:600; display:flex; align-items:baseline; justify-content:center; gap:0; margin-bottom:clamp(1px,0.6vh,7px); }
+  .rule-example .suffix{ color:var(--card-color); white-space:pre-wrap; }
   .rule-example .arrow{ color:var(--muted); font-weight:400; margin:0 4px; font-size:16px; }
 
   /* ---- Comparison bar demo (signature element) ---- */

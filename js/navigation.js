@@ -6,19 +6,32 @@ import { cancelPopRound, stopPopParticleLoop, resizePopCanvas, startPopParticleL
 import { cancelInvRound, ensureInvLayout } from './stages/stage7-stardefender.js';
 import { cancelWheelRound, ensureWheelLayout } from './stages/stage8-spinwheel.js';
 import { initQs } from './stages/stage9-questions.js';
-import { cancelPlinkoRound, ensurePlinkoLayout } from './stages/stage10-plinko.js';
-import { cancelBirdsRound, ensureBirdsLayout } from './stages/stage11-angrybirds.js';
-import { cancelCometRound, ensureCometLayout } from './stages/stage12-cometchaos.js';
-import { cancelBilliardsRound, ensureBilliardsLayout } from './stages/stage13-billiards.js';
-import { cancelNeonRound, ensureNeonLayout } from './stages/stage14-neonarena.js';
-import { cancelFruitRound, ensureFruitLayout } from './stages/stage15-fruitninja.js';
+import { cancelBilliardsRound, ensureBilliardsLayout } from './stages/stage10-billiards.js';
+import { cancelNeonRound, ensureNeonLayout } from './stages/stage11-neonarena.js';
+import { cancelFruitRound, ensureFruitLayout } from './stages/stage12-fruitninja.js';
 import { enterFooterLayout, exitFooterLayout } from './fullscreenLayout.js';
 
-// Stages that take over the full viewport while active — the team
-// scoreboard and HUD relocate into that stage's footer bar instead of
-// a permanent side panel (see css/fullscreen-game.css and
-// js/fullscreenLayout.js). Extend this set when a new game stage is added.
-const FULLSCREEN_STAGES = new Set([6, 7, 8, 10, 11, 12, 13, 14, 15]);
+/* The team-game stages, in stage order. These take over the full
+   viewport while active — the team scoreboard and HUD relocate into
+   that stage's footer bar instead of a permanent side panel (see
+   css/fullscreen-game.css and js/fullscreenLayout.js).
+
+   One table drives three things that used to be three separate
+   hand-maintained lists: which stages are fullscreen, which rounds get
+   cancelled on every navigation, and which stage re-measures its canvas
+   on arrival. js/main.js keeps its own equivalent table for the reset
+   flow; the two are deliberately not shared, because importing one from
+   the other would close an import cycle (main -> navigation -> stages
+   -> navigation). */
+const GAME_STAGES = [
+  { stage: 6,  ensureLayout: null,                 cancelRound: cancelPopRound },
+  { stage: 7,  ensureLayout: ensureInvLayout,      cancelRound: cancelInvRound },
+  { stage: 8,  ensureLayout: ensureWheelLayout,    cancelRound: cancelWheelRound },
+  { stage: 10, ensureLayout: ensureBilliardsLayout, cancelRound: cancelBilliardsRound },
+  { stage: 11, ensureLayout: ensureNeonLayout,     cancelRound: cancelNeonRound },
+  { stage: 12, ensureLayout: ensureFruitLayout,    cancelRound: cancelFruitRound }
+];
+const FULLSCREEN_STAGES = new Set(GAME_STAGES.map(g => g.stage));
 
 export function goToStage(num){
   // Pause whichever gamified timer might still be running when we
@@ -27,16 +40,8 @@ export function goToStage(num){
   // in the background before the learner ever comes back to it.
   cancelMcTimer();
   cancelSemiTimer();
-  cancelPopRound();
-  stopPopParticleLoop();
-  cancelInvRound();
-  cancelWheelRound();
-  cancelPlinkoRound();
-  cancelBirdsRound();
-  cancelCometRound();
-  cancelBilliardsRound();
-  cancelNeonRound();
-  cancelFruitRound();
+  stopPopParticleLoop(); // Ball Pop's continuous particle loop, not a round
+  GAME_STAGES.forEach(g => g.cancelRound());
 
   const prevNum = state.currentStage;
   if(FULLSCREEN_STAGES.has(prevNum) && prevNum !== num){
@@ -66,20 +71,9 @@ export function goToStage(num){
     resizePopCanvas();
     startPopParticleLoop();
   }
-  // Stage 7 was missing from this dispatch entirely — every other game
-  // stage re-syncs its canvas on navigation (in case its box size
-  // changed while the stage was hidden, e.g. a compact-mode toggle or a
-  // window resize that happened on a different stage), but Star
-  // Defender only ever resized inside its own begin-turn handler. Found
-  // while investigating a general "canvas doesn't redraw at the right
-  // size" report — fixed for consistency with every other stage here.
-  if(num === 7){ ensureInvLayout(); }
-  if(num === 8){ ensureWheelLayout(); }
   if(num === 9){ initQs(); }
-  if(num === 10){ ensurePlinkoLayout(); }
-  if(num === 11){ ensureBirdsLayout(); }
-  if(num === 12){ ensureCometLayout(); }
-  if(num === 13){ ensureBilliardsLayout(); }
-  if(num === 14){ ensureNeonLayout(); }
-  if(num === 15){ ensureFruitLayout(); }
+  // Stage 6 is absent from this dispatch on purpose: Ball Pop re-measures
+  // in the popTeams branch above, which also restarts its particle loop.
+  const game = GAME_STAGES.find(g => g.stage === num);
+  if(game && game.ensureLayout) game.ensureLayout();
 }

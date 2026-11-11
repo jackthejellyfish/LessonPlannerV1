@@ -10,6 +10,7 @@ import { state, resetLessonState } from './state.js';
 import { renderStepper } from './stepper.js';
 import { goToStage } from './navigation.js';
 import { speakerIconSVG } from './icons.js';
+import { applyMuteState } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
 import { getLesson, renderLessonCards } from './lessons.js';
 
@@ -22,12 +23,9 @@ import { cancelPopRound, stopPopParticleLoop, renderPopTeamInputs, resizePopCanv
 import { cancelInvRound, renderInvTeamInputs, ensureInvLayout } from './stages/stage7-stardefender.js';
 import { cancelWheelRound, renderWheelTeamInputs, ensureWheelLayout } from './stages/stage8-spinwheel.js';
 import './stages/stage9-questions.js';
-import { cancelPlinkoRound, renderPlinkoTeamInputs, renderPlinkoBallLegend, ensurePlinkoLayout } from './stages/stage10-plinko.js';
-import { cancelBirdsRound, renderBirdsTeamInputs, ensureBirdsLayout } from './stages/stage11-angrybirds.js';
-import { cancelCometRound, renderCometTeamInputs, ensureCometLayout } from './stages/stage12-cometchaos.js';
-import { cancelBilliardsRound, renderBilliardsTeamInputs, ensureBilliardsLayout } from './stages/stage13-billiards.js';
-import { cancelNeonRound, renderNeonTeamInputs, ensureNeonLayout } from './stages/stage14-neonarena.js';
-import { cancelFruitRound, renderFruitTeamInputs, ensureFruitLayout } from './stages/stage15-fruitninja.js';
+import { cancelBilliardsRound, renderBilliardsTeamInputs, ensureBilliardsLayout } from './stages/stage10-billiards.js';
+import { cancelNeonRound, renderNeonTeamInputs, ensureNeonLayout } from './stages/stage11-neonarena.js';
+import { cancelFruitRound, renderFruitTeamInputs, ensureFruitLayout } from './stages/stage12-fruitninja.js';
 
 // Every content/stageN-*.js file exports its own applyLesson(id), which
 // mutates its exported arrays/objects in place (see that file's header
@@ -46,17 +44,14 @@ import { applyLesson as applyStage6Content } from './content/stage6-ballpop.js';
 import { applyLesson as applyStage7Content } from './content/stage7-stardefender.js';
 import { applyLesson as applyStage8Content } from './content/stage8-spinwheel.js';
 import { applyLesson as applyStage9Content } from './content/stage9-questions.js';
-import { applyLesson as applyStage10Content } from './content/stage10-plinko.js';
-import { applyLesson as applyStage11Content } from './content/stage11-angrybirds.js';
-import { applyLesson as applyStage12Content } from './content/stage12-cometchaos.js';
-import { applyLesson as applyStage13Content } from './content/stage13-billiards.js';
-import { applyLesson as applyStage14Content } from './content/stage14-neonarena.js';
-import { applyLesson as applyStage15Content } from './content/stage15-fruitninja.js';
+import { applyLesson as applyStage10Content } from './content/stage10-billiards.js';
+import { applyLesson as applyStage11Content } from './content/stage11-neonarena.js';
+import { applyLesson as applyStage12Content } from './content/stage12-fruitninja.js';
 
 const CONTENT_APPLIERS = [
   applyStage1Content, applyStage2Content, applyStage3Content, applyStage4Content, applyStage5Content,
   applyStage6Content, applyStage7Content, applyStage8Content, applyStage9Content, applyStage10Content,
-  applyStage11Content, applyStage12Content, applyStage13Content, applyStage14Content, applyStage15Content
+  applyStage11Content, applyStage12Content
 ];
 
 function applyLessonContent(id){
@@ -67,6 +62,9 @@ function applyLessonContent(id){
 document.getElementById('muteBtn').innerHTML = speakerIconSVG(state.muted);
 document.getElementById('muteBtn').addEventListener('click', () => {
   state.muted = !state.muted;
+  // Ducks the master gain, so anything already sounding stops too —
+  // previously mute only prevented NEW sounds from starting.
+  applyMuteState();
   document.getElementById('muteBtn').innerHTML = speakerIconSVG(state.muted);
 });
 
@@ -84,16 +82,33 @@ document.getElementById('muteBtn').addEventListener('click', () => {
 // need to re-measure whichever game is actually open; the others are
 // hidden (0 size) and get re-measured correctly whenever the teacher
 // navigates to them.
+/* =========================================================
+   THE GAME REGISTRY
+   The six team-based game stages, in stage order. Everything below
+   that used to be written out once per game — the full-reset DOM
+   cleanup, the per-stage canvas re-measure, the round cancellations —
+   now walks this instead.
+
+   The motivation was concrete: v2 deleted two games and renumbered
+   three, and every one of those copy-pasted blocks was a separate
+   place to miss. Adding or removing a game is now one line here.
+
+   `prefix` is the id prefix every game already shares across its own
+   markup (`popSetup`/`popGame`/`popBeginTurnBtn`/...), the same
+   convention teamColorPicker.js and teamGameFlow.js already rely on.
+========================================================= */
+const GAMES = [
+  { stage: 6,  prefix: 'pop',       ensureLayout: resizePopCanvas,      cancelRound: cancelPopRound,       renderTeamInputs: renderPopTeamInputs },
+  { stage: 7,  prefix: 'inv',       ensureLayout: ensureInvLayout,      cancelRound: cancelInvRound,       renderTeamInputs: renderInvTeamInputs },
+  { stage: 8,  prefix: 'wheel',     ensureLayout: ensureWheelLayout,    cancelRound: cancelWheelRound,     renderTeamInputs: renderWheelTeamInputs },
+  { stage: 10, prefix: 'billiards', ensureLayout: ensureBilliardsLayout, cancelRound: cancelBilliardsRound, renderTeamInputs: renderBilliardsTeamInputs },
+  { stage: 11, prefix: 'neon',      ensureLayout: ensureNeonLayout,     cancelRound: cancelNeonRound,      renderTeamInputs: renderNeonTeamInputs },
+  { stage: 12, prefix: 'fruit',     ensureLayout: ensureFruitLayout,    cancelRound: cancelFruitRound,     renderTeamInputs: renderFruitTeamInputs }
+];
+
 function resizeCurrentStageCanvas(){
-  if(state.currentStage === 6) resizePopCanvas();
-  else if(state.currentStage === 7) ensureInvLayout();
-  else if(state.currentStage === 8) ensureWheelLayout();
-  else if(state.currentStage === 10) ensurePlinkoLayout();
-  else if(state.currentStage === 11) ensureBirdsLayout();
-  else if(state.currentStage === 12) ensureCometLayout();
-  else if(state.currentStage === 13) ensureBilliardsLayout();
-  else if(state.currentStage === 14) ensureNeonLayout();
-  else if(state.currentStage === 15) ensureFruitLayout();
+  const game = GAMES.find(g => g.stage === state.currentStage);
+  if(game) game.ensureLayout();
 }
 
 document.getElementById('compactModeBtn').addEventListener('click', () => {
@@ -154,65 +169,21 @@ document.querySelectorAll('.stage-footer').forEach(f => compactFooterObserver.ob
 function performFullReset(lessonId){
   cancelMcTimer();
   cancelSemiTimer();
-  cancelPopRound();
-  stopPopParticleLoop();
-  cancelInvRound();
-  cancelWheelRound();
-  cancelPlinkoRound();
-  cancelBirdsRound();
-  cancelCometRound();
-  cancelBilliardsRound();
-  cancelNeonRound();
-  cancelFruitRound();
+  stopPopParticleLoop(); // Ball Pop's own continuous loop, not a round
+  GAMES.forEach(g => g.cancelRound());
   resetLessonState(lessonId);
 
   document.querySelector('#stage4 .semi-actions').classList.remove('hidden');
-  document.getElementById('popGame').classList.add('hidden');
-  document.getElementById('popPlayAgainBtn').classList.add('hidden');
-  document.getElementById('popBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('popSetup').classList.remove('hidden');
-  document.getElementById('invGame').classList.add('hidden');
-  document.getElementById('invPlayAgainBtn').classList.add('hidden');
-  document.getElementById('invBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('invSetup').classList.remove('hidden');
-  document.getElementById('wheelGame').classList.add('hidden');
-  document.getElementById('wheelPlayAgainBtn').classList.add('hidden');
-  document.getElementById('wheelBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('wheelSetup').classList.remove('hidden');
-  document.getElementById('plinkoGame').classList.add('hidden');
-  document.getElementById('plinkoPlayAgainBtn').classList.add('hidden');
-  document.getElementById('plinkoBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('plinkoSetup').classList.remove('hidden');
-  document.getElementById('birdsGame').classList.add('hidden');
-  document.getElementById('birdsPlayAgainBtn').classList.add('hidden');
-  document.getElementById('birdsBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('birdsSetup').classList.remove('hidden');
-  document.getElementById('cometGame').classList.add('hidden');
-  document.getElementById('cometPlayAgainBtn').classList.add('hidden');
-  document.getElementById('cometBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('cometSetup').classList.remove('hidden');
-  document.getElementById('billiardsGame').classList.add('hidden');
-  document.getElementById('billiardsPlayAgainBtn').classList.add('hidden');
-  document.getElementById('billiardsBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('billiardsSetup').classList.remove('hidden');
-  document.getElementById('neonGame').classList.add('hidden');
-  document.getElementById('neonPlayAgainBtn').classList.add('hidden');
-  document.getElementById('neonBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('neonSetup').classList.remove('hidden');
-  document.getElementById('fruitGame').classList.add('hidden');
-  document.getElementById('fruitPlayAgainBtn').classList.add('hidden');
-  document.getElementById('fruitBeginTurnBtn').classList.remove('hidden');
-  document.getElementById('fruitSetup').classList.remove('hidden');
-  renderPopTeamInputs(2);
-  renderInvTeamInputs(2);
-  renderWheelTeamInputs(2);
-  renderPlinkoTeamInputs(2);
-  renderPlinkoBallLegend();
-  renderBirdsTeamInputs(2);
-  renderCometTeamInputs(2);
-  renderBilliardsTeamInputs(2);
-  renderNeonTeamInputs(2);
-  renderFruitTeamInputs(2);
+  // Each game's setup screen comes back, its in-game view goes away, and
+  // its team rows are rebuilt at the default count of 2. This was the
+  // same four lines plus a render call, written out six times.
+  GAMES.forEach(({ prefix, renderTeamInputs }) => {
+    document.getElementById(`${prefix}Game`).classList.add('hidden');
+    document.getElementById(`${prefix}PlayAgainBtn`).classList.add('hidden');
+    document.getElementById(`${prefix}BeginTurnBtn`).classList.remove('hidden');
+    document.getElementById(`${prefix}Setup`).classList.remove('hidden');
+    renderTeamInputs(2);
+  });
   renderAimHeader();
   renderAimExamples();
   renderRuleCards();

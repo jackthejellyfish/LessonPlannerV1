@@ -1,16 +1,18 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, sfxImpact, sfxRisingChime } from '../audio.js';
+import { ensureAudio, sfxImpact, sfxRisingChime, sfxWhoosh, sfxCombo, audioOut } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
-import { FRUIT_QUESTIONS } from '../content/stage15-fruitninja.js';
+import { renderGameIntro } from '../gameIntro.js';
+import { FRUIT_QUESTIONS } from '../content/stage12-fruitninja.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
+import { createBackdrop, drawGlow } from '../canvasGlow.js';
 
 /* =========================================================
-   STAGE 15 — FRUIT NINJA
+   STAGE 12 — FRUIT NINJA
    Team-turn structure identical to every other canvas game: answer a
    question, then play a fixed 10-second round. Placeholder shapes
    (circle/square/triangle, plus bomb/golden — see below) launch up
@@ -30,8 +32,15 @@ import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShock
    every game's "big moment" feedback, rather than reinventing another
    one-off version here.
 ========================================================= */
-const FRUIT_ROUND_SECONDS = 10;
-const FRUIT_GRAVITY = 130; // %/second² — shapes launch up, arc, and fall back under this; lowered from 160 for a gentler, slower fall
+// Retuned after classroom feedback that this game was too hard: more
+// time, more fruit, and — the main ask — far longer hang time. Gravity
+// and launch speed are tuned as a PAIR: cutting gravity alone would
+// send shapes off the top of the play area (a bug this file has hit
+// before, see spawnFruitShape), so launch speed comes down with it.
+// Peak height is therefore about the same as before; what changes is
+// how long a shape spends up there, which is what makes it catchable.
+const FRUIT_ROUND_SECONDS = 15;
+const FRUIT_GRAVITY = 72; // %/second² — was 130; roughly halved for a long, floaty hang
 const FRUIT_TRAIL_MAX_AGE_MS = 160;
 // Same "scale canvas-drawn effects relative to a reference width" trick
 // as Star Defender's canvasScale()/INV_REFERENCE_WIDTH — used only for
@@ -44,8 +53,11 @@ const FRUIT_SHAPE_TYPES = ['circle', 'square', 'triangle'];
 // a fixed per-spawn chance each, not "one more entry in the array,"
 // since they need to stay rare rather than as common as the 3 base
 // shapes.
-const FRUIT_BOMB_CHANCE = 0.12;
-const FRUIT_GOLDEN_CHANCE = 0.08;
+// Lowered alongside the higher spawn rate below: at the old 12%, a
+// screen with twice as much fruit on it also had twice as many bombs,
+// which would have made the game harder rather than easier.
+const FRUIT_BOMB_CHANCE = 0.08;
+const FRUIT_GOLDEN_CHANCE = 0.09;
 // A fast continuous swipe naturally crosses several shapes close
 // together in time — this window is what turns that into a recognized
 // "combo" instead of just several separate +1s. 220ms comfortably
@@ -64,6 +76,9 @@ function fruitShapeColor(type){
 ========================================================= */
 function sfxFruitSlice(){
   if(state.muted) return;
+  // The blade noise layered under the pitch drop — a slice is a fast
+  // object passing the listener, which a tone alone can't convey.
+  sfxWhoosh({ intensity: 0.7 });
   const ctx = ensureAudio();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -71,7 +86,7 @@ function sfxFruitSlice(){
   osc.frequency.setValueAtTime(1200, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.09);
   gain.gain.value = 0.14;
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(audioOut());
   gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
   osc.start();
   osc.stop(ctx.currentTime + 0.11);
@@ -100,6 +115,24 @@ function triggerFruitFlash(color, durationMs = FRUIT_FLASH_DURATION_MS){
   fruitFlashUntil = performance.now() + durationMs;
   fruitFlashColor = color;
 }
+
+// Builds this stage's two-column setup screen (rules left, teams
+// right). MUST run before anything below queries the buttons it
+// creates - see js/gameIntro.js for why each stage calls this itself.
+renderGameIntro('fruitSetup', {
+  prefix: 'fruit',
+  steps: [
+    'One team answers a question.',
+    'Swipe or click-drag across a shape to slice it.',
+    'Slice as many as you can in 15 seconds.'
+  ],
+  scoring: [
+    { swatch: '<span class="fruit-legend-swatch circle"></span>', label: 'Circle, square, triangle', points: '+1' },
+    { swatch: '<span class="fruit-legend-swatch golden"></span>', label: 'Golden shape', points: '+3', tone: 'bonus' },
+    { swatch: '<span class="fruit-legend-swatch bomb"></span>', label: 'Bomb &mdash; do not slice!', points: '&minus;2', tone: 'bad' }
+  ],
+  tip: 'One long swipe through several shapes scores a combo &mdash; worth more than slicing them one at a time.'
+});
 
 export function renderFruitTeamInputs(count){
   renderTeamSetupRows('fruitTeamInputs', 'fruitAddTeamBtn', count, fruitRowColors, renderFruitTeamInputs);
@@ -193,16 +226,17 @@ function spawnFruitShape(){
     : FRUIT_SHAPE_TYPES[Math.floor(Math.random() * FRUIT_SHAPE_TYPES.length)];
   state.fruitShapes.push({
     half: false,
-    x: 15 + Math.random() * 70, y: 108,
-    vx: (Math.random() - 0.5) * 40,
-    // Dialed back from -(150 + rand*70) — that reached too high (shapes
-    // flying off the top of the play area). Still noticeably higher than
-    // the original -(75 + rand*35), just landing in the upper-middle
-    // instead of grazing/leaving the top edge.
-    vy: -(110 + Math.random() * 40),
+    x: 12 + Math.random() * 76, y: 108,
+    vx: (Math.random() - 0.5) * 34,
+    // Paired with the halved FRUIT_GRAVITY above: at the old -(110+r*40)
+    // these would now sail off the top. Lower launch speed + lower
+    // gravity = same peak height, much longer time spent near it.
+    vy: -(82 + Math.random() * 26),
     rotation: Math.random() * Math.PI * 2,
-    rotSpeed: (Math.random() - 0.5) * 4,
-    radiusPct: 4.5 + Math.random() * 2,
+    rotSpeed: (Math.random() - 0.5) * 3.2,
+    // Bigger shapes are easier to hit — the swipe test is a distance
+    // check against this radius, so this directly widens the margin.
+    radiusPct: 5.2 + Math.random() * 2.3,
     type, color: fruitShapeColor(type)
   });
 }
@@ -263,7 +297,7 @@ function cutFruitShape(shape, canvas){
       spawnFloatText(fruitFloatTexts, px, py - 6, label, '#7CFFEA', -1.6);
       spawnShockwave(fruitShockwaves, px, py, '#7CFFEA', { big: fruitComboCount >= 3 });
       triggerShake(fruitShake, Math.min(9, 3 + fruitComboCount));
-      sfxRisingChime([700, 900, 1100, 1300].slice(0, Math.min(4, fruitComboCount)), { stagger: 0.045, duration: 0.09 });
+      sfxCombo(fruitComboCount);
     }
   }
 
@@ -347,12 +381,23 @@ function onFruitPointerMove(e){
 function onFruitPointerUp(){
   fruitDragging = false;
   fruitLastPoint = null;
+  window.removeEventListener('mousemove', onFruitPointerMove);
+  window.removeEventListener('mouseup', onFruitPointerUp);
 }
 
 const fruitCanvasEl = fruitCanvasResizer.getCanvas();
-fruitCanvasEl.addEventListener('mousedown', onFruitPointerDown);
-window.addEventListener('mousemove', onFruitPointerMove);
-window.addEventListener('mouseup', onFruitPointerUp);
+// mousemove/mouseup go on WINDOW rather than the canvas so a swipe that
+// leaves the play area mid-drag still tracks and still ends cleanly —
+// but they're attached only for the duration of an actual drag. They
+// used to be registered permanently at module load, which left two
+// global listeners firing on every mouse move anywhere in the app, on
+// every stage, whether or not Fruit Ninja had ever been opened.
+fruitCanvasEl.addEventListener('mousedown', (e) => {
+  if(!state.fruitRoundActive) return;
+  onFruitPointerDown(e);
+  window.addEventListener('mousemove', onFruitPointerMove);
+  window.addEventListener('mouseup', onFruitPointerUp);
+});
 fruitCanvasEl.addEventListener('touchstart', (e) => { onFruitPointerDown(e.touches[0]); e.preventDefault(); }, { passive: false });
 fruitCanvasEl.addEventListener('touchmove', (e) => { onFruitPointerMove(e.touches[0]); e.preventDefault(); }, { passive: false });
 fruitCanvasEl.addEventListener('touchend', onFruitPointerUp);
@@ -360,24 +405,39 @@ fruitCanvasEl.addEventListener('touchend', onFruitPointerUp);
 /* =========================================================
    RENDERING
 ========================================================= */
-function renderFruitBackground(ctx, canvas){
-  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+// This backdrop never changes between resizes, but it used to be rebuilt
+// AND re-filled across the full ~1544x784 canvas on every single frame —
+// measured at a large share of this game's 50ms/frame budget under
+// throttling. Now rasterized once per canvas size and blitted (see
+// js/canvasGlow.js). The blit is opaque and full-canvas, so it also
+// replaces the frame's clearRect.
+const renderFruitBackground = createBackdrop((ctx, w, h) => {
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
   bg.addColorStop(0, '#0A1A18');
   bg.addColorStop(0.6, '#123028');
   bg.addColorStop(1, '#05100E');
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
+  ctx.fillRect(0, 0, w, h);
+});
 
 function drawFruitShape(ctx, canvas, s){
   const x = (s.x / 100) * canvas.width, y = (s.y / 100) * canvas.height;
   const r = canvas.width * (s.radiusPct / 100);
+  // The soft halo around each shape was ctx.shadowBlur, re-blurred per
+  // shape per frame; it's a cached sprite blit now. Kept deliberately
+  // tight (1.45x the shape, not 2.1x) because the retune above roughly
+  // tripled how many shapes are airborne at once, and a glow's cost is
+  // its AREA — at 2.1x the denser screen measured 36fps, at 1.45x it
+  // sits back inside budget with no visible difference to the halo.
+  // Bombs keep a larger, redder glow: that one needs to be spotted.
+  if(!s.half){
+    if(s.type === 'bomb') drawGlow(ctx, x, y, r * 2.0, '#FF4444', 0.5, 1.8);
+    else drawGlow(ctx, x, y, r * 1.45, s.color, 0.45, 1.8);
+  }
   ctx.save();
   ctx.globalAlpha = s.half ? Math.max(0, s.alpha) : 1;
   ctx.translate(x, y);
   ctx.rotate(s.rotation);
-  ctx.shadowColor = s.color;
-  ctx.shadowBlur = 10;
   ctx.fillStyle = s.color;
   ctx.beginPath();
   if(s.type === 'bomb' && !s.half){
@@ -403,7 +463,6 @@ function drawFruitShape(ctx, canvas, s){
   // A bright, slow-pulsing fuse dot on top marks a bomb as "don't slice
   // this" at a glance, distinct from the 3 flat-colored regular shapes.
   if(s.type === 'bomb' && !s.half){
-    ctx.shadowColor = '#FF4444'; ctx.shadowBlur = 14;
     ctx.fillStyle = '#FF6B5B';
     ctx.beginPath();
     ctx.arc(0, -r * 0.9, r * (0.16 + 0.05 * Math.sin(performance.now() / 90)), 0, Math.PI * 2);
@@ -457,31 +516,36 @@ function renderFruitCanvas(){
     const a = trail[i - 1], b = trail[i];
     const alpha = Math.max(0, 1 - (now - b.createdAt) / FRUIT_TRAIL_MAX_AGE_MS);
     if(alpha <= 0) continue;
+    // Two strokes — a wide faint one under a narrow bright one — give
+    // the blade its glow without shadowBlur re-blurring the whole trail
+    // every frame.
+    const ax = (a.x / 100) * canvas.width, ay = (a.y / 100) * canvas.height;
+    const bx = (b.x / 100) * canvas.width, by = (b.y / 100) * canvas.height;
     ctx.save();
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = alpha * 0.35;
+    ctx.strokeStyle = '#7CFFEA';
+    ctx.lineWidth = Math.max(2, 14 * alpha);
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
     ctx.globalAlpha = alpha;
     ctx.strokeStyle = '#E7FFF5';
-    ctx.shadowColor = '#7CFFEA';
-    ctx.shadowBlur = 10;
     ctx.lineWidth = Math.max(1, 6 * alpha);
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo((a.x / 100) * canvas.width, (a.y / 100) * canvas.height);
-    ctx.lineTo((b.x / 100) * canvas.width, (b.y / 100) * canvas.height);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
     ctx.restore();
   }
 
+  // One save/restore for the whole batch, and no per-particle shadow —
+  // a juice burst can put dozens of these on screen at once, which is
+  // exactly when the frame budget matters most.
+  ctx.save();
   for(const p of state.fruitParticles){
-    ctx.save();
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
+  ctx.restore();
 
   // Same "reference width" scaling convention Star Defender's
   // canvasScale() uses, so the shared helper's default ring sizes read
@@ -520,7 +584,7 @@ function startFruitRound(){
   document.getElementById('fruitHint').classList.remove('hidden');
   resizeFruitCanvas();
 
-  let nextSpawnAt = 400;
+  let nextSpawnAt = 250;
   const start = performance.now();
   let lastTime = start;
   const timeDisplay = document.getElementById('fruitTimeDisplay');
@@ -536,8 +600,12 @@ function startFruitRound(){
     timerFill.style.width = (remaining / FRUIT_ROUND_SECONDS * 100) + '%';
 
     if(elapsedMs >= nextSpawnAt){
-      spawnFruitShape();
-      nextSpawnAt = elapsedMs + (500 + Math.random() * 450);
+      // Volleys rather than one-at-a-time. "More fruit being thrown up"
+      // reads as a handful launching together, which single shapes on a
+      // shorter interval never achieves no matter how short it gets.
+      const volley = 1 + Math.floor(Math.random() * 3);
+      for(let i = 0; i < volley; i++) spawnFruitShape();
+      nextSpawnAt = elapsedMs + (420 + Math.random() * 320);
     }
 
     updateFruitShapes(dt / 1000);
@@ -556,8 +624,9 @@ function startFruitRound(){
 export function cancelFruitRound(){
   if(state.fruitRoundRAF) cancelAnimationFrame(state.fruitRoundRAF);
   state.fruitRoundRAF = null;
-  fruitDragging = false;
-  fruitLastPoint = null;
+  // Also detaches the drag listeners — navigating away mid-swipe would
+  // otherwise leave them attached with no mouseup ever coming.
+  onFruitPointerUp();
   if(state.fruitRoundActive){
     state.fruitRoundActive = false;
     const playArea = document.getElementById('fruitPlayArea');
@@ -613,9 +682,8 @@ wireTeamManagementButtons({
   cancelRound: cancelFruitRound
 });
 
-document.getElementById('fruitBackBtn').addEventListener('click', () => goToStage(14));
-// Wired here (the target stage's own file), not in stage14 — same
-// existing convention as billiardsNextStageBtn/cometNextStageBtn: a
-// "Next" button's click handler lives in the file for the stage it
-// goes TO.
-document.getElementById('neonNextStageBtn').addEventListener('click', () => goToStage(15));
+document.getElementById('fruitBackBtn').addEventListener('click', () => goToStage(11));
+// Wired here (the target stage's own file), not in stage11 — same
+// existing convention as billiardsNextStageBtn: a "Next" button's
+// click handler lives in the file for the stage it goes TO.
+document.getElementById('neonNextStageBtn').addEventListener('click', () => goToStage(12));

@@ -40,6 +40,55 @@ const LESSON_CONTENT = {
       'If you have a <span class="blank">___</span>, you should <span class="blank">___</span>.',
       'My friend has got a <span class="blank">___</span>. In my opinion, they should <span class="blank">___</span>, but they shouldn’t <span class="blank">___</span>.'
     ]
+  },
+  'comparatives-superlatives': {
+    WORD_BANK: [
+      ["tall","taller / tallest"], ["big","bigger / biggest"], ["hot","hotter / hottest"],
+      ["nice","nicer / nicest"], ["safe","safer / safest"], ["happy","happier / happiest"],
+      ["easy","easier / easiest"], ["busy","busier / busiest"], ["long","longer / longest"],
+      ["beautiful","more / the most beautiful"], ["expensive","more / the most expensive"],
+      ["interesting","more / the most interesting"], ["good","better / best"], ["bad","worse / worst"]
+    ],
+    SCAFFOLD_FRAMES: [
+      '<span class="blank">___</span> is <span class="blank">___er</span> than <span class="blank">___</span>.',
+      '<span class="blank">___</span> is <span class="blank">the ___est</span> of all.',
+      'My <span class="blank">___</span> is <span class="blank">___er</span> than my <span class="blank">___</span>, but <span class="blank">___</span> is <span class="blank">the ___est</span>.',
+      'I think <span class="blank">___</span> is <span class="blank">the most ___</span> <span class="blank">___</span> in the world.',
+      'Of my three <span class="blank">___</span>, <span class="blank">___</span> is <span class="blank">the ___est</span> and <span class="blank">___</span> is <span class="blank">the ___est</span>.'
+    ]
+  },
+  'will-wont': {
+    WORD_BANK: [
+      ["I will","I\u2019ll"], ["you will","you\u2019ll"], ["he will","he\u2019ll"],
+      ["she will","she\u2019ll"], ["we will","we\u2019ll"], ["they will","they\u2019ll"],
+      ["will not","won\u2019t"], ["tomorrow","\u2026 will \u2026"], ["next week","\u2026 will \u2026"],
+      ["next year","\u2026 will \u2026"], ["one day","\u2026 will \u2026"], ["I promise","I won\u2019t \u2026"],
+      ["I think","\u2026 will \u2026"], ["I\u2019m sure","\u2026 won\u2019t \u2026"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'Tomorrow I <span class="blank">will</span> <span class="blank">___</span>.',
+      'Next year I <span class="blank">won\u2019t</span> <span class="blank">___</span>.',
+      'I think <span class="blank">___</span> <span class="blank">will</span> <span class="blank">___</span>, but <span class="blank">___</span> <span class="blank">won\u2019t</span>.',
+      '<span class="blank">Will</span> you <span class="blank">___</span> next <span class="blank">___</span>?',
+      'In the future, people <span class="blank">will</span> <span class="blank">___</span> and they <span class="blank">won\u2019t</span> <span class="blank">___</span>.'
+    ]
+  },
+  'present-perfect': {
+    // Base verb paired with its past participle — the form students
+    // actually need to reach for while speaking freely.
+    WORD_BANK: [
+      ["be","been"], ["go","gone / been"], ["see","seen"], ["eat","eaten"],
+      ["do","done"], ["make","made"], ["win","won"], ["lose","lost"],
+      ["write","written"], ["read","read"], ["buy","bought"], ["take","taken"],
+      ["break","broken"], ["visit","visited"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'I <span class="blank">have</span> <span class="blank">___</span> <span class="blank">___</span>.',
+      'I <span class="blank">have never</span> <span class="blank">___</span> <span class="blank">___</span>.',
+      '<span class="blank">Have</span> you ever <span class="blank">___</span> <span class="blank">___</span>?',
+      'My <span class="blank">___</span> <span class="blank">has</span> <span class="blank">___</span> <span class="blank">___</span>.',
+      'I <span class="blank">have</span> <span class="blank">___</span> <span class="blank">___</span>, but I <span class="blank">haven\u2019t</span> <span class="blank">___</span> <span class="blank">___</span> yet.'
+    ]
   }
 };
 

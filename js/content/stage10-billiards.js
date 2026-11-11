@@ -29,6 +29,48 @@ const LESSON_CONTENT = {
       { prompt: "We've got a cough.", answer: "We should drink some water." },
       { prompt: "I've got a backache.", answer: "I should rest." }
     ]
+  },
+  'comparatives-superlatives': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Complete: 'A plane is ___ than a train.' (fast)", answer: "faster" },
+      { prompt: "Complete: 'This is ___ book in the library.' (interesting)", answer: "the most interesting" },
+      { prompt: "Complete: 'My room is ___ than yours.' (tidy)", answer: "tidier" },
+      { prompt: "Complete: 'He is ___ boy in the class.' (tall)", answer: "the tallest" },
+      { prompt: "Complete: 'Gold is ___ than silver.' (expensive)", answer: "more expensive" },
+      { prompt: "Complete: 'Today is ___ day of the year.' (hot)", answer: "the hottest" },
+      { prompt: "Complete: 'This test was ___ than the last one.' (easy)", answer: "easier" },
+      { prompt: "Complete: 'She is ___ runner on the team.' (good)", answer: "the best" },
+      { prompt: "Complete: 'A lion is ___ than a cat.' (dangerous)", answer: "more dangerous" },
+      { prompt: "Complete: 'That was ___ day of my life.' (bad)", answer: "the worst" }
+    ]
+  },
+  'will-wont': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Complete: 'I ___ see you tomorrow.'", answer: "will" },
+      { prompt: "Complete: 'She ___ be late \u2014 she is never late.'", answer: "won't" },
+      { prompt: "Complete: '___ you open the window, please?'", answer: "Will" },
+      { prompt: "Complete: 'They ___ arrive at eight o'clock.'", answer: "will" },
+      { prompt: "Complete: 'We ___ forget this holiday.'", answer: "won't" },
+      { prompt: "Complete: 'It ___ snow in Da Nang.'", answer: "won't" },
+      { prompt: "Complete: 'He ___ be fifteen next birthday.'", answer: "will" },
+      { prompt: "Complete: 'I'm tired, so I ___ go out tonight.'", answer: "won't" },
+      { prompt: "Complete: 'The film ___ start at seven.'", answer: "will" },
+      { prompt: "Complete: 'Don't worry \u2014 it ___ hurt.'", answer: "won't" }
+    ]
+  },
+  'present-perfect': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Complete: 'I ___ already eaten.'", answer: "have" },
+      { prompt: "Complete: 'She ___ just arrived.'", answer: "has" },
+      { prompt: "Complete: 'We ___ never been to Paris.'", answer: "have" },
+      { prompt: "Complete: 'He ___ not finished yet.'", answer: "has" },
+      { prompt: "Complete: '___ they left already?'", answer: "Have" },
+      { prompt: "Complete: 'My phone ___ stopped working.'", answer: "has" },
+      { prompt: "Complete: 'You ___ grown so tall!'", answer: "have" },
+      { prompt: "Complete: 'It ___ been a long day.'", answer: "has" },
+      { prompt: "Complete: 'The children ___ gone to bed.'", answer: "have" },
+      { prompt: "Complete: '___ your sister ever flown on a plane?'", answer: "Has" }
+    ]
   }
 };
 
@@ -43,7 +85,7 @@ applyLesson('comparatives');
 
 // Point value + color only — position is NOT part of the content anymore.
 // Every ball (cue included) gets a fresh random position each turn
-// (`placeBallsRandomly()` in stage13-billiards.js), rejection-sampled so
+// (`placeBallsRandomly()` in stage12-billiards.js), rejection-sampled so
 // nothing spawns overlapping, per feedback that a static layout felt stale.
 //
 // Still deliberately NOT a real triangle rack — balls spread out with clear

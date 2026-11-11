@@ -55,10 +55,17 @@
   html, body{ height:100%; }
   body{
     margin:0;
+    /* 4 blobs now, one per --rule accent color (was 3 — --rule-a/b/d,
+       hardcoded as rgb() so they can animate through a transparent
+       alpha; --rule-c was the one accent color missing from this list).
+       Slightly stronger opacity than before (was 0.12/0.12/0.08) for a
+       touch more presence, per feedback the app could use more visual
+       energy — still soft enough not to fight the actual page content. */
     background:
-      radial-gradient(circle at 20% 20%, rgba(92,138,130,0.12), transparent 45%),
-      radial-gradient(circle at 80% 75%, rgba(133,119,168,0.12), transparent 45%),
-      radial-gradient(circle at 50% 100%, rgba(191,154,84,0.08), transparent 50%),
+      radial-gradient(circle at 20% 20%, rgba(92,138,130,0.16), transparent 45%),
+      radial-gradient(circle at 80% 75%, rgba(133,119,168,0.16), transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(191,154,84,0.1), transparent 50%),
+      radial-gradient(circle at 90% 15%, rgba(201,123,108,0.1), transparent 45%),
       var(--paper);
     background-size: 200% 200%;
     animation: driftBg 26s ease-in-out infinite alternate;
@@ -72,8 +79,8 @@
     padding: clamp(8px, 1.5vh, 20px) clamp(10px, 2vw, 20px);
   }
   @keyframes driftBg{
-    0%{ background-position: 0% 0%, 100% 100%, 50% 100%; }
-    100%{ background-position: 30% 25%, 70% 65%, 60% 80%; }
+    0%{ background-position: 0% 0%, 100% 100%, 50% 100%, 100% 0%; }
+    100%{ background-position: 30% 25%, 70% 65%, 60% 80%, 65% 30%; }
   }
   h1,h2,h3{font-family:var(--font-display); margin:0;}
   .wrap{
@@ -111,13 +118,37 @@
   .aim-example-svg{ width:70%; height:auto; margin:0 auto 16px; display:block; }
 
   /* ---- Stepper ---- */
+  /* overflow-x:auto is a safety net, not the primary fix — .step below
+     has a min-width floor so on any display too narrow to fit every
+     step at that floor, the row scrolls horizontally instead of
+     crushing/overlapping labels. Scrolling is only the extreme
+     fallback; the real fix is the padding-right below.
+     padding-right clears the mute-toggle/change-lesson-toggle button
+     column (both fixed at right:20px, 44px wide, stacked vertically —
+     see .mute-toggle/.change-lesson-toggle) — on a narrower display
+     (confirmed at 1280px) the last step was rendering half-hidden
+     behind them, since neither .wrap nor .stepper reserved any room
+     for that fixed-position overlay before.
+     justify-content:safe center (not plain center): on a display so
+     narrow the row genuinely overflows into the overflow-x:auto
+     scrollbar above, plain `center` makes the browser's default (0)
+     scroll position already centered on the content — clipping the
+     first AND last step equally with no scroll needed to reach
+     "centered," which reads as broken, not scrollable. `safe` falls
+     back to start-alignment only once the content can't fit, so step 1
+     is reachable at scrollLeft:0 like any normal overflow. Unsupported
+     browsers ignore the whole declaration and fall back to the
+     property's initial value (effectively flex-start) — a fine
+     fallback here, not a broken one. */
   .stepper{
-    display:flex; align-items:flex-start; justify-content:center; flex-shrink:0;
+    display:flex; align-items:flex-start; justify-content:safe center; flex-shrink:0;
     gap:0; margin: 0 auto clamp(10px, 2vh, 24px); max-width:1400px; width:100%;
+    padding-right: clamp(56px, 7vw, 70px);
+    overflow-x:auto;
   }
   .step{
     display:flex; flex-direction:column; align-items:center; gap:4px;
-    flex:1; position:relative; cursor:pointer; background:none; border:none;
+    flex:1; min-width:56px; position:relative; cursor:pointer; background:none; border:none;
     font-family:var(--font-body); padding:0;
   }
   .step .circle{
@@ -147,7 +178,7 @@
      on top of the circle's own round one. */
   .step:focus-visible{ outline:none; }
   .step:focus-visible .circle{ outline:2px solid var(--primary); outline-offset:2px; }
-  .step .step-label{ font-size:12px; color:var(--muted); text-align:center; max-width:90px; line-height:1.2; min-height:2.4em; }
+  .step .step-label{ font-size:12px; color:var(--muted); text-align:center; max-width:clamp(46px, 6.5vw, 90px); line-height:1.2; min-height:2.4em; }
   .step.active .step-label{ color:var(--ink); font-weight:600; }
   .step-line{
     position:absolute; top:clamp(14px,2vh,17px); left:-50%; width:100%; height:2px;
@@ -193,7 +224,19 @@
     0%{ opacity:0; }
     100%{ opacity:1; }
   }
-  .stage h2{ font-size:clamp(20px, 3.2vh, 30px); margin-bottom:clamp(8px, 1.8vh, 20px); text-align:center; flex-shrink:0; }
+  .stage h2{
+    font-size:clamp(20px, 3.2vh, 30px); margin-bottom:clamp(14px, 2.6vh, 28px); text-align:center; flex-shrink:0;
+    position:relative;
+  }
+  /* Small accent rule under every stage title — same "important bit
+     gets its own accent color" convention .example-sentence .hl already
+     uses (there via --rule-c text color; here via an a→b gradient bar),
+     rather than inventing a new visual language just for headings. */
+  .stage h2::after{
+    content:''; display:block; width:52px; height:4px; border-radius:4px;
+    margin:clamp(8px,1.4vh,14px) auto 0;
+    background:linear-gradient(90deg, var(--rule-a), var(--rule-b));
+  }
   .stage-body{
     flex:1; min-height:0; display:flex; flex-direction:column;
     justify-content:flex-start; overflow:hidden;
@@ -213,21 +256,22 @@
   #stage1 .stage-body, #stage3 .stage-body, #stage4 .stage-body{
     justify-content:center;
   }
-  /* Every team-based game's setup screen (intro text + legend + a
-     couple of team rows + two buttons) is similarly bounded in NORMAL
-     use — added 2026-07-16 per feedback that these screens read as
-     pinned to the top with a large dead gap below, especially now that
-     the legend redesign (see stage6-ballpop.css) made the content
-     shorter than before. The in-game view (`.pop-game-layout`) these
-     stages ALSO contain already fills its available space via its own
-     flex chain, so this is a no-op once a game is actually running —
-     verified with a stress case (8 teams added) that this doesn't
-     reintroduce stage 2's overflow-clipping risk before committing to it. */
-  #stage6 .stage-body, #stage7 .stage-body, #stage8 .stage-body,
-  #stage10 .stage-body, #stage11 .stage-body, #stage12 .stage-body,
-  #stage13 .stage-body, #stage14 .stage-body{
-    justify-content:center;
-  }
+  /* The game setup screens used to be centred here (added 2026-07-16),
+     because the old single-column layout — a line of prose, a legend
+     strip, two team rows — left an obvious dead gap below itself when
+     anchored to the top. The two-column intro (css/game-intro.css)
+     removed the reason: it fills the width it's given, so there is no
+     gap left to close by centring.
+
+     It is deliberately NOT centred now, for the reason spelled out for
+     stage 2 above: centre + the shared overflow:hidden clips from BOTH
+     ends once content exceeds the box, and the top-clipped part can
+     never be scrolled back into view. That ceased to be hypothetical
+     here — a 4-team game on Neon Arena (8 scoring rows) measures within
+     a few pixels of the available height at 1366x768, which centred
+     would quietly cut off both the "How to play" heading and the Start
+     button. The flex-start rule lives in css/game-intro.css next to the
+     layout it applies to. */
   /* Stage 2's content height is genuinely unbounded (see above) — rather
      than accepting silent bottom-edge clipping from the shared
      overflow:hidden the moment 1+ rule cards are open (the compare-demo

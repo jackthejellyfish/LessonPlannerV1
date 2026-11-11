@@ -1,8 +1,9 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, beep } from '../audio.js';
+import { ensureAudio, beep, audioOut } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
+import { renderGameIntro } from '../gameIntro.js';
 import { INV_QUESTIONS } from '../content/stage7-stardefender.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
@@ -51,7 +52,7 @@ function sfxLaser(){
   osc.frequency.setValueAtTime(900, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.12);
   gain.gain.value = 0.09;
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(audioOut());
   gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.13);
   osc.start();
   osc.stop(ctx.currentTime + 0.14);
@@ -76,7 +77,7 @@ function sfxEnemyDestroy(intensity){
   filter.frequency.value = 900 + intensity * 1400;
   const gain = ctx.createGain();
   gain.gain.value = 0.3 + intensity * 0.1;
-  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.connect(filter).connect(gain).connect(audioOut());
   noise.start();
 }
 function sfxPickupCollect(){ [880, 1108, 1318].forEach((f, i) => beep(f, 0.13, 'triangle', 0.16, i * 0.06)); }
@@ -84,6 +85,28 @@ function sfxShieldLost(){ beep(140, 0.32, 'sawtooth', 0.2); }
 
 /* ---- Setup / teams (same pattern as Ball Pop) ---- */
 let invRowColors = [];
+
+// Builds this stage's two-column setup screen (rules left, teams
+// right). MUST run before anything below queries the buttons it
+// creates - see js/gameIntro.js for why each stage calls this itself.
+renderGameIntro('invSetup', {
+  prefix: 'inv',
+  steps: [
+    'One team answers a question.',
+    'Click anywhere to move your ship there and fire.',
+    'Shoot down everything for 20 seconds.'
+  ],
+  scoring: [
+    { swatch: '<span class="inv-legend-swatch scout"></span>', label: 'Scout &mdash; 1 hit', points: '+1' },
+    { swatch: '<span class="inv-legend-swatch dart"></span>', label: 'Dart &mdash; fast', points: '+2' },
+    { swatch: '<span class="inv-legend-swatch brute"></span>', label: 'Brute &mdash; 3 hits', points: '+3' },
+    { swatch: '<span class="inv-legend-swatch boss"></span>', label: 'Boss', points: '+15', tone: 'bonus' },
+    { swatch: '<span class="inv-legend-swatch pickup"></span>', label: 'Rapid fire', points: 'power-up', tone: 'bonus' },
+    { swatch: '<span class="inv-legend-swatch machinegun"></span>', label: 'Machine gun', points: 'power-up', tone: 'bonus' },
+    { swatch: '<span class="inv-legend-swatch heart">&hearts;</span>', label: 'Shield', points: 'extra life', tone: 'bonus' }
+  ],
+  tip: 'Shoot the glowing pickups to collect them. You have 3 lives &mdash; losing them all ends the turn early.'
+});
 
 export function renderInvTeamInputs(count){
   renderTeamSetupRows('invTeamInputs', 'invAddTeamBtn', count, invRowColors, renderInvTeamInputs);
@@ -295,9 +318,12 @@ function clearBossTimeout(){
   state.invBossTimeout = null;
 }
 
-// Red border pulse + lives-icon glow when a life is lost — three
-// separate signals (border color, icon glow, sfx) so students at the
-// back of the room still notice something went wrong.
+// Red border pulse + lives-icon glow + canvas shake when a life is
+// lost — four separate signals (border color, icon glow, shake, sfx) so
+// students at the back of the room still notice something went wrong.
+// The shake (8) is deliberately bigger than even a boss kill's (see the
+// enemy-kill triggerShake below) — losing a life should read as worse
+// than any kill, not the same or less.
 function triggerLifeLostFeedback(){
   const playArea = document.getElementById('invPlayArea');
   const livesEl = document.getElementById('invLivesDisplay');
@@ -309,6 +335,7 @@ function triggerLifeLostFeedback(){
   void livesEl.offsetWidth;
   livesEl.classList.add('pulse');
   setTimeout(() => livesEl.classList.remove('pulse'), 720);
+  triggerShake(invShake, 8);
 }
 
 /* ---- Fire on click: moves the ship toward the click X and fires

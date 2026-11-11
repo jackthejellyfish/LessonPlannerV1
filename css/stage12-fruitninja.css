@@ -1,4 +1,4 @@
-  /* ---- Fruit Ninja (Stage 15) ----
+  /* ---- Fruit Ninja (Stage 12) ----
      Reuses .inv-play-area/.inv-canvas from stage7-stardefender.css —
      same shared "dark canvas game chrome" every physics/action game
      since Plinko builds on. Only legend swatches + the hint text are
@@ -22,6 +22,28 @@
     border-left:13px solid transparent; border-right:13px solid transparent;
     border-bottom:24px solid #FF6B6B;
     filter: drop-shadow(0 0 6px rgba(255,107,107,0.6));
+  }
+  /* Golden and bomb were always in the game but were never shown on the
+     setup screen — so a class could lose 2 points to a bomb having had
+     no warning it existed. Both are listed now (see js/gameIntro.js),
+     and these two swatches match what each actually looks like in play
+     (see fruitShapeColor / drawFruitShape). */
+  .fruit-legend-swatch.golden{
+    width:26px; height:26px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #FFF6D9, #FFD23F 55%, #B8860B);
+    box-shadow:0 0 12px rgba(255,210,63,0.85), inset 0 0 0 2px rgba(255,246,217,0.75);
+  }
+  .fruit-legend-swatch.bomb{
+    width:26px; height:26px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #4A4A60, #2B2B3A 60%, #15151F);
+    box-shadow:0 0 10px rgba(255,68,68,0.5);
+    position:relative;
+  }
+  /* The fuse dot, same "don't slice this" marker the canvas draws. */
+  .fruit-legend-swatch.bomb::after{
+    content:''; position:absolute; top:-2px; left:50%;
+    width:8px; height:8px; margin-left:-4px; border-radius:50%;
+    background:#FF6B5B; box-shadow:0 0 6px rgba(255,68,68,0.9);
   }
 
   #fruitPlayArea #fruitBeginTurnBtn{

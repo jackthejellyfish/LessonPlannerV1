@@ -1,9 +1,10 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, beep } from '../audio.js';
+import { ensureAudio, beep, audioOut } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
-import { NEON_QUESTIONS } from '../content/stage14-neonarena.js';
+import { renderGameIntro } from '../gameIntro.js';
+import { NEON_QUESTIONS } from '../content/stage11-neonarena.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
@@ -12,20 +13,25 @@ import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShock
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses.
 let neonFloatTexts = [];
-// Shake + shockwave on a Warden (boss) kill — new (2026-08 consistency
-// pass): this was the one "big moment" in the app with no ring at all,
-// mirroring Star Defender's own boss-kill treatment. Same shared
-// js/canvasEffects.js helper every other game now uses.
+// Shake + shockwave on an enemy kill — a Warden (boss) kill originally
+// had this and nothing else did (2026-08 consistency pass), mirroring
+// Star Defender's own boss-kill treatment; every kill now gets a
+// scaled-down version so all hits feel like they land, not just bosses
+// — same "scale with severity" convention Star Defender's own
+// triggerShake(invShake, ...) call already uses. Only a Warden kill
+// still gets the big shockwave ring — that's still this game's single
+// biggest moment.
 let neonShake = createShakeState();
 let neonShockwaves = [];
-function triggerNeonWardenFanfare(e, canvas){
-  if(e.type !== 'warden') return;
-  triggerShake(neonShake, 10);
-  spawnShockwave(neonShockwaves, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), { big: true });
+function triggerNeonKillFeedback(e, canvas){
+  triggerShake(neonShake, e.type === 'warden' ? 10 : e.type === 'juggernaut' ? 5 : 2);
+  if(e.type === 'warden'){
+    spawnShockwave(neonShockwaves, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), { big: true });
+  }
 }
 
 /* =========================================================
-   STAGE 14 — NEON ARENA
+   STAGE 11 — NEON ARENA
    Team-turn structure identical to the other canvas games:
    answer a question, then survive a 20-second round. The new
    ingredient here (this app's first) is free keyboard movement —
@@ -96,7 +102,7 @@ function sfxNeonShot(){
   osc.frequency.setValueAtTime(760, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.1);
   gain.gain.value = 0.08;
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(audioOut());
   gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.11);
   osc.start();
   osc.stop(ctx.currentTime + 0.12);
@@ -117,7 +123,7 @@ function sfxNeonDestroy(intensity){
   filter.frequency.value = 850 + intensity * 1500;
   const gain = ctx.createGain();
   gain.gain.value = 0.28 + intensity * 0.1;
-  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.connect(filter).connect(gain).connect(audioOut());
   noise.start();
 }
 function sfxNeonPickup(){ [880, 1108, 1318].forEach((f, i) => beep(f, 0.12, 'triangle', 0.15, i * 0.05)); }
@@ -138,7 +144,7 @@ function sfxNeonBomb(){
   filter.frequency.exponentialRampToValueAtTime(90, ctx.currentTime + duration);
   const gain = ctx.createGain();
   gain.gain.value = 0.34;
-  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.connect(filter).connect(gain).connect(audioOut());
   noise.start();
   beep(90, 0.3, 'sine', 0.2);
 }
@@ -147,6 +153,29 @@ function sfxNeonBomb(){
    SETUP / TEAMS (same pattern as every other game)
 ========================================================= */
 let neonRowColors = [];
+
+// Builds this stage's two-column setup screen (rules left, teams
+// right). MUST run before anything below queries the buttons it
+// creates - see js/gameIntro.js for why each stage calls this itself.
+renderGameIntro('neonSetup', {
+  prefix: 'neon',
+  steps: [
+    'One team answers a question.',
+    'Move with WASD or the arrow keys. Click to shoot.',
+    'Survive and score for 20 seconds.'
+  ],
+  scoring: [
+    { swatch: '<span class="neon-legend-swatch drifter"></span>', label: 'Drifter', points: '+1' },
+    { swatch: '<span class="neon-legend-swatch zapper"></span>', label: 'Zapper', points: '+2' },
+    { swatch: '<span class="neon-legend-swatch juggernaut"></span>', label: 'Juggernaut', points: '+3' },
+    { swatch: '<span class="neon-legend-swatch warden"></span>', label: 'Warden', points: '+15', tone: 'bonus' },
+    { swatch: '<span class="neon-legend-swatch power"></span>', label: 'Power Core', points: 'bigger shots', tone: 'bonus' },
+    { swatch: '<span class="neon-legend-swatch overdrive"></span>', label: 'Overdrive', points: 'faster shots', tone: 'bonus' },
+    { swatch: '<span class="neon-legend-swatch spread"></span>', label: 'Spread Core', points: '5-way shot', tone: 'bonus' },
+    { swatch: '<span class="neon-legend-swatch bomb"></span>', label: 'Nova Bomb', points: 'clears the screen', tone: 'bonus' }
+  ],
+  tip: 'Touching an enemy costs a life. Walk over the glowing pickups to collect them &mdash; they last the whole round.'
+});
 
 export function renderNeonTeamInputs(count){
   renderTeamSetupRows('neonTeamInputs', 'neonAddTeamBtn', count, neonRowColors, renderNeonTeamInputs);
@@ -355,7 +384,7 @@ function updateNeonShrapnel(dtSec, canvas){
         spawnNeonParticles((e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), count, e.type === 'warden' ? 1.8 : 1);
         spawnFloatText(neonFloatTexts, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, `+${e.points}`, neonEnemyColor(e.type));
         sfxNeonDestroy(e.type === 'warden' ? 1.4 : e.type === 'juggernaut' ? 1 : 0.5);
-        triggerNeonWardenFanfare(e, canvas);
+        triggerNeonKillFeedback(e, canvas);
       }
     }
   }
@@ -374,7 +403,9 @@ function collectNeonPickup(pu, canvas){
 
 /* =========================================================
    LIFE-LOST FEEDBACK — identical technique to Star Defender's
-   triggerLifeLostFeedback, IDs renamed for this stage.
+   triggerLifeLostFeedback, IDs renamed for this stage, plus the same
+   added canvas shake (bigger than any kill — losing a life should read
+   as worse than a kill, not the same or less).
 ========================================================= */
 function triggerNeonLifeLostFeedback(){
   const playArea = document.getElementById('neonPlayArea');
@@ -387,6 +418,7 @@ function triggerNeonLifeLostFeedback(){
   void livesEl.offsetWidth;
   livesEl.classList.add('pulse');
   setTimeout(() => livesEl.classList.remove('pulse'), 720);
+  triggerShake(neonShake, 8);
 }
 
 /* =========================================================
@@ -548,7 +580,7 @@ function updateNeonBullets(dtSec, canvas){
           spawnNeonParticles((e.x / 100) * canvas.width, (e.y / 100) * canvas.height, neonEnemyColor(e.type), count, e.type === 'warden' ? 1.8 : 1);
           spawnFloatText(neonFloatTexts, (e.x / 100) * canvas.width, (e.y / 100) * canvas.height, `+${e.points}`, neonEnemyColor(e.type));
           sfxNeonDestroy(e.type === 'warden' ? 1.4 : e.type === 'juggernaut' ? 1 : 0.5);
-          triggerNeonWardenFanfare(e, canvas);
+          triggerNeonKillFeedback(e, canvas);
         } else {
           e.radiusPct = e.baseRadiusPct * (0.6 + 0.4 * (e.hp / e.maxHp));
           sfxNeonHitEnemy();
@@ -996,8 +1028,8 @@ wireTeamManagementButtons({
   cancelRound: cancelNeonRound
 });
 
-document.getElementById('neonBackBtn').addEventListener('click', () => goToStage(13));
-// Wired here (the target stage's own file), not in stage13 — same
-// existing convention as birdsNextStageBtn/cometNextStageBtn: a "Next"
-// button's click handler lives in the file for the stage it goes TO.
-document.getElementById('billiardsNextStageBtn').addEventListener('click', () => goToStage(14));
+document.getElementById('neonBackBtn').addEventListener('click', () => goToStage(10));
+// Wired here (the target stage's own file), not in stage10 — same
+// existing convention as qsNextStageBtn: a "Next" button's click
+// handler lives in the file for the stage it goes TO.
+document.getElementById('billiardsNextStageBtn').addEventListener('click', () => goToStage(11));

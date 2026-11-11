@@ -44,8 +44,13 @@
 
 
   /* ---- Minimalist countdown timer (Free practice) ---- */
+  /* min(), not a flat 260px — still resolves to a fixed pixel value
+     once computed (so the Start↔Pause label-length change still can't
+     jitter it, per the fixed-width reasoning below), but only shrinks
+     to 92% of .stage-body's width on a display too narrow to fit
+     260px, instead of silently overflowing it. */
   .stopwatch{
-    width:260px; margin:0 auto clamp(10px,2vh,24px); text-align:center;
+    width:min(260px, 92%); margin:0 auto clamp(10px,2vh,24px); text-align:center;
     background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:clamp(12px,2vh,22px) 20px;
     flex-shrink:0;
   }

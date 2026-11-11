@@ -17,8 +17,8 @@ export function shuffle(array){
 }
 
 // Shared "warm-up question" modal — used by every team-based game (Ball
-// Pop, Star Defender, Spin Wheel, Plinko, Sky Slingshot, Comet Chaos,
-// Billiards, Neon Arena) before a turn. One consistent flow everywhere:
+// Pop, Star Defender, Spin Wheel, Billiards, Neon Arena, Fruit Ninja)
+// before a turn. One consistent flow everywhere:
 // big readable question -> "Check answer" -> big answer reveal -> a
 // large tick/cross pair the student marks themselves with (see icons.js).
 // Returns a Promise<boolean> (true = marked correct) — every game except

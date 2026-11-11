@@ -1,10 +1,10 @@
   /* ---- Ball Pop Challenge (Stage 6) ---- */
-  .pop-team-inputs{ max-width:440px; margin:0 auto 20px; display:flex; flex-direction:column; gap:12px; }
-  .pop-team-row{ display:flex; align-items:center; gap:12px; }
+  .pop-team-inputs{ max-width:440px; margin:0 auto 20px; display:flex; flex-direction:column; gap:14px; }
+  .pop-team-row{ display:flex; align-items:center; gap:14px; }
   .pop-team-row .dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0; }
   .pop-team-row input{
     flex:1; background:var(--surface); border:1px solid var(--line); border-radius:8px;
-    padding:11px 16px; font-family:var(--font-body); font-size:18px; color:var(--ink);
+    padding:12px 16px; font-family:var(--font-display); font-weight:600; font-size:19px; color:var(--ink);
   }
   .pop-team-row input:focus{ outline:2px solid var(--primary); outline-offset:1px; }
   .pop-setup-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
@@ -160,7 +160,7 @@
   .pop-play-area:not(.idle) #popBeginTurnBtn{ display:none; }
 
   /* Shared by every game's play area (Ball Pop/Star Defender/Spin Wheel/
-     Plinko/Sky Slingshot/Comet Chaos/Billiards/Neon Arena) — a big,
+     Plinko/Sky Slingshot/Billiards/Neon Arena) — a big,
      unmissable end-of-game announcement. Sits over the
      whole play area at game end so "this round is over, here's who
      won" reads instantly, rather than a small text update buried in
@@ -214,7 +214,12 @@
     box-shadow:0 4px 14px rgba(0,0,0,0.25);
     /* transform/opacity are set every frame by JS (see updatePopBallAnims),
        not by a CSS animation — this gives the organic ease-in-and-settle
-       feel from the reference game instead of a fixed-duration curve. */
+       feel from the reference game instead of a fixed-duration curve.
+       will-change hints the browser to promote each ball to its own GPU
+       layer up front, since every live ball gets a transform/opacity
+       write every single frame — up to a dozen+ balls at once during a
+       swarm, otherwise a plausible per-frame layout/paint cost. */
+    will-change: transform, opacity;
   }
   /* "Power orb" core design — a white-hot center that reads as
      genuinely different from every other ball type (not just "a gold

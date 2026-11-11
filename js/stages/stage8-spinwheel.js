@@ -3,9 +3,11 @@ import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
 import { beep } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
+import { renderGameIntro } from '../gameIntro.js';
 import { WHEEL_QUESTIONS, WHEEL_COLORS } from '../content/stage8-spinwheel.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
 
 /* =========================================================
    STAGE 8 — SPIN THE WHEEL (replaces the old Bamboozle tile game)
@@ -27,6 +29,19 @@ const SPIN_DURATION_MS = 4200;
 const SPIN_EXTRA_TURNS = 6;
 
 let wheelRowColors = [];
+
+// Builds this stage's two-column setup screen (rules left, teams
+// right). MUST run before anything below queries the buttons it
+// creates - see js/gameIntro.js for why each stage calls this itself.
+renderGameIntro('wheelSetup', {
+  prefix: 'wheel',
+  steps: [
+    'Spin the wheel to land on a question.',
+    'Answer it out loud with your team.',
+    'Answer correctly to win that slice&rsquo;s points.'
+  ],
+  tip: 'Bigger numbers on the wheel are worth more points &mdash; and this is the one game where a wrong answer scores nothing, so take your time.'
+});
 
 export function renderWheelTeamInputs(count){
   renderTeamSetupRows('wheelTeamInputs', 'wheelAddTeamBtn', count, wheelRowColors, renderWheelTeamInputs);
@@ -112,6 +127,7 @@ export function ensureWheelLayout(){
 ========================================================= */
 let currentWheelAngle = 0;
 let landingFlash = 0; // 0-1, decays after landing — brightens the wheel rim briefly
+const wheelShake = createShakeState();
 
 function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 
@@ -153,14 +169,42 @@ function spinWheelTo(index){
         currentWheelAngle = targetAngle;
         state.wheelRoundActive = false;
         landingFlash = 1;
-        renderWheelCanvas();
-        resolve();
+        landOnSegment(index, resolve);
         return;
       }
       state.wheelRoundRAF = requestAnimationFrame(frame);
     }
     state.wheelRoundRAF = requestAnimationFrame(frame);
   });
+}
+
+// Landing moment: confetti + shake, then a short settle render loop
+// before resolving. Previously the frame loop stopped dead the instant
+// the spin finished — confetti spawned right after `spinWheelTo`
+// resolved (in the old beginWheelTurn) never got a single animated
+// frame, since nothing called renderWheelCanvas again until the NEXT
+// spin; only a blind `setTimeout` separated landing from the question
+// modal covering the canvas. A shake triggered at the landing moment
+// would have suffered the exact same fate. This settle loop is what
+// actually makes both visible.
+function landOnSegment(index, resolve){
+  const canvas = wheelCanvasResizer.getCanvas();
+  const points = WHEEL_QUESTIONS[index].points;
+  spawnWheelConfetti(canvas.width / 2, canvas.height * 0.12, 40);
+  sfxLand(points);
+  triggerShake(wheelShake, Math.min(10, 2 + points / 25));
+
+  const settleStart = performance.now();
+  function settleFrame(now){
+    updateWheelParticles();
+    renderWheelCanvas();
+    if(now - settleStart < 550){
+      state.wheelRoundRAF = requestAnimationFrame(settleFrame);
+    } else {
+      resolve();
+    }
+  }
+  state.wheelRoundRAF = requestAnimationFrame(settleFrame);
 }
 
 export function cancelWheelRound(){
@@ -181,13 +225,9 @@ async function beginWheelTurn(){
   document.getElementById('wheelPlayArea').classList.remove('idle');
 
   const qIndex = state.wheelQuestionOrder[state.wheelTurnsPlayed];
+  // Confetti/sfx/shake + the beat before the modal covers the canvas
+  // all now happen inside spinWheelTo's own landOnSegment() settle loop.
   await spinWheelTo(qIndex);
-
-  const canvas = wheelCanvasResizer.getCanvas();
-  spawnWheelConfetti(canvas.width / 2, canvas.height * 0.12, 40);
-  sfxLand(WHEEL_QUESTIONS[qIndex].points);
-  // Let the landing flash/confetti read for a beat before the modal covers it.
-  await new Promise(r => setTimeout(r, 550));
 
   const q = WHEEL_QUESTIONS[qIndex];
   const correct = await showQuestionModal(q.prompt, q.answer, { showFollowup: true });
@@ -234,6 +274,13 @@ function renderWheelCanvas(){
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Outer save/restore + applyShake wraps the ENTIRE draw (background,
+  // wheel, rim, pointer, confetti) so a landing shake offsets everything
+  // together — same pattern every other canvas game's own applyShake
+  // call already uses.
+  ctx.save();
+  applyShake(ctx, wheelShake);
 
   const cx = canvas.width / 2, cy = canvas.height / 2;
   const radius = Math.min(canvas.width, canvas.height) * 0.42;
@@ -311,6 +358,8 @@ function renderWheelCanvas(){
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
+
+  ctx.restore(); // closes the outer save()/applyShake() from the top of this function
 }
 
 /* =========================================================

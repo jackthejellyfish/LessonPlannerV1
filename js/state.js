@@ -71,44 +71,6 @@ export let state = {
   wheelRoundActive: false, // true while the spin animation is running
   wheelRoundRAF: null,
   wheelParticles: [],
-  plinkoTeams: [],
-  plinkoCurrentTeam: 0,
-  plinkoQuestionOrder: [],
-  plinkoTurnsPlayed: 0,
-  plinkoUnlockedBalls: ['classic'],
-  plinkoRoundActive: false,
-  plinkoRoundRAF: null,
-  plinkoBalls: [],         // in-flight balls this round — usually one, more if a Splitting ball divides
-  plinkoRoundResults: [],  // {points, slotIndex} landed so far this round, until plinkoBalls is empty
-  plinkoPegs: [],          // regenerated fresh every drop (see spawnPlinkoBall) — each peg carries its
-                            // own {kind: 'normal'|'bonus'|'neutral', points, destroyed}
-  plinkoPegPoints: 0,      // points earned from destroying pegs so far this drop
-  plinkoParticles: [],
-  birdsTeams: [],
-  birdsCurrentTeam: 0,
-  birdsQuestionOrder: [],
-  birdsTurnsPlayed: 0,
-  birdsLevelIndex: 0,      // cycles through BIRD_LEVELS, one design harder each lap
-  birdsShotsLeft: 0,       // birds remaining to launch this turn
-  birdsTurnScore: 0,       // points earned so far in the turn currently in progress
-  birdsBlocks: [],         // live level state, in % of canvas — {x,y,w,h,alive}
-  birdsPigs: [],           // live level state, in % of canvas — {x,y,r,alive}
-  birdsBird: null,         // the in-flight bird, or null while waiting for the next launch: {x,y,vx,vy,r} in px
-  birdsRoundActive: false,
-  birdsRoundRAF: null,
-  birdsParticles: [],
-  cometTeams: [],
-  cometCurrentTeam: 0,
-  cometQuestionOrder: [],
-  cometTurnsPlayed: 0,
-  cometLevelIndex: 0,     // cycles through COMET_LEVELS, one layout harder each lap
-  cometShotsLeft: 0,      // comets remaining to launch this turn
-  cometTurnScore: 0,      // points earned so far in the turn currently in progress
-  cometComet: null,       // the in-flight comet, or null while waiting for the next launch: {x,y,vx,vy,r} in px
-  cometRoundActive: false,
-  cometRoundRAF: null,
-  cometParticles: [],
-  cometStars: [],          // starfield background positions, generated once on first render
   billiardsTeams: [],
   billiardsCurrentTeam: 0,
   billiardsQuestionOrder: [],
@@ -175,16 +137,6 @@ export function resetLessonState(lessonId = state.currentLesson){
     invBossSpawnedThisRound: false, invBossTimeout: null,
     wheelTeams: [], wheelCurrentTeam: 0, wheelQuestionOrder: [], wheelTurnsPlayed: 0,
     wheelUsedSegments: [], wheelRoundActive: false, wheelRoundRAF: null, wheelParticles: [],
-    plinkoTeams: [], plinkoCurrentTeam: 0, plinkoQuestionOrder: [], plinkoTurnsPlayed: 0,
-    plinkoUnlockedBalls: ['classic'], plinkoRoundActive: false, plinkoRoundRAF: null,
-    plinkoBalls: [], plinkoRoundResults: [], plinkoPegs: [], plinkoPegPoints: 0, plinkoParticles: [],
-    birdsTeams: [], birdsCurrentTeam: 0, birdsQuestionOrder: [], birdsTurnsPlayed: 0,
-    birdsLevelIndex: 0, birdsShotsLeft: 0, birdsTurnScore: 0,
-    birdsBlocks: [], birdsPigs: [], birdsBird: null,
-    birdsRoundActive: false, birdsRoundRAF: null, birdsParticles: [],
-    cometTeams: [], cometCurrentTeam: 0, cometQuestionOrder: [], cometTurnsPlayed: 0,
-    cometLevelIndex: 0, cometShotsLeft: 0, cometTurnScore: 0, cometComet: null,
-    cometRoundActive: false, cometRoundRAF: null, cometParticles: [], cometStars: [],
     billiardsTeams: [], billiardsCurrentTeam: 0, billiardsQuestionOrder: [], billiardsTurnsPlayed: 0,
     billiardsTurnScore: 0, billiardsBalls: [], billiardsShotFired: false,
     billiardsRoundActive: false, billiardsRoundRAF: null, billiardsParticles: [],

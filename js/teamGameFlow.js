@@ -1,14 +1,14 @@
-import { sfxCorrect } from './audio.js';
+import { sfxFanfare } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
 import { renderResultStandings } from './teamColorPicker.js';
 import { burstFromElement } from './particles.js';
 
 /* =========================================================
    SHARED TEAM-GAME ORCHESTRATION
-   Every team-based game (Ball Pop, Star Defender, Spin Wheel, Plinko, Sky
-   Slingshot, Comet Chaos, Billiards, Neon Arena) re-implemented the same
+   Every team-based game (Ball Pop, Star Defender, Spin Wheel, Billiards,
+   Neon Arena, Fruit Ninja) re-implemented the same
    result-modal/end-game/team-management chrome almost byte-for-byte —
-   confirmed by reading all 8 side by side before extracting this. What's
+   confirmed by reading them all side by side before extracting this. What's
    NOT here on purpose: each game's own turn-banner text (only Ball Pop's
    differs — "All 10 questions done" vs. everyone else's "All done"), and
    every bit of actual gameplay/scoring logic (Spin Wheel's correctness-
@@ -80,7 +80,9 @@ export function computeWinnerText(teams){
 // returned winnerText BEFORE calling this, and do so before this call —
 // order matches every original endXGame.
 export function finishTeamGame({ prefix, teams, hasTimerHud = false, setPlayAreaIdle = false }){
-  sfxCorrect();
+  // The end of a whole game, not just one right answer — it gets the
+  // fanfare rather than reusing sfxCorrect's single-question ding.
+  sfxFanfare();
   const winnerText = computeWinnerText(teams);
 
   document.getElementById(`${prefix}BeginTurnBtn`).classList.add('hidden');
@@ -99,11 +101,10 @@ export function finishTeamGame({ prefix, teams, hasTimerHud = false, setPlayArea
 }
 
 // The reset-scores/change-teams/play-again handlers, identical in every
-// game except two genuine per-game extras (Ball Pop stops its own particle
-// loop before hiding the game; Plinko re-renders its ball-type legend
-// after returning to setup, since unlocked balls reset with a new game) —
-// covered by the optional beforePlayAgain/afterPlayAgain hooks rather than
-// forcing false uniformity onto the 6 games that don't need either.
+// game except one genuine per-game extra (Ball Pop stops its own particle
+// loop before hiding the game) — covered by the optional beforePlayAgain/
+// afterPlayAgain hooks rather than forcing false uniformity onto the
+// games that don't need either.
 export function wireTeamManagementButtons({ prefix, getTeams, renderScoreboard, cancelRound, beforePlayAgain, afterPlayAgain }){
   document.getElementById(`${prefix}ResetScoresBtn`).addEventListener('click', async () => {
     if(!await confirmDialog('Reset all team scores to 0?', { confirmLabel: 'Reset', danger: true })) return;

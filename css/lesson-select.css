@@ -15,7 +15,12 @@
     radial-gradient(circle at 50% 100%, rgba(191,154,84,0.09), transparent 50%),
     var(--paper);
 }
-.lesson-select-inner{ max-width:760px; width:100%; text-align:center; }
+/* Widened from 760px for v2's 5 lessons. At 760px the flex row fits two
+   cards, so five wrapped as 2 + 2 + 1 and the last card sat alone and
+   off-centre under the others; this fits three per row for a 3 + 2
+   arrangement. Still a flex wrap rather than a fixed grid, so a sixth
+   lesson lands as 3 + 3 without touching this again. */
+.lesson-select-inner{ max-width:1120px; width:100%; text-align:center; }
 .lesson-select-eyebrow{
   font-family:var(--font-display); font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
   font-size:clamp(12px, 1.6vh, 14px); color:var(--muted); margin:0 0 8px;
