@@ -380,3 +380,14 @@
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; animation:none !important; }
   }
+
+  /* Shared in-game hint pill. Fruit Ninja, Billiards and Sky Slingshot
+     each had their own near-identical version of this; the four games
+     added in v2.2 use this one instead of adding four more. */
+  .game-hint{
+    position:absolute; top:clamp(10px,2vh,20px); left:50%; transform:translateX(-50%);
+    z-index:22; margin:0; padding:8px 18px; border-radius:999px;
+    background:rgba(10,8,32,0.68); color:#fff;
+    font-size:clamp(12px,1.7vh,16px); font-weight:600;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35); pointer-events:none;
+  }

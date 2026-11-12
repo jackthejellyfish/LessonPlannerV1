@@ -94,7 +94,6 @@ export let state = {
   neonEnemies: [],
   neonPickups: [],
   neonParticles: [],
-  neonStars: [],             // arena backdrop starfield, generated once on first render
   neonPowerActive: false,    // Power Core pickup — bigger/more forgiving bullets, rest of round
   neonOverdriveActive: false,// Overdrive pickup — faster bullets, rest of round
   neonSpreadActive: false,   // Spread Core pickup — 5-pellet fan shot, rest of round
@@ -112,6 +111,40 @@ export let state = {
   fruitShapes: [],           // live uncut shapes + flying cut halves this round
   fruitParticles: [],
   fruitSwipeTrail: [],       // recent blade-swipe points: { x, y, createdAt }, fades and is used for cut detection
+  // Stage 13 (Hoop Shot)
+  hoopTeams: [],
+  hoopCurrentTeam: 0,
+  hoopQuestionOrder: [],
+  hoopTurnsPlayed: 0,
+  hoopScore: 0,
+  hoopShotsLeft: 0,
+  hoopRoundActive: false,
+  hoopRoundRAF: null,
+  // Stage 14 (Whack-a-Monster)
+  whackTeams: [],
+  whackCurrentTeam: 0,
+  whackQuestionOrder: [],
+  whackTurnsPlayed: 0,
+  whackScore: 0,
+  whackRoundActive: false,
+  whackRoundRAF: null,
+  // Stage 15 (Treasure Dig)
+  digTeams: [],
+  digCurrentTeam: 0,
+  digQuestionOrder: [],
+  digTurnsPlayed: 0,
+  digScore: 0,
+  digDigsLeft: 0,
+  digRoundActive: false,
+  // Stage 16 (Memory Match)
+  memoryTeams: [],
+  memoryCurrentTeam: 0,
+  memoryQuestionOrder: [],
+  memoryTurnsPlayed: 0,
+  memoryScore: 0,
+  memoryPairsFound: 0,
+  memoryRoundActive: false,
+  memoryRoundRAF: null,
   muted: false
 };
 
@@ -142,12 +175,20 @@ export function resetLessonState(lessonId = state.currentLesson){
     neonTeams: [], neonCurrentTeam: 0, neonQuestionOrder: [], neonTurnsPlayed: 0,
     neonScore: 0, neonLives: 3, neonRoundActive: false, neonRoundRAF: null,
     neonPlayer: { x: 50, y: 50 }, neonBullets: [], neonShrapnel: [], neonEnemies: [], neonPickups: [],
-    neonParticles: [], neonStars: [],
+    neonParticles: [],
     neonPowerActive: false, neonOverdriveActive: false, neonSpreadActive: false,
     neonLastShotAt: 0, neonInvulnUntil: 0,
     neonBossSpawnedThisRound: false, neonBossTimeout: null,
     fruitTeams: [], fruitCurrentTeam: 0, fruitQuestionOrder: [], fruitTurnsPlayed: 0, fruitScore: 0,
     fruitRoundActive: false, fruitRoundRAF: null, fruitShapes: [], fruitParticles: [], fruitSwipeTrail: [],
+    hoopTeams: [], hoopCurrentTeam: 0, hoopQuestionOrder: [], hoopTurnsPlayed: 0,
+    hoopScore: 0, hoopShotsLeft: 0, hoopRoundActive: false, hoopRoundRAF: null,
+    whackTeams: [], whackCurrentTeam: 0, whackQuestionOrder: [], whackTurnsPlayed: 0,
+    whackScore: 0, whackRoundActive: false, whackRoundRAF: null,
+    digTeams: [], digCurrentTeam: 0, digQuestionOrder: [], digTurnsPlayed: 0,
+    digScore: 0, digDigsLeft: 0, digRoundActive: false,
+    memoryTeams: [], memoryCurrentTeam: 0, memoryQuestionOrder: [], memoryTurnsPlayed: 0,
+    memoryScore: 0, memoryPairsFound: 0, memoryRoundActive: false, memoryRoundRAF: null,
     muted: wasMuted
   };
 }

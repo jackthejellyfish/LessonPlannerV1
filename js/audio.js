@@ -186,6 +186,43 @@ export function sfxWhoosh({ intensity = 1 } = {}){
   });
 }
 
+// A sword slash through fruit. Three layers, because a slash is three
+// things happening at once and any one alone just sounds like static:
+//
+//   1. the blade cutting air — a TIGHT band of noise (high Q) sweeping
+//      down fast. The narrow band is what makes it read as a blade
+//      rather than the broad "whoosh" above, which is a thrown object.
+//   2. the edge ringing — two detuned high partials with an immediate
+//      decay. This is the metallic "shing", and it's the layer that
+//      makes it sound like a sword rather than a knife through paper.
+//   3. the flesh giving way — a soft low thud a hair later, which is
+//      the fruit half of "slicing fruit" rather than the sword half.
+//
+// `intensity` nudges brightness and length together, so a combo slice
+// can sound sharper than a single one.
+export function sfxSlash({ intensity = 1 } = {}){
+  noiseBurst({
+    duration: 0.1 + intensity * 0.05,
+    filterType: 'bandpass',
+    freqStart: 4200 + intensity * 1800,
+    freqEnd: 700,
+    volume: 0.13 + intensity * 0.05,
+    q: 3.4
+  });
+  // Detuned pair rather than one tone: the slight beating between them
+  // is what reads as metal.
+  beep(2650, 0.07, 'triangle', 0.045);
+  beep(2680, 0.065, 'triangle', 0.04);
+  noiseBurst({
+    duration: 0.11,
+    filterType: 'lowpass',
+    freqStart: 620,
+    freqEnd: 130,
+    volume: 0.1,
+    when: 0.015
+  });
+}
+
 // Filtered-noise burst — a generic "impact/destroy" sound. `intensity`
 // (roughly 0-1.5) scales duration, brightness, and volume together, so a
 // bigger hit sounds both louder AND punchier, not just louder. Now with

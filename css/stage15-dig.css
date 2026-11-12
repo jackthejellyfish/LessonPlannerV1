@@ -1,0 +1,106 @@
+/* ---- Treasure Dig (Stage 15) ----
+   A DOM grid of tiles. Each tile has two stacked faces: the un-dug
+   earth on top, and what was buried underneath. Digging swaps which
+   one is visible via opacity + transform — compositor work, no paint,
+   no layout. */
+
+.dig-play-area{
+  position:relative; width:100%; height:100%; min-height:0;
+  border-radius:var(--radius); overflow:hidden;
+  background:
+    radial-gradient(circle at 50% -10%, #6B4A22 0%, #4A3116 55%, #2C1C0C 100%);
+  display:flex; align-items:center; justify-content:center;
+  /* Extra top padding reserves room for the .game-hint pill, which is
+     absolutely positioned at the top of the play area — without it the
+     hint sits on top of the first row of the grid. */
+  padding:clamp(46px,7.5vh,70px) clamp(12px,2.5vh,30px) clamp(12px,2.5vh,30px);
+}
+.dig-play-area.flash-bad::after,
+.dig-play-area.flash-good::after{
+  content:''; position:absolute; inset:0; pointer-events:none; z-index:22;
+}
+.dig-play-area.flash-bad::after{ background:rgba(255,68,68,0.3); }
+.dig-play-area.flash-good::after{ background:rgba(255,210,63,0.34); }
+
+.dig-grid{
+  display:grid;
+  grid-template-columns:repeat(var(--dig-cols, 7), 1fr);
+  gap:clamp(6px,1.4vh,16px);
+  width:100%; height:100%; max-width:1150px;
+}
+.dig-play-area.idle .dig-grid{ opacity:0.4; pointer-events:none; }
+
+.dig-tile{
+  position:relative; border:none; padding:0; cursor:pointer;
+  border-radius:12px; overflow:hidden;
+  background:transparent;
+  transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+}
+.dig-tile:not(.dug):hover{ transform:translateY(-3px) scale(1.04); }
+.dig-tile:disabled{ cursor:default; }
+
+.dig-tile-face{
+  position:absolute; inset:0; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  transition: opacity 0.18s ease, transform 0.26s cubic-bezier(.34,1.56,.64,1);
+}
+/* Un-dug earth, with a couple of baked-in specks so the grid doesn't
+   read as flat squares. */
+.dig-tile-top{
+  background:
+    radial-gradient(circle at 26% 24%, rgba(255,255,255,0.14), transparent 40%),
+    radial-gradient(circle at 70% 72%, rgba(0,0,0,0.18), transparent 44%),
+    linear-gradient(160deg, #A2703A 0%, #7B5228 60%, #5E3D1C 100%);
+  box-shadow:inset 0 -4px 8px rgba(0,0,0,0.28), inset 0 2px 4px rgba(255,255,255,0.22);
+  z-index:2;
+}
+.dig-tile-found{
+  z-index:1; opacity:0; transform:scale(0.5);
+  font-size:clamp(20px,4.4vh,44px); line-height:1;
+  background:linear-gradient(160deg, #3B2710 0%, #241708 100%);
+  box-shadow:inset 0 3px 10px rgba(0,0,0,0.55);
+}
+.dig-tile.dug .dig-tile-top{ opacity:0; transform:scale(1.15); }
+.dig-tile.dug .dig-tile-found{ opacity:1; transform:scale(1); }
+
+.dig-tile.found-gem .dig-tile-found{ color:#4CC9F0; text-shadow:0 0 14px rgba(76,201,240,0.9); }
+.dig-tile.found-chest .dig-tile-found{ color:#FFD23F; text-shadow:0 0 20px rgba(255,210,63,1); }
+.dig-tile.found-rock .dig-tile-found{ color:#9AA0A6; }
+.dig-tile.found-dirt .dig-tile-found{ color:rgba(255,255,255,0.18); }
+
+.dig-points{
+  position:absolute; left:50%; top:6%; transform:translateX(-50%);
+  z-index:6; pointer-events:none;
+  font-family:var(--font-display); font-weight:800;
+  font-size:clamp(16px,3vh,30px); color:#8AE05C;
+  text-shadow:0 2px 6px rgba(0,0,0,0.65);
+  animation: digPointsRise 0.9s ease-out forwards;
+}
+.dig-points.bonus{ color:#7DE3FF; }
+.dig-points.chest{ color:#FFD23F; font-size:clamp(20px,4vh,40px); }
+.dig-points.bad{ color:#FF8A8A; }
+@keyframes digPointsRise{
+  0%{ opacity:0; transform:translate(-50%, 8px) scale(0.8); }
+  22%{ opacity:1; transform:translate(-50%, -6px) scale(1.12); }
+  100%{ opacity:0; transform:translate(-50%, -44px) scale(1); }
+}
+
+#digPlayArea #digBeginTurnBtn{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:24; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+}
+.dig-play-area:not(.idle) #digBeginTurnBtn{ display:none; }
+
+/* Legend swatches for the How to play screen. */
+.dig-legend-swatch{
+  display:flex; align-items:center; justify-content:center;
+  width:30px; height:30px; border-radius:8px;
+  font-size:17px; font-weight:800;
+  background:linear-gradient(160deg, #3B2710 0%, #241708 100%);
+}
+.dig-legend-swatch.gem::after{ content:'◆'; color:#4CC9F0; text-shadow:0 0 8px rgba(76,201,240,0.9); }
+.dig-legend-swatch.chest::after{ content:'★'; color:#FFD23F; text-shadow:0 0 10px rgba(255,210,63,1); }
+.dig-legend-swatch.rock::after{ content:'●'; color:#9AA0A6; }
+.dig-legend-swatch.dirt{
+  background:linear-gradient(160deg, #A2703A 0%, #7B5228 60%, #5E3D1C 100%);
+}

@@ -39,8 +39,18 @@
     max-width:480px; width:100%; text-align:center; border:1px solid var(--line);
   }
   .modal h3{ font-size:24px; line-height:1.5; margin-bottom:20px; font-family:var(--font-body); font-weight:700; color:var(--ink); }
-  .modal-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  .modal-actions .btn{ flex:1; min-width:150px; }
+  .modal-actions{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+  /* flex:1 only when there are genuinely two buttons to balance (the
+     confirm dialog's Cancel/Confirm pair). A lone button — the result
+     modal's Continue — stretching the full width of a 1080px modal is
+     what made that screen look like a wide flat bar under the scores;
+     it gets a comfortable size and sits centred instead. */
+  .modal-actions .btn:not(:only-child){ flex:1; min-width:150px; }
+  .modal-actions .btn:only-child{
+    min-width:clamp(200px,26vw,300px);
+    font-size:clamp(16px,2.2vh,21px);
+    padding:clamp(13px,2vh,19px) clamp(28px,3vw,44px);
+  }
   .modal .modal-result-sub{ color:var(--muted); font-size:16px; margin-bottom:20px; }
 
   /* ---- Turn-result standings (all 8 team-based games) ----
@@ -51,10 +61,20 @@
      result modal body now (plus the Continue button) — per feedback
      that a "Turn result" tag + a big +N number on top felt cluttered,
      the team scores themselves are the whole point of this screen. */
-  #popResultBody{ max-width:860px; padding:48px; }
+  /* Sized against the viewport rather than fixed px: on a classroom
+     display the old fixed 48px padding and 18px gaps left the pills
+     crowding each other and the modal edge, which is what made this
+     screen read as squished. The active pill also scales to 1.06 and
+     carries an 18px glow, so it needs gap to grow INTO or it overlaps
+     its neighbour. */
+  #popResultBody{
+    max-width:min(1080px, 92vw);
+    padding:clamp(32px,5vh,64px) clamp(30px,4vw,68px);
+  }
   .result-standings{
-    display:flex; flex-wrap:wrap; justify-content:center; gap:18px;
-    margin:8px 0 30px;
+    display:flex; flex-wrap:wrap; justify-content:center;
+    gap:clamp(18px,2.4vw,34px);
+    margin:clamp(6px,1.4vh,14px) 0 clamp(28px,4.5vh,52px);
   }
   /* Score-first, name-second — the reverse of the sidebar scoreboard's
      order, on purpose: this is a celebratory reveal, so the big exciting
@@ -68,8 +88,11 @@
      wrapping to a new row once there's no space left for more) makes a
      2-team result feel as substantial as an 8-team one. */
   .result-pill{
-    display:flex; flex-direction:column; align-items:center; gap:10px;
-    flex:1 1 180px; max-width:320px; padding:32px 26px 26px; border-radius:24px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:clamp(8px,1.4vh,16px);
+    flex:1 1 200px; max-width:340px; min-height:clamp(150px,22vh,220px);
+    padding:clamp(26px,4vh,42px) clamp(22px,2.4vw,34px);
+    border-radius:26px;
     border:5px solid var(--tc, var(--line));
     background:color-mix(in srgb, var(--tc, var(--line)) 20%, var(--surface));
     animation: resultPillIn 0.4s cubic-bezier(.34,1.56,.64,1) backwards;
@@ -87,8 +110,8 @@
     color:var(--tc, var(--primary));
   }
   .result-pill-name{
-    display:flex; align-items:center; gap:7px;
-    font-weight:700; font-size:18px; color:var(--ink);
+    display:flex; align-items:center; gap:9px;
+    font-weight:700; font-size:clamp(17px,2.4vh,23px); color:var(--ink);
   }
   .result-pill-dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.6); }

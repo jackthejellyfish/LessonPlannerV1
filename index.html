@@ -25,6 +25,10 @@
     <link rel="stylesheet" href="css/stage10-billiards.css" />
     <link rel="stylesheet" href="css/stage11-neonarena.css" />
     <link rel="stylesheet" href="css/stage12-fruitninja.css" />
+    <link rel="stylesheet" href="css/stage13-hoopshot.css" />
+    <link rel="stylesheet" href="css/stage14-whack.css" />
+    <link rel="stylesheet" href="css/stage15-dig.css" />
+    <link rel="stylesheet" href="css/stage16-memory.css" />
     <link rel="stylesheet" href="css/fullscreen-game.css" />
     <link rel="stylesheet" href="css/print.css" />
   </head>
@@ -874,11 +878,277 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="fruitBackBtn">← Back</button>
-          <button class="btn btn-ghost restart-lesson-btn">
-            ↺ Restart lesson
-          </button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="fruitNextStageBtn">Next: Hoop Shot →</button>
+          </div>
         </div>
       </section>
+
+      <!-- STAGE 13: HOOP SHOT -->
+      <section class="stage hidden" id="stage13">
+        <h2>Hoop Shot</h2>
+        <div class="stage-body">
+          <div id="hoopSetup"></div>
+
+          <div id="hoopGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="hoopTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="hoopTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button class="pop-sidebar-reset" id="hoopResetScoresBtn" type="button">
+                    Reset scores
+                  </button>
+                  <button class="pop-sidebar-reset" id="hoopChangeTeamsBtn" type="button">
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Shots left</span
+                    ><span class="pop-hud-num" id="hoopShotsDisplay">3</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Turn score</span
+                    ><span class="pop-hud-num" id="hoopScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="hoopTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="hoopPlayArea" class="inv-play-area idle">
+                <canvas id="hoopCanvas" class="inv-canvas"></canvas>
+                <p class="game-hint hidden" id="hoopHint">Drag back from the ball and release to shoot!</p>
+                <button class="btn btn-primary" id="hoopBeginTurnBtn" type="button">
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="hoopGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="hoopGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary hidden" id="hoopPlayAgainBtn" type="button">
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="hoopBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="hoopNextStageBtn">Next: Whack-a-Monster →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 14: WHACK-A-MONSTER -->
+      <section class="stage hidden" id="stage14">
+        <h2>Whack-a-Monster</h2>
+        <div class="stage-body">
+          <div id="whackSetup"></div>
+
+          <div id="whackGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="whackTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="whackTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button class="pop-sidebar-reset" id="whackResetScoresBtn" type="button">
+                    Reset scores
+                  </button>
+                  <button class="pop-sidebar-reset" id="whackChangeTeamsBtn" type="button">
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="whackTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Whacked</span
+                    ><span class="pop-hud-num" id="whackScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="whackTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="whackPlayArea" class="whack-play-area idle">
+                <div id="whackGrid" class="whack-grid"></div>
+                <p class="game-hint hidden" id="whackHint">Tap the monsters before they duck back down!</p>
+                <button class="btn btn-primary" id="whackBeginTurnBtn" type="button">
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="whackGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="whackGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary hidden" id="whackPlayAgainBtn" type="button">
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="whackBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="whackNextStageBtn">Next: Treasure Dig →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 15: TREASURE DIG -->
+      <section class="stage hidden" id="stage15">
+        <h2>Treasure Dig</h2>
+        <div class="stage-body">
+          <div id="digSetup"></div>
+
+          <div id="digGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="digTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="digTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button class="pop-sidebar-reset" id="digResetScoresBtn" type="button">
+                    Reset scores
+                  </button>
+                  <button class="pop-sidebar-reset" id="digChangeTeamsBtn" type="button">
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Digs left</span
+                    ><span class="pop-hud-num" id="digDigsDisplay">5</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Turn score</span
+                    ><span class="pop-hud-num" id="digScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="digTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="digPlayArea" class="dig-play-area idle">
+                <div id="digGrid" class="dig-grid"></div>
+                <p class="game-hint hidden" id="digHint">Tap a square to dig!</p>
+                <button class="btn btn-primary" id="digBeginTurnBtn" type="button">
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="digGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="digGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary hidden" id="digPlayAgainBtn" type="button">
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="digBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="digNextStageBtn">Next: Memory Match →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 16: MEMORY MATCH -->
+      <section class="stage hidden" id="stage16">
+        <h2>Memory Match</h2>
+        <div class="stage-body">
+          <div id="memorySetup"></div>
+
+          <div id="memoryGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="memoryTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="memoryTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button class="pop-sidebar-reset" id="memoryResetScoresBtn" type="button">
+                    Reset scores
+                  </button>
+                  <button class="pop-sidebar-reset" id="memoryChangeTeamsBtn" type="button">
+                    Change teams
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="memoryTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Pairs</span
+                    ><span class="pop-hud-num" id="memoryScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="memoryTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="memoryPlayArea" class="memory-play-area idle">
+                <div id="memoryGrid" class="memory-grid"></div>
+                <p class="game-hint hidden" id="memoryHint">Find the matching pairs!</p>
+                <button class="btn btn-primary" id="memoryBeginTurnBtn" type="button">
+                  Begin turn
+                </button>
+                <div class="game-over-banner hidden" id="memoryGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="memoryGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary hidden" id="memoryPlayAgainBtn" type="button">
+                Play again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="memoryBackBtn">← Back</button>
+          <div style="display: flex; gap: 10px">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            
+          </div>
+        </div>
+      </section>
+
     </div>
 
     <!-- BALL POP: QUESTION MODAL -->

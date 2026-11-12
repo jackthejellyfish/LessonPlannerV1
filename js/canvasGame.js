@@ -32,18 +32,27 @@
 
    `renderScale` lets a game ask for an even smaller buffer; Ball Pop
    does, since its canvas is a pure decorative glow overlay drawn
-   behind real DOM buttons and has no crisp content to protect. */
+   behind real DOM buttons and has no crisp content to protect.
+
+   `maxBufferWidth` is the opposite lever, and the Spin Wheel is why it
+   exists: this cap is tuned for SOFT content — glows, particles,
+   gradients — where an upscale is invisible. That wheel draws fine arcs
+   and crisp NUMBERS, and upscaling those from an 820px buffer left it
+   looking blurry and out of place beside every other stage. A game may
+   raise its own cap when it has genuinely crisp content AND can afford
+   the pixels; the wheel can, because it only animates during a spin
+   rather than running a loop the whole time its stage is open. */
 const MAX_BUFFER_WIDTH = 820;
 
-function bufferSize(playArea, renderScale){
+function bufferSize(playArea, renderScale, maxBufferWidth){
   const w = playArea.clientWidth, h = playArea.clientHeight;
   if(w <= 0 || h <= 0) return { w: 0, h: 0 };
-  const scale = Math.min(renderScale, MAX_BUFFER_WIDTH / w);
+  const scale = Math.min(renderScale, maxBufferWidth / w);
   if(scale >= 1) return { w, h };
   return { w: Math.max(1, Math.round(w * scale)), h: Math.max(1, Math.round(h * scale)) };
 }
 
-export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScale = 1 } = {}){
+export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScale = 1, maxBufferWidth = MAX_BUFFER_WIDTH } = {}){
   let canvasEl = null;
 
   function getCanvas(){
@@ -65,7 +74,7 @@ export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScal
     const canvas = getCanvas();
     const playArea = document.getElementById(playAreaId);
     if(!canvas || !playArea) return;
-    const { w, h } = bufferSize(playArea, renderScale);
+    const { w, h } = bufferSize(playArea, renderScale, maxBufferWidth);
     canvas.width = w;
     canvas.height = h;
     if(onResize) onResize(canvas);
@@ -75,7 +84,7 @@ export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScal
         settleFrame = null;
         const c = getCanvas(), pa = document.getElementById(playAreaId);
         if(!c || !pa) return;
-        const next = bufferSize(pa, renderScale);
+        const next = bufferSize(pa, renderScale, maxBufferWidth);
         if(c.width !== next.w || c.height !== next.h){
           c.width = next.w;
           c.height = next.h;

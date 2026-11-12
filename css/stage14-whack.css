@@ -1,0 +1,134 @@
+/* ---- Whack-a-Monster (Stage 14) ----
+   A DOM grid, not canvas. Everything that moves here is a `transform`
+   or an `opacity`, both of which the compositor handles without
+   re-painting — the v2 performance work found that canvas fill-rate
+   was this app's real cost and that the DOM layer was effectively
+   free, so a dozen animated monsters cost nothing. No blurs and no
+   animated box-shadows, which were the two things that pass is on
+   record as avoiding. */
+
+.whack-play-area{
+  position:relative; width:100%; height:100%; min-height:0;
+  border-radius:var(--radius); overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 118%, #6FBF5B 0%, #4C9440 46%, #2F6B30 100%);
+  display:flex; align-items:center; justify-content:center;
+  /* Extra top padding reserves room for the .game-hint pill, which is
+     absolutely positioned at the top of the play area — without it the
+     hint sits on top of the first row of the grid. */
+  padding:clamp(46px,7.5vh,70px) clamp(12px,2.5vh,30px) clamp(12px,2.5vh,30px);
+}
+/* Flashes red when a bomb is hit — one class toggle, no layout work. */
+.whack-play-area.flash-bad::after{
+  content:''; position:absolute; inset:0; background:rgba(255,68,68,0.35);
+  pointer-events:none; z-index:22;
+}
+
+.whack-grid{
+  display:grid; grid-template-columns:repeat(4, 1fr); grid-template-rows:repeat(3, 1fr);
+  gap:clamp(10px,2.2vh,26px);
+  width:100%; height:100%; max-width:1100px;
+}
+.whack-play-area.idle .whack-grid{ opacity:0.35; pointer-events:none; }
+
+/* Each hole is a clipping window: the monster lives inside it and is
+   translated up from below the rim, so it genuinely emerges rather
+   than fading in. */
+.whack-hole{
+  position:relative; overflow:hidden;
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.whack-hole-back{
+  position:absolute; left:8%; right:8%; bottom:4%; height:46%;
+  border-radius:50%;
+  background:radial-gradient(ellipse at 50% 35%, #1E1407 0%, #2E1E0C 70%, #3C2910 100%);
+  box-shadow:inset 0 6px 12px rgba(0,0,0,0.55);
+}
+/* The front lip sits ABOVE the monster in z-order, so the monster
+   appears to come out of the hole rather than stand on top of it. */
+.whack-hole-front{
+  position:absolute; left:6%; right:6%; bottom:2%; height:22%;
+  border-radius:50%; z-index:3; pointer-events:none;
+  background:linear-gradient(180deg, #7ACB64 0%, #4F9A42 100%);
+  box-shadow:0 3px 8px rgba(0,0,0,0.3);
+}
+
+.whack-monster{
+  position:relative; z-index:2;
+  width:72%; aspect-ratio:1/1; margin-bottom:6%;
+  border:none; padding:0; cursor:pointer;
+  border-radius:46% 46% 40% 40%;
+  background:radial-gradient(circle at 34% 28%, #9BE86B, #58C23A 58%, #2E7A22);
+  box-shadow:inset 0 -8px 14px rgba(0,0,0,0.22), inset 0 4px 8px rgba(255,255,255,0.3);
+  transform: translateY(118%);
+  transition: transform 0.16s cubic-bezier(.34,1.56,.64,1);
+}
+.whack-hole.up .whack-monster{ transform: translateY(0); }
+/* Squashed on the way back down after a hit. */
+.whack-hole.bonked .whack-monster{
+  transform: translateY(118%) scaleY(0.6);
+  transition: transform 0.22s ease-in;
+}
+.whack-hole.golden .whack-monster{
+  background:radial-gradient(circle at 34% 28%, #FFF3C4, #FFD23F 55%, #B8860B);
+}
+.whack-hole.bomb .whack-monster{
+  border-radius:50%;
+  background:radial-gradient(circle at 34% 28%, #5A5A70, #2B2B3A 60%, #15151F);
+}
+/* Fuse dot, matching the bomb language the other games use. */
+.whack-hole.bomb .whack-monster::after{
+  content:''; position:absolute; top:-6%; left:50%; transform:translateX(-50%);
+  width:18%; aspect-ratio:1/1; border-radius:50%;
+  background:#FF6B5B; box-shadow:0 0 8px rgba(255,68,68,0.9);
+}
+
+.whack-face{ position:absolute; inset:0; }
+/* Pupil as a gradient stop rather than an inset shadow: the shadow was
+   sized in `em`, which on a span with no font-size of its own resolved
+   far too small, so the monsters stared blankly. */
+.whack-eye{
+  position:absolute; top:30%; width:17%; aspect-ratio:1/1; border-radius:50%;
+  background: radial-gradient(circle at 52% 58%, #1B2A14 0 40%, #ffffff 42%);
+  box-shadow:0 1px 2px rgba(0,0,0,0.25);
+}
+.whack-eye.left{ left:22%; }
+.whack-eye.right{ right:22%; }
+.whack-mouth{
+  position:absolute; left:34%; right:34%; top:58%; height:14%;
+  border-radius:0 0 999px 999px; background:#2B1410;
+}
+/* The bomb has no face — it should read as an object, not a creature. */
+.whack-hole.bomb .whack-face{ display:none; }
+
+.whack-points{
+  position:absolute; left:50%; top:18%; transform:translateX(-50%);
+  z-index:5; pointer-events:none;
+  font-family:var(--font-display); font-weight:800;
+  font-size:clamp(18px,3.2vh,30px); color:#fff;
+  text-shadow:0 2px 6px rgba(0,0,0,0.6);
+  animation: whackPointsRise 0.7s ease-out forwards;
+}
+.whack-points.bonus{ color:#FFE27A; }
+.whack-points.bad{ color:#FF8A8A; }
+@keyframes whackPointsRise{
+  0%{ opacity:0; transform:translate(-50%, 10px) scale(0.8); }
+  25%{ opacity:1; transform:translate(-50%, -4px) scale(1.1); }
+  100%{ opacity:0; transform:translate(-50%, -38px) scale(1); }
+}
+
+#whackPlayArea #whackBeginTurnBtn{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:24; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+}
+.whack-play-area:not(.idle) #whackBeginTurnBtn{ display:none; }
+
+/* Legend swatches for the How to play screen. */
+.whack-legend-swatch{ display:block; width:28px; height:28px; border-radius:46% 46% 40% 40%; }
+.whack-legend-swatch.green{ background:radial-gradient(circle at 34% 28%, #9BE86B, #58C23A 58%, #2E7A22); }
+.whack-legend-swatch.golden{ background:radial-gradient(circle at 34% 28%, #FFF3C4, #FFD23F 55%, #B8860B); }
+.whack-legend-swatch.bomb{
+  border-radius:50%;
+  background:radial-gradient(circle at 34% 28%, #5A5A70, #2B2B3A 60%, #15151F);
+  box-shadow:0 0 8px rgba(255,68,68,0.5);
+}

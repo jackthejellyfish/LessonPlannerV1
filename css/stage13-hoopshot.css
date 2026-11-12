@@ -1,0 +1,28 @@
+/* ---- Hoop Shot (Stage 13) ----
+   Reuses .inv-play-area/.inv-canvas (the shared dark canvas chrome) —
+   everything in the game itself is drawn on canvas, so only the legend
+   swatches and the begin button need styling here. */
+
+.hoop-legend-swatch{
+  display:block; width:28px; height:28px; border-radius:50%;
+}
+.hoop-legend-swatch.basket{
+  background: radial-gradient(circle at 34% 28%, #FFC489, #FF8C3B 58%, #B9541A);
+  box-shadow:0 0 10px rgba(255,140,59,0.55);
+}
+.hoop-legend-swatch.swish{
+  background: radial-gradient(circle at 34% 28%, #FFF6D9, #FFD23F 58%, #B8860B);
+  box-shadow:0 0 12px rgba(255,210,63,0.8);
+}
+.hoop-legend-swatch.miss{
+  background:transparent; border:3px dashed rgba(120,120,140,0.7);
+}
+
+#hoopPlayArea #hoopBeginTurnBtn{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+}
+.inv-play-area:not(.idle) #hoopBeginTurnBtn{ display:none; }
+
+#hoopCanvas{ cursor:grab; touch-action:none; }
+#hoopCanvas:active{ cursor:grabbing; }

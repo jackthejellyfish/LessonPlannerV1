@@ -6,6 +6,7 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { renderGameIntro } from '../gameIntro.js';
 import { WHEEL_QUESTIONS, WHEEL_COLORS } from '../content/stage8-spinwheel.js';
 import { createCanvasResizer } from '../canvasGame.js';
+import { createBackdrop, drawGlow } from '../canvasGlow.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
 
@@ -114,7 +115,16 @@ function updateWheelParticles(){
 /* =========================================================
    CANVAS SIZING
 ========================================================= */
-const wheelCanvasResizer = createCanvasResizer('wheelCanvas', 'wheelPlayArea');
+// Full resolution, unlike every other game. The shared cap exists for
+// soft content where an upscale is invisible; this wheel is fine arcs
+// and crisp numbers, and capping it was exactly what made the stage
+// look blurry next to the others. It can afford the pixels because it
+// only renders while a spin is actually animating — there is no
+// continuous loop here — and because the wheel face itself is
+// pre-rendered once and then rotated as a single blit (see
+// getWheelFace), so a spinning frame costs one drawImage rather than
+// ten arc fills plus ten text draws.
+const wheelCanvasResizer = createCanvasResizer('wheelCanvas', 'wheelPlayArea', null, { maxBufferWidth: 2200 });
 export function resizeWheelCanvas(){ wheelCanvasResizer.resize(); renderWheelCanvas(); }
 export function ensureWheelLayout(){
   if(state.wheelTeams.length > 0) resizeWheelCanvas();
@@ -270,11 +280,96 @@ function endWheelGame(){
 /* =========================================================
    RENDERING
 ========================================================= */
+// The arena backdrop never changes between resizes, so it's rasterized
+// once and blitted — same treatment as Fruit Ninja's (see
+// js/canvasGlow.js). The blit is opaque and full-canvas, so it also
+// replaces the frame's clearRect.
+const renderWheelBackground = createBackdrop((ctx, w, h) => {
+  const bg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.12, w / 2, h / 2, Math.max(w, h) * 0.75);
+  bg.addColorStop(0, '#2E2350');
+  bg.addColorStop(1, '#12102A');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+});
+
+/* ---- The wheel face, pre-rendered ----
+   The face is identical on every frame of a spin; only its ANGLE
+   changes. Drawing ten filled arcs and ten pieces of rotated text every
+   frame — at full resolution — would be the most expensive thing in the
+   app. Rendering it once into an offscreen canvas and then rotating a
+   single drawImage costs a fraction of that, and it's what makes full
+   resolution affordable here at all.
+
+   Cached by radius AND by the point values, so it rebuilds on a resize
+   or a lesson switch but never mid-spin. */
+let wheelFace = null;
+let wheelFaceKey = '';
+
+function getWheelFace(radius){
+  const pad = Math.ceil(radius * 0.06) + 4;          // room for the rim stroke
+  const size = Math.ceil(radius * 2) + pad * 2;
+  const key = `${size}|${WHEEL_QUESTIONS.map(q => q.points).join(',')}`;
+  if(wheelFace && wheelFaceKey === key) return wheelFace;
+
+  const face = wheelFace && wheelFace.width === size ? wheelFace : document.createElement('canvas');
+  face.width = face.height = size;
+  const fx = face.getContext('2d');
+  fx.clearRect(0, 0, size, size);
+  fx.translate(size / 2, size / 2);
+
+  for(let i = 0; i < SEG_COUNT; i++){
+    const center = -Math.PI / 2 + i * SEG_ANGLE;
+    const startA = center - SEG_ANGLE / 2, endA = center + SEG_ANGLE / 2;
+    fx.beginPath();
+    fx.moveTo(0, 0);
+    fx.arc(0, 0, radius, startA, endA);
+    fx.closePath();
+    fx.fillStyle = WHEEL_COLORS[i];
+    fx.fill();
+    fx.strokeStyle = 'rgba(255,255,255,0.8)';
+    fx.lineWidth = Math.max(2, radius * 0.012);
+    fx.stroke();
+
+    // Bigger numbers than before, with a dark outline. The point value
+    // is the only thing a class actually reads off this wheel, and at
+    // the old size against six different segment colours it was the
+    // weakest element on screen.
+    fx.save();
+    fx.rotate(center);
+    fx.translate(radius * 0.63, 0);
+    fx.rotate(Math.PI / 2);
+    fx.font = `800 ${Math.max(15, radius * 0.21)}px ${'Bricolage Grotesque, sans-serif'}`;
+    fx.textAlign = 'center';
+    fx.textBaseline = 'middle';
+    fx.lineJoin = 'round';
+    fx.lineWidth = Math.max(3, radius * 0.035);
+    fx.strokeStyle = 'rgba(0,0,0,0.45)';
+    fx.strokeText(String(WHEEL_QUESTIONS[i].points), 0, 0);
+    fx.fillStyle = '#ffffff';
+    fx.fillText(String(WHEEL_QUESTIONS[i].points), 0, 0);
+    fx.restore();
+  }
+
+  // Rim, drawn into the face so it rotates with the wheel's own seams.
+  fx.strokeStyle = 'rgba(255,255,255,0.9)';
+  fx.lineWidth = Math.max(3, radius * 0.035);
+  fx.beginPath(); fx.arc(0, 0, radius, 0, Math.PI * 2); fx.stroke();
+
+  // Hub
+  fx.beginPath(); fx.arc(0, 0, radius * 0.14, 0, Math.PI * 2);
+  fx.fillStyle = '#ffffff'; fx.fill();
+  fx.strokeStyle = 'rgba(0,0,0,0.18)';
+  fx.lineWidth = Math.max(2, radius * 0.015); fx.stroke();
+
+  wheelFace = face;
+  wheelFaceKey = key;
+  return face;
+}
+
 function renderWheelCanvas(){
   const canvas = wheelCanvasResizer.getCanvas();
-  if(!canvas) return;
+  if(!canvas || canvas.width === 0) return;
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Outer save/restore + applyShake wraps the ENTIRE draw (background,
   // wheel, rim, pointer, confetti) so a landing shake offsets everything
@@ -286,79 +381,53 @@ function renderWheelCanvas(){
   const cx = canvas.width / 2, cy = canvas.height / 2;
   const radius = Math.min(canvas.width, canvas.height) * 0.42;
 
-  const bg = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, Math.max(canvas.width, canvas.height) * 0.75);
-  bg.addColorStop(0, '#2E2350'); bg.addColorStop(1, '#12102A');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  renderWheelBackground(ctx, canvas);
 
   if(landingFlash > 0) landingFlash = Math.max(0, landingFlash - 0.025);
 
-  // Idle shimmer + landing flash — a soft glow ring behind the wheel.
+  // Idle shimmer + landing flash — a soft glow behind the wheel. Was
+  // shadowBlur on a filled circle, which re-blurred a disc the size of
+  // the whole wheel every frame; it's a cached sprite blit now.
   const shimmer = 0.5 + 0.5 * Math.sin(performance.now() / 600);
-  ctx.save();
-  ctx.globalAlpha = 0.25 + shimmer * 0.15 + landingFlash * 0.6;
-  ctx.shadowColor = '#FFD23F';
-  ctx.shadowBlur = radius * (0.15 + landingFlash * 0.35);
-  ctx.fillStyle = '#FFD23F';
-  ctx.beginPath(); ctx.arc(cx, cy, radius * 1.04, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
+  drawGlow(ctx, cx, cy, radius * (1.3 + landingFlash * 0.35), '#FFD23F',
+    0.3 + shimmer * 0.14 + landingFlash * 0.55, 1.5);
 
+  // One rotated blit instead of twenty draw calls.
+  const face = getWheelFace(radius);
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(currentWheelAngle);
-  for(let i = 0; i < SEG_COUNT; i++){
-    const center = -Math.PI / 2 + i * SEG_ANGLE;
-    const startA = center - SEG_ANGLE / 2, endA = center + SEG_ANGLE / 2;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, radius, startA, endA);
-    ctx.closePath();
-    ctx.fillStyle = WHEEL_COLORS[i];
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.save();
-    ctx.rotate(center);
-    ctx.translate(radius * 0.66, 0);
-    ctx.rotate(Math.PI / 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${Math.max(13, radius * 0.15)}px sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(String(WHEEL_QUESTIONS[i].points), 0, 0);
-    ctx.restore();
-  }
-  // Hub
-  ctx.beginPath(); ctx.arc(0, 0, radius * 0.13, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffffff'; ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.drawImage(face, -face.width / 2, -face.height / 2);
   ctx.restore();
 
-  // Rim
+  // Pointer — fixed at the top, outside the wheel's own rotation. Drawn
+  // larger and with a light outline so it reads clearly against
+  // whichever of the ten segment colours happens to be underneath it.
   ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = Math.max(3, radius * 0.03);
-  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
-  ctx.restore();
-
-  // Pointer — fixed at top, outside the wheel's own rotation.
-  ctx.save();
-  ctx.fillStyle = '#3A2E22';
+  const pw = radius * 0.095, ptop = cy - radius - radius * 0.1;
   ctx.beginPath();
-  ctx.moveTo(cx - radius * 0.07, cy - radius - radius * 0.06);
-  ctx.lineTo(cx + radius * 0.07, cy - radius - radius * 0.06);
-  ctx.lineTo(cx, cy - radius + radius * 0.05);
+  ctx.moveTo(cx - pw, ptop);
+  ctx.lineTo(cx + pw, ptop);
+  ctx.lineTo(cx, cy - radius + radius * 0.1);
   ctx.closePath();
+  ctx.fillStyle = '#2A2238';
   ctx.fill();
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(2, radius * 0.022);
+  ctx.strokeStyle = '#FFF4D6';
+  ctx.stroke();
   ctx.restore();
 
+  // Confetti. No per-particle shadow: a landing can put dozens on
+  // screen in the one frame that can least afford them.
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   for(const p of state.wheelParticles){
-    ctx.save();
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color; ctx.shadowBlur = 6;
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
   }
+  ctx.restore();
 
   ctx.restore(); // closes the outer save()/applyShake() from the top of this function
 }

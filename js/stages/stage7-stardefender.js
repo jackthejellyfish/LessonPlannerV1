@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, beep, audioOut } from '../audio.js';
+import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { INV_QUESTIONS } from '../content/stage7-stardefender.js';
@@ -10,6 +10,7 @@ import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '
 import { confirmDialog } from '../confirmDialog.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
+import { drawGlow, createBackdrop } from '../canvasGlow.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses, local module state like Plinko's own
@@ -43,45 +44,59 @@ const INV_SHIP_COLOR = "#31E6E0";
 
 /* ---- Sound effects (same synthesis approach as everywhere else on
    this page — Web Audio oscillators/noise, no audio files) ---- */
+// A laser bolt. The old version was a lone square-wave pitch drop,
+// which reads as a retro "bleep"; this layers a bright sine chirp over
+// it and a tiny noise transient at the front, which is what gives a
+// shot its "crack" rather than just its pitch.
 function sfxLaser(){
   if(state.muted) return;
   const ctx = ensureAudio();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'square';
-  osc.frequency.setValueAtTime(900, ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.12);
-  gain.gain.value = 0.09;
-  osc.connect(gain).connect(audioOut());
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.13);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.14);
+  const t0 = ctx.currentTime;
+  const mk = (type, f0, f1, vol, dur) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(f0, t0);
+    osc.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(audioOut());
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  };
+  mk('square', 880, 230, 0.06, 0.11);
+  mk('sine', 2100, 520, 0.05, 0.09);
 }
-function sfxEnemyHit(){ beep(320, 0.06, 'square', 0.12); }
-// Same noise-burst technique as the bowling pin crash from Strike Zone —
-// louder/brighter for the tougher enemy, quieter for the scout.
+
+// A hit that didn't kill: a short, bright metallic tick, so it is
+// clearly distinct from the destroy sound and doesn't muddy a burst of
+// rapid fire.
+function sfxEnemyHit(){
+  beep(1250, 0.045, 'square', 0.07);
+  beep(1880, 0.035, 'triangle', 0.05, 0.01);
+}
+
+// Destruction uses the shared impact — noise burst plus a pitched thump
+// underneath, which the old noise-only version lacked, so kills now
+// land with some weight. Intensity still scales with the enemy.
 function sfxEnemyDestroy(intensity){
-  if(state.muted) return;
-  const ctx = ensureAudio();
-  const duration = 0.22 + intensity * 0.15;
-  const bufferSize = Math.floor(ctx.sampleRate * duration);
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for(let i = 0; i < bufferSize; i++){
-    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-  }
-  const noise = ctx.createBufferSource();
-  noise.buffer = buffer;
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 900 + intensity * 1400;
-  const gain = ctx.createGain();
-  gain.gain.value = 0.3 + intensity * 0.1;
-  noise.connect(filter).connect(gain).connect(audioOut());
-  noise.start();
+  sfxImpact(0.5 + intensity * 0.8);
 }
-function sfxPickupCollect(){ [880, 1108, 1318].forEach((f, i) => beep(f, 0.13, 'triangle', 0.16, i * 0.06)); }
-function sfxShieldLost(){ beep(140, 0.32, 'sawtooth', 0.2); }
+
+// Pickups climb a bright major arpeggio and finish on a sparkle.
+function sfxPickupCollect(){
+  sfxRisingChime([784, 988, 1175, 1568], { duration: 0.12, volume: 0.14, stagger: 0.05 });
+  beep(2350, 0.1, 'sine', 0.05, 0.2);
+}
+
+// Losing a shield: a falling two-tone alarm over a dull thud. Short on
+// purpose — it tells the class something went wrong without becoming a
+// punishment.
+function sfxShieldLost(){
+  beep(420, 0.16, 'sawtooth', 0.13);
+  beep(280, 0.26, 'sawtooth', 0.13, 0.12);
+  sfxImpact(0.35);
+}
 
 /* ---- Setup / teams (same pattern as Ball Pop) ---- */
 let invRowColors = [];
@@ -470,21 +485,82 @@ function updateInvGame(dt){
 const INV_REFERENCE_WIDTH = 900;
 function canvasScale(canvas){ return canvas.width / INV_REFERENCE_WIDTH; }
 
+/* The ship was a flat 4-point arrowhead. It's now a readable little
+   fighter — swept wings, a bright canopy, and an engine flame that
+   actually burns — because at classroom distance the old silhouette
+   read as "a triangle" rather than as the thing you are flying.
+
+   It also BANKS: the hull tilts into the direction it is travelling,
+   taken from the gap between where the ship is and where it's heading.
+   That one value is already in state (invShip.targetX), so the bank
+   costs nothing to compute and does more for the sense of movement
+   than any amount of extra detail would. */
 function drawInvShip(ctx, canvas){
   const s = canvasScale(canvas);
   const x = (state.invShip.x / 100) * canvas.width;
-  const y = canvas.height - 18 * s;
+  const y = canvas.height - 20 * s;
+  const drift = (state.invShip.targetX - state.invShip.x);
+  const bank = Math.max(-0.42, Math.min(0.42, drift * 0.055));
+  const now = performance.now();
+
   ctx.save();
-  ctx.shadowColor = INV_SHIP_COLOR;
-  ctx.shadowBlur = 14 * s;
-  ctx.fillStyle = INV_SHIP_COLOR;
+  ctx.translate(x, y);
+  ctx.rotate(bank);
+
+  // Engine flame first, so the hull overlaps it. Two stacked tongues
+  // with offset flicker rates read as fire rather than as a triangle.
+  const flick = 0.78 + 0.22 * Math.sin(now / 42);
+  const flick2 = 0.75 + 0.25 * Math.sin(now / 71 + 1.3);
+  drawGlow(ctx, 0, 14 * s, 17 * s, '#FF9F1C', 0.42, 1.6);
+  ctx.fillStyle = '#FF8A3D';
   ctx.beginPath();
-  ctx.moveTo(x, y - 16 * s);
-  ctx.lineTo(x - 14 * s, y + 10 * s);
-  ctx.lineTo(x, y + 4 * s);
-  ctx.lineTo(x + 14 * s, y + 10 * s);
+  ctx.moveTo(-5.5 * s, 8 * s);
+  ctx.lineTo(0, (15 + 13 * flick) * s);
+  ctx.lineTo(5.5 * s, 8 * s);
   ctx.closePath();
   ctx.fill();
+  ctx.fillStyle = '#FFE066';
+  ctx.beginPath();
+  ctx.moveTo(-2.6 * s, 8 * s);
+  ctx.lineTo(0, (12 + 8 * flick2) * s);
+  ctx.lineTo(2.6 * s, 8 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Hull glow, then the hull itself — cached sprite rather than
+  // shadowBlur, same reason as everywhere else in this app.
+  drawGlow(ctx, 0, 0, 26 * s, INV_SHIP_COLOR, 0.4, 1.7);
+
+  // Swept wings
+  ctx.fillStyle = '#1F9E9A';
+  ctx.beginPath();
+  ctx.moveTo(-16 * s, 10 * s);
+  ctx.lineTo(-5 * s, -2 * s);
+  ctx.lineTo(-5 * s, 9 * s);
+  ctx.closePath();
+  ctx.moveTo(16 * s, 10 * s);
+  ctx.lineTo(5 * s, -2 * s);
+  ctx.lineTo(5 * s, 9 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Fuselage
+  ctx.fillStyle = INV_SHIP_COLOR;
+  ctx.beginPath();
+  ctx.moveTo(0, -18 * s);
+  ctx.lineTo(7 * s, 6 * s);
+  ctx.lineTo(4 * s, 11 * s);
+  ctx.lineTo(-4 * s, 11 * s);
+  ctx.lineTo(-7 * s, 6 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Canopy
+  ctx.fillStyle = '#E8FFFD';
+  ctx.beginPath();
+  ctx.ellipse(0, -5 * s, 2.8 * s, 5.2 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.restore();
 }
 
@@ -497,21 +573,31 @@ function renderInvCanvas(){
   ctx.save();
   applyShake(ctx, invShake);
 
+  const invScaleEarly = canvasScale(canvas);
+
+  // Starfield. Stars now DRIFT downward at a speed tied to their size,
+  // which gives the field parallax depth and makes the whole screen
+  // feel like it's moving — the single cheapest way to add motion to a
+  // game where the ship only slides left and right. One save/restore
+  // for the batch rather than one per star.
   if(!state.invStars || state.invStars.length === 0){
-    state.invStars = Array.from({ length: 45 }, () => ({
-      x: Math.random(), y: Math.random(), r: Math.random() * 1.4 + 0.4, phase: Math.random() * Math.PI * 2
+    state.invStars = Array.from({ length: 56 }, () => ({
+      x: Math.random(), y: Math.random(),
+      r: Math.random() * 1.5 + 0.4, phase: Math.random() * Math.PI * 2
     }));
   }
-  for(const s of state.invStars){
-    const tw = 0.5 + 0.5 * Math.sin(Date.now() / 500 + s.phase);
-    ctx.save();
-    ctx.globalAlpha = 0.3 + tw * 0.5;
-    ctx.fillStyle = '#ffffff';
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  for(const st of state.invStars){
+    st.y += (st.r * 0.00045);
+    if(st.y > 1) { st.y = 0; st.x = Math.random(); }
+    const tw = 0.5 + 0.5 * Math.sin(Date.now() / 500 + st.phase);
+    ctx.globalAlpha = (0.22 + tw * 0.45) * (0.5 + st.r * 0.3);
     ctx.beginPath();
-    ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+    ctx.arc(st.x * canvas.width, st.y * canvas.height, st.r * invScaleEarly, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
+  ctx.restore();
 
   drawInvShip(ctx, canvas);
 
@@ -530,9 +616,8 @@ function renderInvCanvas(){
     ctx.fill();
     ctx.restore();
 
+    drawGlow(ctx, x, y, 11 * invScale, INV_SHIP_COLOR, 0.5, 1.7);
     ctx.save();
-    ctx.shadowColor = INV_SHIP_COLOR;
-    ctx.shadowBlur = 8 * invScale;
     ctx.fillStyle = '#D8FFFA';
     ctx.beginPath();
     ctx.ellipse(x, y, 2.2 * invScale, 7 * invScale, 0, 0, Math.PI * 2);
@@ -545,14 +630,13 @@ function renderInvCanvas(){
     if(t >= 1) continue;
     const r = (sw.big ? 40 : 20) * invScale * (0.3 + t * 1.3);
     ctx.save();
-    ctx.globalAlpha = 1 - t;
     ctx.strokeStyle = sw.color;
+    ctx.globalAlpha = (1 - t) * 0.33;
+    ctx.lineWidth = (sw.big ? 4 : 2.5) * invScale * 3.4;
+    ctx.beginPath(); ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1 - t;
     ctx.lineWidth = (sw.big ? 4 : 2.5) * invScale;
-    ctx.shadowColor = sw.color;
-    ctx.shadowBlur = 12 * invScale;
-    ctx.beginPath();
-    ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
   }
 
@@ -560,9 +644,9 @@ function renderInvCanvas(){
     const x = (e.x / 100) * canvas.width, y = (e.y / 100) * canvas.height;
     const r = canvas.width * (e.radiusPct / 100);
     const baseColor = e.type === 'boss' ? INV_BOSS_COLOR : e.type === 'brute' ? INV_BRUTE_COLOR : e.type === 'dart' ? INV_DART_COLOR : INV_SCOUT_COLOR;
+    drawGlow(ctx, x, y, r * (e.type === 'boss' ? 2.6 : 2.0), baseColor,
+      0.42 + e.hitFlash * 0.4, 1.7);
     ctx.save();
-    ctx.shadowColor = baseColor;
-    ctx.shadowBlur = e.type === 'boss' ? 28 + e.hitFlash * 24 : 10 + e.hitFlash * 16;
     ctx.fillStyle = e.hitFlash > 0.05 ? '#ffffff' : baseColor;
 
     ctx.beginPath();
@@ -586,14 +670,50 @@ function renderInvCanvas(){
         if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       }
     } else if(e.type === 'dart'){
-      // Thin elongated diamond — tall and narrow to look fast
-      ctx.moveTo(x, y - r * 2); ctx.lineTo(x + r * 0.45, y); ctx.lineTo(x, y + r * 0.8); ctx.lineTo(x - r * 0.45, y);
+      // A needle with swept-back fins — reads as fast even standing
+      // still, which matters because it IS the fast one.
+      ctx.moveTo(x, y - r * 2.1);
+      ctx.lineTo(x + r * 0.42, y - r * 0.2);
+      ctx.lineTo(x + r * 0.95, y + r * 0.95);
+      ctx.lineTo(x + r * 0.22, y + r * 0.5);
+      ctx.lineTo(x, y + r * 0.95);
+      ctx.lineTo(x - r * 0.22, y + r * 0.5);
+      ctx.lineTo(x - r * 0.95, y + r * 0.95);
+      ctx.lineTo(x - r * 0.42, y - r * 0.2);
     } else {
-      // Scout: standard diamond
-      ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y);
+      // Scout: a little saucer — a dome over a wide hull. Previously a
+      // plain diamond, which was indistinguishable from the dart at a
+      // glance once both were in motion.
+      ctx.moveTo(x - r, y);
+      ctx.quadraticCurveTo(x, y + r * 0.95, x + r, y);
+      ctx.quadraticCurveTo(x + r * 0.5, y - r * 0.32, x, y - r * 0.38);
+      ctx.quadraticCurveTo(x - r * 0.5, y - r * 0.32, x - r, y);
     }
     ctx.closePath();
     ctx.fill();
+
+    // Cockpit dome on the scout, and a hot core on the dart: small
+    // bright marks that make each type identifiable instantly.
+    if(e.hitFlash <= 0.05){
+      if(e.type === 'scout'){
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.beginPath();
+        ctx.ellipse(x, y - r * 0.42, r * 0.34, r * 0.26, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if(e.type === 'dart'){
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath();
+        ctx.ellipse(x, y - r * 0.5, r * 0.16, r * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if(e.type === 'brute'){
+        // Armour seams
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = Math.max(1, r * 0.09);
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.55, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
 
     ctx.restore();
 
@@ -603,10 +723,9 @@ function renderInvCanvas(){
     // own spin adds visual complexity without extra moving parts.
     if(e.type === 'boss' && e.hitFlash < 0.05){
       const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 220);
+      drawGlow(ctx, x, y, r * 0.9, '#ffffff', pulse * 0.55, 1.9);
       ctx.save();
       ctx.globalAlpha = pulse;
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 20;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(x, y, r * 0.32, 0, Math.PI * 2);
@@ -616,7 +735,6 @@ function renderInvCanvas(){
       ctx.save();
       ctx.strokeStyle = baseColor;
       ctx.lineWidth = 2;
-      ctx.shadowBlur = 10;
       ctx.beginPath();
       ctx.arc(x, y, r * 0.44, 0, Math.PI * 2);
       ctx.stroke();
@@ -625,7 +743,6 @@ function renderInvCanvas(){
       ctx.save();
       ctx.strokeStyle = baseColor;
       ctx.lineWidth = 2.5;
-      ctx.shadowBlur = 14;
       ctx.setLineDash([r * 0.3, r * 0.18]);
       ctx.beginPath();
       ctx.arc(x, y, r * 1.4, -e.angle * 1.6, Math.PI * 2 - e.angle * 1.6);
@@ -658,10 +775,9 @@ function renderInvCanvas(){
     const x = (pu.x / 100) * canvas.width, y = (pu.y / 100) * canvas.height;
     const pulse = 0.7 + 0.3 * Math.sin(Date.now() / 150);
     const color = pu.type === 'shield' ? INV_SHIELD_COLOR : pu.type === 'machinegun' ? INV_MACHINEGUN_COLOR : INV_PICKUP_COLOR;
+    drawGlow(ctx, x, y, 22 * invScale, color, pulse * 0.5, 1.6);
     ctx.save();
     ctx.globalAlpha = pulse;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 18 * invScale;
     ctx.fillStyle = color;
     if(pu.type === 'shield'){
       const r = 5 * invScale;
@@ -685,17 +801,20 @@ function renderInvCanvas(){
     ctx.restore();
   }
 
+  // One save/restore for the batch and no per-particle shadow — an
+  // explosion is exactly the frame that can least afford either.
+  // 'lighter' makes overlapping sparks add up, which recovers the bloom
+  // the shadow used to provide, for free.
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   for(const p of state.invParticles){
-    ctx.save();
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 10 * invScale;
     ctx.beginPath();
     ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
+  ctx.restore();
 
   drawFloatTexts(ctx, invFloatTexts, Math.max(16, 22 * invScale));
 

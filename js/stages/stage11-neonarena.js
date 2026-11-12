@@ -1,11 +1,12 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, beep, audioOut } from '../audio.js';
+import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { NEON_QUESTIONS } from '../content/stage11-neonarena.js';
 import { createCanvasResizer } from '../canvasGame.js';
+import { drawGlow, createBackdrop } from '../canvasGlow.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
@@ -93,41 +94,63 @@ function neonPickupColor(type){
 /* =========================================================
    AUDIO — synthesized only, same technique as every other stage
 ========================================================= */
+// A synth zap: a saw body sweeping down for grit, a sine sweeping down
+// over it for the pitch, and a resonant filter that gives it the rubbery
+// "pew" character the arena's whole look is going for. The old version
+// was a single square-wave drop, which sounded like a 1980s menu blip
+// rather than a weapon.
 function sfxNeonShot(){
   if(state.muted) return;
   const ctx = ensureAudio();
+  const t0 = ctx.currentTime;
   const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'square';
-  osc.frequency.setValueAtTime(760, ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.1);
-  gain.gain.value = 0.08;
-  osc.connect(gain).connect(audioOut());
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.11);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.12);
-}
-function sfxNeonHitEnemy(){ beep(340, 0.06, 'square', 0.12); }
-function sfxNeonDestroy(intensity){
-  if(state.muted) return;
-  const ctx = ensureAudio();
-  const duration = 0.2 + intensity * 0.15;
-  const bufferSize = Math.floor(ctx.sampleRate * duration);
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for(let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-  const noise = ctx.createBufferSource();
-  noise.buffer = buffer;
+  const sub = ctx.createOscillator();
   const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 850 + intensity * 1500;
   const gain = ctx.createGain();
-  gain.gain.value = 0.28 + intensity * 0.1;
-  noise.connect(filter).connect(gain).connect(audioOut());
-  noise.start();
+  osc.type = 'sawtooth';
+  sub.type = 'sine';
+  osc.frequency.setValueAtTime(820, t0);
+  osc.frequency.exponentialRampToValueAtTime(170, t0 + 0.1);
+  sub.frequency.setValueAtTime(1640, t0);
+  sub.frequency.exponentialRampToValueAtTime(320, t0 + 0.09);
+  filter.type = 'lowpass';
+  filter.Q.value = 7;
+  filter.frequency.setValueAtTime(2600, t0);
+  filter.frequency.exponentialRampToValueAtTime(420, t0 + 0.11);
+  gain.gain.setValueAtTime(0.075, t0);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+  osc.connect(filter); sub.connect(filter);
+  filter.connect(gain).connect(audioOut());
+  osc.start(t0); sub.start(t0);
+  osc.stop(t0 + 0.14); sub.stop(t0 + 0.14);
 }
-function sfxNeonPickup(){ [880, 1108, 1318].forEach((f, i) => beep(f, 0.12, 'triangle', 0.15, i * 0.05)); }
-function sfxNeonHit(){ beep(140, 0.3, 'sawtooth', 0.2); }
+
+// A non-fatal hit: short, bright and clearly separate from a kill, so a
+// stream of fire doesn't turn into mush.
+function sfxNeonHitEnemy(){
+  beep(1180, 0.045, 'square', 0.07);
+  beep(1760, 0.03, 'triangle', 0.045, 0.012);
+}
+// Kills use the shared impact, which carries a pitched thump under the
+// noise — the old noise-only burst had no weight to it.
+function sfxNeonDestroy(intensity){
+  sfxImpact(0.5 + intensity * 0.8);
+}
+
+// Pickups climb and then sparkle, so collecting one is unmistakable
+// even in the middle of a firefight.
+function sfxNeonPickup(){
+  sfxRisingChime([740, 932, 1109, 1480], { duration: 0.11, volume: 0.13, stagger: 0.045 });
+  beep(2220, 0.09, 'sine', 0.05, 0.18);
+}
+
+// Losing a life: a falling alarm over a dull thud. Deliberately brief —
+// it should register, not punish.
+function sfxNeonHit(){
+  beep(400, 0.15, 'sawtooth', 0.13);
+  beep(260, 0.25, 'sawtooth', 0.13, 0.11);
+  sfxImpact(0.4);
+}
 function sfxNeonBomb(){
   if(state.muted) return;
   const ctx = ensureAudio();
@@ -243,14 +266,6 @@ export function ensureNeonLayout(){
 }
 const NEON_REFERENCE_WIDTH = 900;
 function neonScale(canvas){ return canvas.width / NEON_REFERENCE_WIDTH; }
-
-function ensureNeonStars(){
-  if(state.neonStars.length > 0) return;
-  state.neonStars = Array.from({ length: 40 }, () => ({
-    xPct: Math.random() * 100, yPct: Math.random() * 100,
-    size: Math.random() * 1.3 + 0.3, phase: Math.random() * Math.PI * 2
-  }));
-}
 
 /* =========================================================
    PARTICLES
@@ -628,51 +643,70 @@ function updateNeonGame(dt){
 /* =========================================================
    RENDERING
 ========================================================= */
-function renderNeonBackground(ctx, canvas){
-  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+/* The arena floor, horizon glow and star layer never change between
+   resizes, but this used to redraw ~30 grid strokes, three gradients
+   and a starfield on EVERY frame. Rasterised once and blitted now (see
+   js/canvasGlow.js) — the same fix that took Fruit Ninja from 20fps to
+   60. The stars lose their twinkle in the bargain, which is a fair
+   trade for a backdrop nobody looks directly at; everything that still
+   needs to move is drawn over the top. The blit is opaque and
+   full-canvas, so it also replaces the frame's clearRect. */
+const renderNeonBackground = createBackdrop((ctx, w, h) => {
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
   bg.addColorStop(0, '#0B0620');
   bg.addColorStop(0.55, '#140A30');
   bg.addColorStop(1, '#03020A');
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, w, h);
 
-  const horizonY = canvas.height * 0.5;
+  const horizonY = h * 0.5;
   const glow = ctx.createLinearGradient(0, horizonY - 40, 0, horizonY + 40);
   glow.addColorStop(0, 'rgba(255,46,154,0)');
   glow.addColorStop(0.5, 'rgba(255,46,154,0.35)');
   glow.addColorStop(1, 'rgba(255,46,154,0)');
   ctx.fillStyle = glow;
-  ctx.fillRect(0, horizonY - 40, canvas.width, 80);
+  ctx.fillRect(0, horizonY - 40, w, 80);
 
-  ctx.save();
-  ctx.strokeStyle = 'rgba(182,255,60,0.18)';
+  // Perspective floor grid, brightening toward the viewer so the plane
+  // reads as receding rather than as a flat sheet of lines.
+  const vanishX = w / 2;
   ctx.lineWidth = 1;
-  const vanishX = canvas.width / 2;
   for(let i = 1; i <= 10; i++){
     const t = i / 10;
-    const y = horizonY + t * t * (canvas.height - horizonY);
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    const y = horizonY + t * t * (h - horizonY);
+    ctx.strokeStyle = `rgba(182,255,60,${0.08 + t * 0.22})`;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
   }
+  ctx.strokeStyle = 'rgba(182,255,60,0.16)';
   for(let i = -6; i <= 6; i++){
     ctx.beginPath();
     ctx.moveTo(vanishX, horizonY);
-    ctx.lineTo(vanishX + i * canvas.width * 0.09, canvas.height);
+    ctx.lineTo(vanishX + i * w * 0.09, h);
     ctx.stroke();
   }
-  ctx.restore();
 
-  ensureNeonStars();
-  const now = performance.now();
-  for(const s of state.neonStars){
-    const x = (s.xPct / 100) * canvas.width, y = (s.yPct / 100) * horizonY;
-    const tw = 0.5 + 0.5 * Math.sin(now / 700 + s.phase);
-    ctx.save();
-    ctx.globalAlpha = 0.25 + tw * 0.4;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(x, y, s.size, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
+  // Skyline silhouette along the horizon — gives the arena somewhere to
+  // be, which a bare gradient never did.
+  ctx.fillStyle = 'rgba(8,4,24,0.9)';
+  let bx = 0;
+  let seed = 1;
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  while(bx < w){
+    const bw = w * (0.03 + rnd() * 0.05);
+    const bh = h * (0.04 + rnd() * 0.11);
+    ctx.fillRect(bx, horizonY - bh, bw, bh);
+    bx += bw + w * 0.012;
   }
-}
+
+  // Stars, above the horizon only.
+  ctx.fillStyle = '#fff';
+  for(let i = 0; i < 70; i++){
+    const sx = rnd() * w, sy = rnd() * horizonY * 0.92;
+    ctx.globalAlpha = 0.2 + rnd() * 0.5;
+    ctx.beginPath(); ctx.arc(sx, sy, rnd() * 1.3 + 0.3, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+});
 
 function drawNeonPickup(ctx, canvas, pu, now){
   const x = (pu.x / 100) * canvas.width, y = (pu.y / 100) * canvas.height;
@@ -686,9 +720,9 @@ function drawNeonPickup(ctx, canvas, pu, now){
   // constant) is intentionally left untouched — this is a visibility
   // fix, not a difficulty change.
   const r = 11 * scale;
+  drawGlow(ctx, x, y, r * 2.6, color, pulse * 0.5, 1.6);
   ctx.save();
   ctx.globalAlpha = pulse;
-  ctx.shadowColor = color; ctx.shadowBlur = 18 * scale;
   ctx.fillStyle = color; ctx.strokeStyle = color;
   if(pu.type === 'power'){
     ctx.beginPath();
@@ -720,9 +754,9 @@ function drawNeonEnemy(ctx, canvas, e, now){
   const x = (e.x / 100) * canvas.width, y = (e.y / 100) * canvas.height;
   const r = canvas.width * (e.radiusPct / 100);
   const baseColor = neonEnemyColor(e.type);
+  drawGlow(ctx, x, y, r * (e.type === 'warden' ? 2.6 : 2.0), baseColor,
+    0.45 + e.hitFlash * 0.4, 1.7);
   ctx.save();
-  ctx.shadowColor = baseColor;
-  ctx.shadowBlur = e.type === 'warden' ? 28 + e.hitFlash * 24 : 10 + e.hitFlash * 16;
   ctx.fillStyle = e.hitFlash > 0.05 ? '#ffffff' : baseColor;
   ctx.beginPath();
   if(e.type === 'warden'){
@@ -743,12 +777,35 @@ function drawNeonEnemy(ctx, canvas, e, now){
       if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
   } else if(e.type === 'zapper'){
-    ctx.moveTo(x, y - r * 2); ctx.lineTo(x + r * 0.45, y); ctx.lineTo(x, y + r * 0.8); ctx.lineTo(x - r * 0.45, y);
+    // A lightning bolt. The zapper is the fast one, and a bolt says
+    // that instantly where the old thin diamond said nothing — it was
+    // also near-identical to the drifter once both were moving.
+    ctx.moveTo(x - r * 0.15, y - r * 1.5);
+    ctx.lineTo(x + r * 0.85, y - r * 0.25);
+    ctx.lineTo(x + r * 0.2, y - r * 0.1);
+    ctx.lineTo(x + r * 0.5, y + r * 1.5);
+    ctx.lineTo(x - r * 0.85, y + r * 0.1);
+    ctx.lineTo(x - r * 0.2, y - r * 0.05);
   } else {
-    ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y);
+    // Drifter: a soft four-lobed blob rather than a hard diamond, so
+    // the weakest enemy also looks like the least threatening one.
+    ctx.moveTo(x, y - r);
+    ctx.quadraticCurveTo(x + r * 0.62, y - r * 0.62, x + r, y);
+    ctx.quadraticCurveTo(x + r * 0.62, y + r * 0.62, x, y + r);
+    ctx.quadraticCurveTo(x - r * 0.62, y + r * 0.62, x - r, y);
+    ctx.quadraticCurveTo(x - r * 0.62, y - r * 0.62, x, y - r);
   }
   ctx.closePath();
   ctx.fill();
+
+  // A bright eye/core on the small enemies — tells you which way a
+  // drifter is facing and makes a zapper read as charged.
+  if(e.hitFlash <= 0.05 && (e.type === 'drifter' || e.type === 'zapper')){
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath();
+    ctx.arc(x, y, r * (e.type === 'zapper' ? 0.18 : 0.3), 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 
   if(e.type === 'warden' && e.hitFlash < 0.05){
@@ -756,8 +813,9 @@ function drawNeonEnemy(ctx, canvas, e, now){
     // rotating "shield ring" here was the other half of the "strange circle
     // around enemies" complaint, alongside the player's ring above).
     const pulse = 0.6 + 0.4 * Math.sin(now / 220);
+    drawGlow(ctx, x, y, r * 0.95, '#ffffff', pulse * 0.55, 1.9);
     ctx.save();
-    ctx.globalAlpha = pulse; ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 20; ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = pulse; ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(x, y, r * 0.32, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
@@ -794,7 +852,28 @@ function drawNeonPlayer(ctx, canvas){
   ctx.translate(x, y);
   ctx.rotate(neonAimAngle);
   if(invuln && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.35;
-  ctx.shadowColor = NEON_PLAYER_COLOR; ctx.shadowBlur = 14;
+
+  // Thruster, behind the hull: two flickering tongues trailing the nose
+  // direction. The ship always faces where it is aiming, so this also
+  // doubles as a clear indicator of which way it is pointing.
+  const flick = 0.75 + 0.25 * Math.sin(now / 38);
+  const flick2 = 0.7 + 0.3 * Math.sin(now / 64 + 1.1);
+  ctx.fillStyle = '#FF8A3D';
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.4, -r * 0.34);
+  ctx.lineTo(-r * (0.95 + 0.8 * flick), 0);
+  ctx.lineTo(-r * 0.4, r * 0.34);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#FFE066';
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.4, -r * 0.17);
+  ctx.lineTo(-r * (0.8 + 0.5 * flick2), 0);
+  ctx.lineTo(-r * 0.4, r * 0.17);
+  ctx.closePath();
+  ctx.fill();
+
+  drawGlow(ctx, 0, 0, r * 2.4, NEON_PLAYER_COLOR, 0.42, 1.7);
   ctx.fillStyle = NEON_PLAYER_COLOR;
   ctx.beginPath();
   ctx.moveTo(r * 1.15, 0);
@@ -835,8 +914,17 @@ function renderNeonCanvas(){
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(Math.atan2(b.vy, b.vx) - Math.PI / 2);
-    ctx.shadowColor = b.big ? NEON_POWER_COLOR : NEON_PLAYER_COLOR;
-    ctx.shadowBlur = 8 * scale;
+    // Glow as a wide faint companion stroke rather than shadowBlur —
+    // there can be a lot of bullets in the air with the spread core.
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = b.big ? NEON_POWER_COLOR : NEON_PLAYER_COLOR;
+    ctx.lineWidth = baseR * 2.1;
+    ctx.beginPath();
+    ctx.moveTo(0, -baseR * 2.6);
+    ctx.lineTo(0, baseR * 2.6);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.strokeStyle = b.big ? NEON_POWER_COLOR : '#E7FFC2';
     ctx.lineWidth = baseR * 0.55;
     ctx.lineCap = 'round';
@@ -856,8 +944,15 @@ function renderNeonCanvas(){
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(Math.atan2(s.vy, s.vx) - Math.PI / 2);
-    ctx.shadowColor = NEON_BOMB_COLOR;
-    ctx.shadowBlur = 8 * scale;
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = NEON_BOMB_COLOR;
+    ctx.lineWidth = baseR * 2.0;
+    ctx.beginPath();
+    ctx.moveTo(0, -baseR * 2.2);
+    ctx.lineTo(0, baseR * 2.2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.strokeStyle = '#FFC48A';
     ctx.lineWidth = baseR * 0.55;
     ctx.lineCap = 'round';
@@ -868,14 +963,16 @@ function renderNeonCanvas(){
     ctx.restore();
   }
 
+  // Batched and additive: no per-particle save/restore and no shadow,
+  // with overlapping sparks adding up to recover the bloom for free.
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   for(const p of state.neonParticles){
-    ctx.save();
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color; ctx.shadowBlur = 8 * scale;
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
   }
+  ctx.restore();
 
   drawShockwaves(ctx, neonShockwaves, scale);
   drawFloatTexts(ctx, neonFloatTexts, Math.max(16, 20 * scale));

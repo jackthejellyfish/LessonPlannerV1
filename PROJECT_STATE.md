@@ -11,6 +11,54 @@
 A feedback-driven pass. Everything below this section still describes
 the architecture accurately **except** where this section overrides it.
 
+### v2.2 — four new games, and a pass over the older ones
+
+**16 stages now.** Four games added, all turn-based and whiteboard-first:
+
+| # | Game | Input | Why it exists |
+|---|---|---|---|
+| 13 | Hoop Shot | drag back, release | the only game that asks a learner to judge an ARC; Billiards' aim is flat |
+| 14 | Whack-a-Monster | tap the moving thing | the most physical on a board; big targets |
+| 15 | Treasure Dig | tap a grid | pure luck, so the weakest player can win — every other game rewards speed or aim |
+| 16 | Memory Match | flip and remember | the only non-reflex game; rewards attention |
+
+Stages 14–16 are **DOM grids, not canvas**, on purpose: the v2 work
+established that this app's frame budget goes on canvas fill-rate and
+that the DOM layer is effectively free. Everything animated in them is
+a `transform`/`opacity`, never a blur or an animated box-shadow.
+
+Each new game has its own question angle so six games in a row aren't
+one exercise six times: Hoop Shot = make a question, Whack = snap
+two-way choice, Dig = free personal production, Memory = gap fill with
+no options.
+
+**Spin Wheel was blurry, and the cause was our own cap.** The shared
+`MAX_BUFFER_WIDTH` is tuned for soft content where an upscale is
+invisible; the wheel draws fine arcs and crisp numbers. It now opts out
+via the new `maxBufferWidth` option, and affords the pixels because the
+**wheel face is pre-rendered once and rotated as a single blit** rather
+than redrawing ten arcs and ten rotated labels every frame.
+
+**Star Defender and Neon Arena** got real models (a fighter with a live
+engine flame, saucer scouts, a lightning-bolt zapper, a thruster on the
+player) and lost every remaining `shadowBlur`. Neon's whole backdrop —
+grid, horizon, skyline, stars — is now one cached layer instead of ~30
+strokes a frame. Measured after: Star Defender 60fps, Neon 53fps at 6x
+throttle, both faster than before despite more detail.
+
+**Sound.** `sfxSlash` (three layers: blade through air, metal ring,
+flesh) replaced Fruit Ninja's sine "boing". Both shooters got layered
+weapon sounds and moved their kills onto the shared `sfxImpact`.
+
+**The round-end modal** was cramped because a lone Continue button was
+inheriting `flex:1` and stretching the full width of the modal.
+`.modal-actions .btn:only-child` now sizes it properly; the modal, pill
+and gap sizing all scale with the viewport.
+
+> **Gotcha:** `.game-hint` is absolutely positioned at the top of a play
+> area, so any grid that fills its area must reserve top padding or the
+> hint lands on the first row. All three grid games do.
+
 ### v2.1 (same day) — presentation rework
 
 **Stage 2 is a slideshow, not an accordion.** One rule at a time, filling

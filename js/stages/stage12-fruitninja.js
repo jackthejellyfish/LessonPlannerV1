@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
-import { ensureAudio, sfxImpact, sfxRisingChime, sfxWhoosh, sfxCombo, audioOut } from '../audio.js';
+import { sfxImpact, sfxRisingChime, sfxSlash, sfxCombo } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { FRUIT_QUESTIONS } from '../content/stage12-fruitninja.js';
@@ -79,22 +79,12 @@ function fruitShapeColor(type){
 /* =========================================================
    AUDIO — synthesized only, same technique as every other stage
 ========================================================= */
+// The slice sound is the shared three-layer sword slash (see sfxSlash in
+// js/audio.js). It replaced a single sine pitch-drop, which read as a
+// cartoon "boing" rather than a blade. Intensity rises with the combo so
+// a long swipe through several fruit sounds progressively sharper.
 function sfxFruitSlice(){
-  if(state.muted) return;
-  // The blade noise layered under the pitch drop — a slice is a fast
-  // object passing the listener, which a tone alone can't convey.
-  sfxWhoosh({ intensity: 0.7 });
-  const ctx = ensureAudio();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(1200, ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.09);
-  gain.gain.value = 0.14;
-  osc.connect(gain).connect(audioOut());
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.11);
+  sfxSlash({ intensity: Math.min(1.4, 0.75 + fruitComboCount * 0.2) });
 }
 
 /* =========================================================
