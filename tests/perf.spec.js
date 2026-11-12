@@ -85,10 +85,21 @@ function summarise(label, deltas) {
   // The first couple of frames include the sampler's own startup cost.
   const d = deltas.slice(2);
   if (d.length < 5) throw new Error(`no frames sampled for ${label}`);
-  const elapsed = d.reduce((a, b) => a + b, 0);
   const sorted = d.slice().sort((a, b) => a - b);
+
+  // fps is computed with the worst 2% of frames TRIMMED. One host-level
+  // stall — a GC pause, another process grabbing the CPU — can be a
+  // full second long, and in a 5-second sample that single frame drags
+  // the mean from 40fps to 17 and fails a run that found nothing wrong
+  // with the app. Observed exactly that once this suite got long enough
+  // to load the machine before perf runs. The trim measures the
+  // SUSTAINED rate, which is what a regression guard should watch;
+  // `worstFrame` below is deliberately NOT trimmed, so a genuine stall
+  // is still reported rather than hidden.
+  const keep = sorted.slice(0, Math.max(5, Math.floor(sorted.length * 0.98)));
+  const elapsed = keep.reduce((a, b) => a + b, 0);
   const stats = {
-    fps: +((d.length / elapsed) * 1000).toFixed(1),
+    fps: +((keep.length / elapsed) * 1000).toFixed(1),
     // Share of frames that made a single vsync interval — "how often did
     // it actually feel smooth", which a mean can hide.
     smoothPct: +((d.filter((x) => x <= 18).length / d.length) * 100).toFixed(0),

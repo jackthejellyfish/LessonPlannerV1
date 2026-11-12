@@ -5,18 +5,35 @@
    was this app's real cost and that the DOM layer was effectively
    free, so a dozen animated monsters cost nothing. No blurs and no
    animated box-shadows, which were the two things that pass is on
-   record as avoiding. */
+   record as avoiding.
+
+   The look is a twilight meadow rather than the flat green field this
+   started as: a warm sky, a moon, a vignette, and holes that read as
+   actual pits with grass at the rim. Monsters come in four colours
+   picked per pop, so the board never looks like twelve copies of one
+   creature. */
 
 .whack-play-area{
   position:relative; width:100%; height:100%; min-height:0;
   border-radius:var(--radius); overflow:hidden;
   background:
-    radial-gradient(circle at 50% 118%, #6FBF5B 0%, #4C9440 46%, #2F6B30 100%);
+    /* moon glow */
+    radial-gradient(circle at 78% 8%, rgba(255,247,214,0.22) 0%, transparent 26%),
+    /* vignette, so the middle of the board is where the eye goes */
+    radial-gradient(ellipse at 50% 55%, transparent 40%, rgba(0,0,0,0.3) 100%),
+    linear-gradient(180deg, #2B4A5C 0%, #3C6B4A 32%, #4E8C44 60%, #35682F 100%);
   display:flex; align-items:center; justify-content:center;
   /* Extra top padding reserves room for the .game-hint pill, which is
      absolutely positioned at the top of the play area — without it the
      hint sits on top of the first row of the grid. */
   padding:clamp(46px,7.5vh,70px) clamp(12px,2.5vh,30px) clamp(12px,2.5vh,30px);
+}
+/* The moon itself. */
+.whack-play-area::before{
+  content:''; position:absolute; top:4%; right:7%;
+  width:clamp(34px,6vh,62px); aspect-ratio:1/1; border-radius:50%;
+  background:radial-gradient(circle at 36% 32%, #FFFBEA, #FFE9A8 60%, #E8CE78);
+  z-index:0; pointer-events:none;
 }
 /* Flashes red when a bomb is hit — one class toggle, no layout work. */
 .whack-play-area.flash-bad::after{
@@ -25,6 +42,7 @@
 }
 
 .whack-grid{
+  position:relative; z-index:1;
   display:grid; grid-template-columns:repeat(4, 1fr); grid-template-rows:repeat(3, 1fr);
   gap:clamp(10px,2.2vh,26px);
   width:100%; height:100%; max-width:1100px;
@@ -38,74 +56,173 @@
   position:relative; overflow:hidden;
   display:flex; align-items:flex-end; justify-content:center;
 }
+/* The pit. A deep radial, so a monster appears to climb out of
+   somewhere rather than slide up behind a brown oval. */
 .whack-hole-back{
-  position:absolute; left:8%; right:8%; bottom:4%; height:46%;
+  position:absolute; left:7%; right:7%; bottom:3%; height:50%;
   border-radius:50%;
-  background:radial-gradient(ellipse at 50% 35%, #1E1407 0%, #2E1E0C 70%, #3C2910 100%);
-  box-shadow:inset 0 6px 12px rgba(0,0,0,0.55);
+  background:radial-gradient(ellipse at 50% 28%, #110A04 0%, #241607 62%, #3A2710 100%);
+  box-shadow:inset 0 8px 16px rgba(0,0,0,0.65);
 }
 /* The front lip sits ABOVE the monster in z-order, so the monster
-   appears to come out of the hole rather than stand on top of it. */
+   appears to come out of the hole rather than stand on top of it.
+   The bumps along its top edge read as grass at the rim. */
 .whack-hole-front{
-  position:absolute; left:6%; right:6%; bottom:2%; height:22%;
+  position:absolute; left:5%; right:5%; bottom:1%; height:24%;
   border-radius:50%; z-index:3; pointer-events:none;
-  background:linear-gradient(180deg, #7ACB64 0%, #4F9A42 100%);
-  box-shadow:0 3px 8px rgba(0,0,0,0.3);
+  background:linear-gradient(180deg, #7FD16A 0%, #4E9540 55%, #35682F 100%);
+  box-shadow:0 4px 10px rgba(0,0,0,0.38), inset 0 2px 3px rgba(255,255,255,0.3);
 }
+/* No decorative grass bumps here. A first attempt stacked five radial
+   gradients along this edge, but a radial-gradient's percentage stops
+   are measured along its ray — which defaults to farthest-corner, so
+   the "small" circles were enormous and merged into one opaque
+   rectangle floating above the rim. The ellipse reads as a grassy lip
+   on its own. */
 
 .whack-monster{
   position:relative; z-index:2;
-  width:72%; aspect-ratio:1/1; margin-bottom:6%;
+  height:78%; aspect-ratio:1/1; width:auto; margin-bottom:4%;
   border:none; padding:0; cursor:pointer;
-  border-radius:46% 46% 40% 40%;
-  background:radial-gradient(circle at 34% 28%, #9BE86B, #58C23A 58%, #2E7A22);
-  box-shadow:inset 0 -8px 14px rgba(0,0,0,0.22), inset 0 4px 8px rgba(255,255,255,0.3);
-  transform: translateY(118%);
-  transition: transform 0.16s cubic-bezier(.34,1.56,.64,1);
+  border-radius:48% 48% 42% 42%;
+  background:radial-gradient(circle at 34% 26%, var(--m-light, #9BE86B), var(--m-mid, #58C23A) 58%, var(--m-dark, #2E7A22));
+  box-shadow:inset 0 -9px 15px rgba(0,0,0,0.24), inset 0 5px 9px rgba(255,255,255,0.32);
+  transform: translateY(120%);
+  transition: transform 0.17s cubic-bezier(.34,1.7,.5,1);
 }
-.whack-hole.up .whack-monster{ transform: translateY(0); }
-/* Squashed on the way back down after a hit. */
+/* Up, with a slow idle rock so a waiting monster still reads as alive.
+   The rock is an animation on the same element as the pop transition,
+   delayed so it only begins once the pop has landed. */
+.whack-hole.up .whack-monster{
+  transform: translateY(0);
+  animation: whackIdle 1.1s ease-in-out 0.18s infinite alternate;
+}
+/* Squashed flat on the way back down after a hit. */
 .whack-hole.bonked .whack-monster{
-  transform: translateY(118%) scaleY(0.6);
-  transition: transform 0.22s ease-in;
+  transform: translateY(120%) scaleY(0.55) scaleX(1.25);
+  transition: transform 0.24s ease-in;
+  animation:none;
 }
+@keyframes whackIdle{
+  0%{ transform: translateY(0) rotate(-3.5deg) scaleY(1); }
+  100%{ transform: translateY(-3%) rotate(3.5deg) scaleY(1.04); }
+}
+
+/* Four monster colours, picked per pop (see popWhackMonster). */
+.whack-hole.v1 .whack-monster{ --m-light:#9BE86B; --m-mid:#58C23A; --m-dark:#2E7A22; }
+.whack-hole.v2 .whack-monster{ --m-light:#8ED8FF; --m-mid:#3BA7E8; --m-dark:#1C6396; }
+.whack-hole.v3 .whack-monster{ --m-light:#FFAFD6; --m-mid:#F0609F; --m-dark:#A32E63; }
+.whack-hole.v4 .whack-monster{ --m-light:#D9B8FF; --m-mid:#A572E8; --m-dark:#63379E; }
+
 .whack-hole.golden .whack-monster{
-  background:radial-gradient(circle at 34% 28%, #FFF3C4, #FFD23F 55%, #B8860B);
+  --m-light:#FFF3C4; --m-mid:#FFD23F; --m-dark:#B8860B;
 }
+/* The golden one shimmers so it's spotted instantly — it's worth
+   triple and it ducks back sooner than the others. */
+.whack-hole.golden .whack-monster::before{
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  background:linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.75) 50%, transparent 62%);
+  animation: whackShine 1.1s linear infinite;
+}
+@keyframes whackShine{
+  0%{ transform:translateX(-120%); }
+  100%{ transform:translateX(120%); }
+}
+
 .whack-hole.bomb .whack-monster{
   border-radius:50%;
-  background:radial-gradient(circle at 34% 28%, #5A5A70, #2B2B3A 60%, #15151F);
+  --m-light:#5A5A70; --m-mid:#2B2B3A; --m-dark:#15151F;
 }
 /* Fuse dot, matching the bomb language the other games use. */
 .whack-hole.bomb .whack-monster::after{
-  content:''; position:absolute; top:-6%; left:50%; transform:translateX(-50%);
+  content:''; position:absolute; top:3%; left:50%; margin-left:-9%;
   width:18%; aspect-ratio:1/1; border-radius:50%;
-  background:#FF6B5B; box-shadow:0 0 8px rgba(255,68,68,0.9);
+  background:#FF6B5B; box-shadow:0 0 10px rgba(255,68,68,0.95);
+  animation: whackFuse 0.34s ease-in-out infinite alternate;
+}
+@keyframes whackFuse{
+  0%{ opacity:0.6; transform:scale(0.78); }
+  100%{ opacity:1; transform:scale(1.18); }
 }
 
 .whack-face{ position:absolute; inset:0; }
+/* Antennae — two stalks with a bobble on top. Pure decoration, but
+   it's what turns a coloured blob into a creature. */
+.whack-face::before,
+.whack-face::after{
+  content:''; position:absolute; top:-11%;
+  width:7%; height:20%; border-radius:999px;
+  background:var(--m-dark, #2E7A22);
+  box-shadow:0 -0.38em 0 0.14em var(--m-light, #9BE86B);
+}
+.whack-face::before{ left:27%; transform:rotate(-16deg); }
+.whack-face::after{ right:27%; transform:rotate(16deg); }
+/* The bomb has no face — it should read as an object, not a creature. */
+.whack-hole.bomb .whack-face{ display:none; }
+
 /* Pupil as a gradient stop rather than an inset shadow: the shadow was
    sized in `em`, which on a span with no font-size of its own resolved
    far too small, so the monsters stared blankly. */
 .whack-eye{
-  position:absolute; top:30%; width:17%; aspect-ratio:1/1; border-radius:50%;
+  position:absolute; top:29%; width:19%; aspect-ratio:1/1; border-radius:50%;
   background: radial-gradient(circle at 52% 58%, #1B2A14 0 40%, #ffffff 42%);
   box-shadow:0 1px 2px rgba(0,0,0,0.25);
 }
-.whack-eye.left{ left:22%; }
-.whack-eye.right{ right:22%; }
+.whack-eye.left{ left:20%; }
+.whack-eye.right{ right:20%; }
 .whack-mouth{
-  position:absolute; left:34%; right:34%; top:58%; height:14%;
-  border-radius:0 0 999px 999px; background:#2B1410;
+  position:absolute; left:33%; right:33%; top:58%; height:16%;
+  border-radius:0 0 999px 999px;
+  background:#2B1410;
+  box-shadow:inset 0 -0.25em 0 rgba(255,120,140,0.5);
 }
-/* The bomb has no face — it should read as an object, not a creature. */
-.whack-hole.bomb .whack-face{ display:none; }
+
+/* ---- Effects ----
+   Dirt kicked up on a pop, a ring and a star burst on a hit. All are
+   plain spans added and removed by the stage module, and each animates
+   only transform/opacity, so a dozen at once is still compositor work.
+   Direction comes from --dx/--dy set inline per particle. */
+.whack-dirt{
+  position:absolute; bottom:13%; left:50%;
+  width:9%; aspect-ratio:1/1; border-radius:50%;
+  background:#5A3C18; z-index:4; pointer-events:none;
+  animation: whackDirt 0.45s ease-out forwards;
+}
+@keyframes whackDirt{
+  0%{ opacity:0.95; transform:translate(-50%,0) scale(0.5); }
+  100%{ opacity:0; transform:translate(calc(-50% + var(--dx,0px)), var(--dy,-26px)) scale(1.15); }
+}
+
+.whack-burst{
+  position:absolute; top:38%; left:50%;
+  width:15%; aspect-ratio:1/1; z-index:6; pointer-events:none;
+  background:#FFE27A;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: whackBurst 0.5s ease-out forwards;
+}
+@keyframes whackBurst{
+  0%{ opacity:1; transform:translate(-50%,-50%) scale(0.3) rotate(0deg); }
+  100%{ opacity:0; transform:translate(calc(-50% + var(--dx,0px)), calc(-50% + var(--dy,-30px))) scale(1.25) rotate(150deg); }
+}
+
+/* A quick expanding ring at the hit point — the "impact" read. */
+.whack-ring{
+  position:absolute; top:42%; left:50%;
+  width:62%; aspect-ratio:1/1; border-radius:50%;
+  border:3px solid rgba(255,255,255,0.85);
+  z-index:5; pointer-events:none;
+  animation: whackRing 0.4s ease-out forwards;
+}
+@keyframes whackRing{
+  0%{ opacity:0.9; transform:translate(-50%,-50%) scale(0.2); }
+  100%{ opacity:0; transform:translate(-50%,-50%) scale(1.35); }
+}
 
 .whack-points{
-  position:absolute; left:50%; top:18%; transform:translateX(-50%);
-  z-index:5; pointer-events:none;
+  position:absolute; left:50%; top:14%; transform:translateX(-50%);
+  z-index:7; pointer-events:none;
   font-family:var(--font-display); font-weight:800;
-  font-size:clamp(18px,3.2vh,30px); color:#fff;
+  font-size:clamp(20px,3.6vh,34px); color:#fff;
   text-shadow:0 2px 6px rgba(0,0,0,0.6);
   animation: whackPointsRise 0.7s ease-out forwards;
 }
@@ -113,8 +230,8 @@
 .whack-points.bad{ color:#FF8A8A; }
 @keyframes whackPointsRise{
   0%{ opacity:0; transform:translate(-50%, 10px) scale(0.8); }
-  25%{ opacity:1; transform:translate(-50%, -4px) scale(1.1); }
-  100%{ opacity:0; transform:translate(-50%, -38px) scale(1); }
+  25%{ opacity:1; transform:translate(-50%, -4px) scale(1.15); }
+  100%{ opacity:0; transform:translate(-50%, -42px) scale(1); }
 }
 
 #whackPlayArea #whackBeginTurnBtn{
@@ -124,11 +241,11 @@
 .whack-play-area:not(.idle) #whackBeginTurnBtn{ display:none; }
 
 /* Legend swatches for the How to play screen. */
-.whack-legend-swatch{ display:block; width:28px; height:28px; border-radius:46% 46% 40% 40%; }
-.whack-legend-swatch.green{ background:radial-gradient(circle at 34% 28%, #9BE86B, #58C23A 58%, #2E7A22); }
-.whack-legend-swatch.golden{ background:radial-gradient(circle at 34% 28%, #FFF3C4, #FFD23F 55%, #B8860B); }
+.whack-legend-swatch{ display:block; width:28px; height:28px; border-radius:48% 48% 42% 42%; }
+.whack-legend-swatch.green{ background:radial-gradient(circle at 34% 26%, #9BE86B, #58C23A 58%, #2E7A22); }
+.whack-legend-swatch.golden{ background:radial-gradient(circle at 34% 26%, #FFF3C4, #FFD23F 55%, #B8860B); }
 .whack-legend-swatch.bomb{
   border-radius:50%;
-  background:radial-gradient(circle at 34% 28%, #5A5A70, #2B2B3A 60%, #15151F);
+  background:radial-gradient(circle at 34% 26%, #5A5A70, #2B2B3A 60%, #15151F);
   box-shadow:0 0 8px rgba(255,68,68,0.5);
 }

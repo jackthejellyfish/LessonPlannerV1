@@ -4,11 +4,11 @@ import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
 import { beep, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
-import { MEMORY_QUESTIONS } from '../content/stage16-memory.js';
+import { MEMORY_QUESTIONS } from '../content/stage15-memory.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 
 /* =========================================================
-   STAGE 16 — MEMORY MATCH
+   STAGE 15 — MEMORY MATCH
 
    Answer a question, then find as many matching pairs as you can in 25
    seconds. Six pairs, twelve cards.
@@ -291,5 +291,5 @@ wireTeamManagementButtons({
 
 export function ensureMemoryLayout(){ /* DOM grid — nothing to re-measure */ }
 
-document.getElementById('memoryBackBtn').addEventListener('click', () => goToStage(15));
-document.getElementById('digNextStageBtn').addEventListener('click', () => goToStage(16));
+document.getElementById('memoryBackBtn').addEventListener('click', () => goToStage(14));
+document.getElementById('whackNextStageBtn').addEventListener('click', () => goToStage(15));

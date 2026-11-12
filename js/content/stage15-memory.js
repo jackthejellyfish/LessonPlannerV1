@@ -1,12 +1,11 @@
 /* =========================================================
-   LESSON CONTENT — Stage 16 (Memory Match)
+   LESSON CONTENT — Stage 15 (Memory Match)
 
    This game's angle is GAP FILL with no options offered — the learner
-   has to produce the word from nothing, which is a step harder than
-   Whack-a-Monster's two-way pick and a step easier than Treasure Dig's
-   free production. Short answers, because the game that follows is a
-   quiet, concentration-based one and a long spoken answer would break
-   the pace it needs.
+   has to produce the word from nothing, a step harder than
+   Whack-a-Monster's two-way pick. Short answers, because the game that
+   follows is a quiet, concentration-based one and a long spoken answer
+   would break the pace it needs.
 ========================================================= */
 const LESSON_CONTENT = {
   comparatives: {

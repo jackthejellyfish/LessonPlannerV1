@@ -11,6 +11,52 @@
 A feedback-driven pass. Everything below this section still describes
 the architecture accurately **except** where this section overrides it.
 
+### v2.3 — 15 stages, and Hoop Shot's input rebuilt
+
+**Treasure Dig removed**, Memory Match renumbered 16 → 15.
+
+**Hoop Shot no longer uses a drag.** Dragging was simply the wrong
+input for the surface: on a big interactive whiteboard the pull needed
+for full power ran off the edge of the board, and a mouse drag that
+leaves the window never gets its `mouseup`, so the shot never fired at
+all. It is now two taps — one sweep sets the ANGLE, a second sets the
+POWER — which works identically with a finger or a mouse and turns the
+shot into a timing game the class can shout at.
+
+Both ranges were tuned by simulating the whole angle × power space
+against the real geometry rather than by eye:
+
+- speeds 88–190 so scoring shots sit around the MIDDLE of the power
+  meter (a first pass at 105–215 put every scoring shot below 0.4,
+  leaving the top half of the bar dead)
+- angles 46–80 because nothing below 58° could reach the hoop at any
+  power, and a sweep that is half guaranteed-miss is just a trap
+
+The dotted preview arc is simulated with the same gravity the real shot
+uses, so it is an honest preview — that arc is what makes the game
+learnable rather than luck.
+
+**Whack-a-Monster: easier, animated, and re-skinned.** Up-time
+1150→1650ms, bombs 16%→9%, end-of-round speed-up 0.45→0.25. The first
+tuning was built around how fast a mouse moves; on a board a child has
+to physically reach the hole. Added an idle rock, a dirt puff on pop, a
+ring-and-stars burst on a hit, a shimmer on the golden one and a
+pulsing fuse on bombs — all transform/opacity. The look is a twilight
+meadow with four monster colours picked per pop.
+
+> **Two CSS traps hit here, both worth remembering:** a monster sized at
+> `74%` of hole WIDTH was taller than a wider-than-tall cell, so
+> `overflow:hidden` sliced its head off (and with it the antennae) —
+> it's sized off height now. And a row of "small" bumps built from
+> stacked `radial-gradient`s came out as one opaque rectangle, because
+> a radial gradient's percentage stops are measured along its ray,
+> which defaults to farthest-corner.
+
+**`tests/perf.spec.js` now trims the worst 2% of frames** when computing
+fps. A single host-level stall (observed: one 1016ms frame) dragged a
+40fps sample down to 17 and failed a run with nothing wrong in the app.
+`worstFrame` is still untrimmed, so real stalls remain visible.
+
 ### v2.2 — four new games, and a pass over the older ones
 
 **16 stages now.** Four games added, all turn-based and whiteboard-first:

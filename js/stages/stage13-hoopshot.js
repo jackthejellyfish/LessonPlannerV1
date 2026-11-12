@@ -36,12 +36,38 @@ const HOOP_RIM_Y = 34;             // height of the rim
 const HOOP_RIM_HALF_W = 6.2;       // half the rim's width, in % of canvas width
 const HOOP_BALL_R = 3.4;           // ball radius, % of canvas width
 const HOOP_START = { x: 13, y: 84 };
-// Pull distance is capped so a huge drag across the whole board doesn't
-// simply fire the ball off-screen every time — past this, more drag
-// gives no more power, which keeps the skill in the ANGLE.
-const HOOP_MAX_PULL = 34;
-const HOOP_POWER = 3.5;
-const HOOP_SHOT_TIMEOUT_MS = 5200;
+// Backstop for a shot that never settles (a ball wedged bouncing
+// between a wall and the rim). Kept fairly tight because a class is
+// watching the whole time a shot is in the air.
+const HOOP_SHOT_TIMEOUT_MS = 4200;
+
+/* ---- Aim, then power ----
+   This replaced a drag-to-aim-and-power slingshot. Dragging was the
+   wrong input for the surface this runs on: on a big interactive
+   whiteboard the pull needed to reach full power ran off the edge of
+   the board, and a mouse drag that leaves the window never gets its
+   mouseup, so the shot simply never fired. Two taps have neither
+   problem, work identically with a finger or a mouse, and turn the
+   shot into a timing game that a class can watch and shout at.
+
+   Sweep 1 sets the angle, sweep 2 sets the power. Both oscillate; a
+   tap locks whatever the marker is on. */
+// The sweep is narrow on purpose. Swept across the full 22-78 the
+// simulation showed nothing below 58 degrees could ever reach the
+// hoop at any power — more than half the bar was a guaranteed miss,
+// which is just a trap. This range keeps most of the sweep live.
+const HOOP_ANGLE_MIN = 46;         // degrees above horizontal
+const HOOP_ANGLE_MAX = 80;
+const HOOP_ANGLE_SWEEP_MS = 2300;  // one full min->max->min cycle
+const HOOP_POWER_SWEEP_MS = 1400;
+// Tuned by sweeping the whole angle x power space against the real
+// geometry (see tests): with this range the combinations that actually
+// reach the hoop sit around the MIDDLE of the power meter rather than
+// in its bottom third, so stopping the bar near the centre is the
+// right instinct. A first pass used 105-215, where every scoring shot
+// needed power below 0.4 and the top half of the meter was dead.
+const HOOP_SPEED_MIN = 88;         // %/second
+const HOOP_SPEED_MAX = 190;
 
 const HOOP_BALL_COLOR = '#FF8C3B';
 const HOOP_RIM_COLOR = '#FF4D4D';
@@ -52,6 +78,13 @@ const HOOP_RIM_COLOR = '#FF4D4D';
 function sfxHoopLaunch(){
   beep(320, 0.07, 'triangle', 0.09);
   beep(520, 0.06, 'sine', 0.06, 0.03);
+}
+// Locking the angle: a short, dry click, clearly not a launch — the
+// two taps need to sound different or a class can't tell which half of
+// the shot they just committed to.
+function sfxHoopLock(){
+  beep(1150, 0.035, 'square', 0.07);
+  beep(820, 0.05, 'triangle', 0.05, 0.02);
 }
 function sfxHoopBounce(force){
   // Pitch rises with impact speed, so a hard clang off the rim sounds
@@ -79,7 +112,7 @@ renderGameIntro('hoopSetup', {
   title: 'Hoop Shot',
   steps: [
     'One team answers a question.',
-    'Drag back from the ball, then let go to shoot.',
+    'Tap once to set the angle, then tap again to set the power.',
     'You get three shots at the moving hoop.'
   ],
   scoring: [
@@ -87,7 +120,7 @@ renderGameIntro('hoopSetup', {
     { swatch: '<span class="hoop-legend-swatch swish"></span>', label: 'Swish &mdash; straight in, no rim', points: '+5', tone: 'bonus' },
     { swatch: '<span class="hoop-legend-swatch miss"></span>', label: 'Miss', points: '0' }
   ],
-  tip: 'Pull back further for more power, and aim HIGH &mdash; a steep arc drops through the hoop far more easily than a flat one.'
+  tip: 'Both bars sweep up and down &mdash; tap to stop them. Aim HIGH: a steep arc drops through the hoop far more easily than a flat one.'
 });
 
 export function renderHoopTeamInputs(count){
@@ -172,8 +205,13 @@ const renderHoopBackground = createBackdrop((ctx, w, h) => {
    every other game here); the scoring data lives in `state`.
 ========================================================= */
 let hoopBall = null;          // {x, y, vx, vy, flying, touchedRim}
-let hoopAimFrom = null;       // pointer position while dragging, in %
-let hoopDragging = false;
+// 'aim' -> 'power' -> 'flying'. resolveHoopShot puts it back to 'aim'
+// for the next ball.
+let hoopPhase = 'aim';
+let hoopPhaseStartedAt = 0;
+let hoopAimAngle = 45;        // degrees, live while phase === 'aim'
+let hoopPower = 0.5;          // 0..1, live while phase === 'power'
+let hoopLockedAngle = 45;
 let hoopHoopX = 72;           // centre of the rim, in %
 let hoopHoopDir = 1;
 let hoopHoopSpeed = 9;        // %/second
@@ -182,6 +220,26 @@ let hoopResolving = false;
 
 function resetHoopBall(){
   hoopBall = { x: HOOP_START.x, y: HOOP_START.y, vx: 0, vy: 0, flying: false, touchedRim: false };
+  setHoopPhase('aim');
+}
+
+function setHoopPhase(phase){
+  hoopPhase = phase;
+  hoopPhaseStartedAt = performance.now();
+  const hint = document.getElementById('hoopHint');
+  if(hint){
+    hint.textContent = phase === 'aim' ? 'Tap to set the angle!'
+      : phase === 'power' ? 'Now tap to set the power!'
+      : 'Nice shot...';
+  }
+}
+
+// A 0..1 triangle wave — up, then back down, forever. Used for both
+// sweeps so the marker always reverses at the ends rather than
+// snapping back to the start, which is far easier to time against.
+function hoopSweep(periodMs){
+  const t = ((performance.now() - hoopPhaseStartedAt) % periodMs) / periodMs;
+  return t < 0.5 ? t * 2 : (1 - t) * 2;
 }
 resetHoopBall();
 
@@ -231,7 +289,6 @@ function startHoopRound(){
 export function cancelHoopRound(){
   if(state.hoopRoundRAF) cancelAnimationFrame(state.hoopRoundRAF);
   state.hoopRoundRAF = null;
-  endHoopDrag();
   if(state.hoopRoundActive){
     state.hoopRoundActive = false;
     const playArea = document.getElementById('hoopPlayArea');
@@ -257,6 +314,14 @@ function updateHoop(dt){
 
   hoopFloatTexts = updateFloatTexts(hoopFloatTexts);
   hoopShockwaves = updateShockwaves(hoopShockwaves);
+
+  // The two sweeps are driven here rather than in the renderer, so
+  // what a team sees and what the shot uses can never disagree.
+  if(hoopPhase === 'aim'){
+    hoopAimAngle = HOOP_ANGLE_MIN + hoopSweep(HOOP_ANGLE_SWEEP_MS) * (HOOP_ANGLE_MAX - HOOP_ANGLE_MIN);
+  } else if(hoopPhase === 'power'){
+    hoopPower = hoopSweep(HOOP_POWER_SWEEP_MS);
+  }
 
   if(!hoopBall || !hoopBall.flying) return;
 
@@ -383,71 +448,40 @@ function endHoopGame(){
 }
 
 /* =========================================================
-   INPUT — drag back from the ball, release to shoot
+   INPUT — one tap sets the angle, the next sets the power
 ========================================================= */
-function hoopPointFromEvent(clientX, clientY){
-  const canvas = hoopCanvasResizer.getCanvas();
-  const rect = canvas.getBoundingClientRect();
-  return { x: ((clientX - rect.left) / rect.width) * 100, y: ((clientY - rect.top) / rect.height) * 100 };
+function hoopLaunchVector(angleDeg, power){
+  const rad = (angleDeg * Math.PI) / 180;
+  const speed = HOOP_SPEED_MIN + power * (HOOP_SPEED_MAX - HOOP_SPEED_MIN);
+  return { vx: Math.cos(rad) * speed, vy: -Math.sin(rad) * speed };
 }
 
-function beginHoopDrag(clientX, clientY){
+function hoopTap(){
   if(!state.hoopRoundActive || hoopResolving || !hoopBall || hoopBall.flying) return;
-  hoopDragging = true;
-  hoopAimFrom = hoopPointFromEvent(clientX, clientY);
-  window.addEventListener('mousemove', onHoopMove);
-  window.addEventListener('mouseup', onHoopUp);
-}
-function onHoopMove(e){
-  if(!hoopDragging) return;
-  hoopAimFrom = hoopPointFromEvent(e.clientX, e.clientY);
-}
-function onHoopUp(){ releaseHoopShot(); }
-
-function endHoopDrag(){
-  hoopDragging = false;
-  hoopAimFrom = null;
-  window.removeEventListener('mousemove', onHoopMove);
-  window.removeEventListener('mouseup', onHoopUp);
-}
-
-// The launch vector points from the drag position back to the ball —
-// pull down-left, the ball flies up-right, like a catapult. That reads
-// more naturally than dragging in the direction of travel, and it's the
-// same convention Billiards already uses for the cue.
-function currentHoopPull(){
-  if(!hoopAimFrom || !hoopBall) return null;
-  let dx = hoopBall.x - hoopAimFrom.x;
-  let dy = hoopBall.y - hoopAimFrom.y;
-  const len = Math.hypot(dx, dy);
-  if(len < 0.5) return null;
-  const capped = Math.min(len, HOOP_MAX_PULL);
-  return { dx: (dx / len) * capped, dy: (dy / len) * capped, len: capped };
+  if(hoopPhase === 'aim'){
+    hoopLockedAngle = hoopAimAngle;
+    setHoopPhase('power');
+    sfxHoopLock();
+    return;
+  }
+  if(hoopPhase === 'power'){
+    const v = hoopLaunchVector(hoopLockedAngle, hoopPower);
+    hoopBall.vx = v.vx;
+    hoopBall.vy = v.vy;
+    hoopBall.flying = true;
+    hoopBall.touchedRim = false;
+    hoopShotStartedAt = performance.now();
+    setHoopPhase('flying');
+    sfxHoopLaunch();
+  }
 }
 
-function releaseHoopShot(){
-  const pull = currentHoopPull();
-  endHoopDrag();
-  if(!pull || !hoopBall || hoopBall.flying || hoopResolving) return;
-  hoopBall.vx = pull.dx * HOOP_POWER;
-  hoopBall.vy = pull.dy * HOOP_POWER;
-  hoopBall.flying = true;
-  hoopBall.touchedRim = false;
-  hoopShotStartedAt = performance.now();
-  sfxHoopLaunch();
-}
-
+// The whole play area is the button, not just the ball — on a board
+// being prodded by a child, anything smaller is a miss waiting to
+// happen.
 const hoopCanvasEl = hoopCanvasResizer.getCanvas();
-hoopCanvasEl.addEventListener('mousedown', (e) => beginHoopDrag(e.clientX, e.clientY));
-hoopCanvasEl.addEventListener('touchstart', (e) => {
-  beginHoopDrag(e.touches[0].clientX, e.touches[0].clientY);
-  e.preventDefault();
-}, { passive: false });
-hoopCanvasEl.addEventListener('touchmove', (e) => {
-  if(hoopDragging) hoopAimFrom = hoopPointFromEvent(e.touches[0].clientX, e.touches[0].clientY);
-  e.preventDefault();
-}, { passive: false });
-hoopCanvasEl.addEventListener('touchend', (e) => { releaseHoopShot(); e.preventDefault(); }, { passive: false });
+hoopCanvasEl.addEventListener('click', hoopTap);
+hoopCanvasEl.addEventListener('touchstart', (e) => { hoopTap(); e.preventDefault(); }, { passive: false });
 
 /* =========================================================
    RENDERING
@@ -501,35 +535,68 @@ function renderHoopCanvas(){
   ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(hx - rimHalf, ry); ctx.lineTo(hx + rimHalf, ry); ctx.stroke();
 
-  // ---- Aim guide while dragging ----
-  const pull = hoopDragging ? currentHoopPull() : null;
-  if(pull && hoopBall && !hoopBall.flying){
+  // ---- Aim guide and power meter ----
+  // The predicted arc is simulated with the SAME gravity the real shot
+  // uses, so it is an honest preview rather than a decorative curve.
+  // During the aim sweep it is drawn at mid power, which is what makes
+  // the angle choice legible before the power is known.
+  if(hoopBall && !hoopBall.flying && !hoopResolving){
     const bx = toX(hoopBall.x), by = toY(hoopBall.y);
-    // A dotted predicted arc. Simulating a handful of steps is both the
-    // clearest way to show where a shot will go and an honest one — it
-    // uses the same gravity the real shot will.
-    let sx = hoopBall.x, sy = hoopBall.y;
-    let svx = pull.dx * HOOP_POWER, svy = pull.dy * HOOP_POWER;
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    for(let i = 0; i < 26; i++){
+    const angle = hoopPhase === 'aim' ? hoopAimAngle : hoopLockedAngle;
+    const power = hoopPhase === 'aim' ? 0.5 : hoopPower;
+    const v = hoopLaunchVector(angle, power);
+
+    let sx = hoopBall.x, sy = hoopBall.y, svx = v.vx, svy = v.vy;
+    ctx.fillStyle = '#FFFFFF';
+    for(let i = 0; i < 30; i++){
       svy += HOOP_GRAVITY * 0.035;
       sx += svx * 0.035;
       sy += svy * 0.035;
-      if(sy > HOOP_FLOOR_Y) break;
-      ctx.globalAlpha = 0.6 * (1 - i / 26);
+      if(sy > HOOP_FLOOR_Y || sx > 100) break;
+      ctx.globalAlpha = 0.55 * (1 - i / 30);
       ctx.beginPath();
       ctx.arc(toX(sx), toY(sy), Math.max(1.5, W * 0.0035), 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
 
-    // Power bar along the pull itself.
-    ctx.strokeStyle = `hsl(${90 - (pull.len / HOOP_MAX_PULL) * 90}, 85%, 58%)`;
-    ctx.lineWidth = Math.max(2, W * 0.005);
+    // Aim arrow out of the ball along the chosen angle.
+    const rad = (angle * Math.PI) / 180;
+    const len = ballR * (hoopPhase === 'aim' ? 3.4 : 3.0);
+    const ax = bx + Math.cos(rad) * len, ay = by - Math.sin(rad) * len;
+    ctx.strokeStyle = hoopPhase === 'aim' ? '#7CFFEA' : 'rgba(124,255,234,0.5)';
+    ctx.lineWidth = Math.max(3, W * 0.0055);
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ax, ay); ctx.stroke();
+    ctx.fillStyle = ctx.strokeStyle;
     ctx.beginPath();
-    ctx.moveTo(bx, by);
-    ctx.lineTo(bx - toX(pull.dx), by - toY(pull.dy));
-    ctx.stroke();
+    ctx.moveTo(ax + Math.cos(rad) * ballR * 0.7, ay - Math.sin(rad) * ballR * 0.7);
+    ctx.lineTo(ax + Math.cos(rad + 2.5) * ballR * 0.5, ay - Math.sin(rad + 2.5) * ballR * 0.5);
+    ctx.lineTo(ax + Math.cos(rad - 2.5) * ballR * 0.5, ay - Math.sin(rad - 2.5) * ballR * 0.5);
+    ctx.closePath(); ctx.fill();
+
+    if(hoopPhase === 'power'){
+      // Power meter, drawn up the left edge beside the ball so a team's
+      // eyes never have to leave the shot to read it. Green through to
+      // red, with the marker as a bright bar rather than a fill level —
+      // the bar is what you are trying to stop, so it has to be the
+      // most visible thing on it.
+      const mx = toX(4), my0 = toY(32), my1 = toY(84);
+      const mw = W * 0.022;
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(mx - mw / 2 - 3, my0 - 3, mw + 6, (my1 - my0) + 6);
+      const grad = ctx.createLinearGradient(0, my1, 0, my0);
+      grad.addColorStop(0, '#5BD75B');
+      grad.addColorStop(0.55, '#FFD23F');
+      grad.addColorStop(1, '#FF4D4D');
+      ctx.fillStyle = grad;
+      ctx.fillRect(mx - mw / 2, my0, mw, my1 - my0);
+
+      const markY = my1 - hoopPower * (my1 - my0);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(mx - mw * 0.95, markY - W * 0.004, mw * 1.9, W * 0.008);
+      drawGlow(ctx, mx, markY, mw * 1.6, '#FFFFFF', 0.55, 1.7);
+    }
   }
 
   // ---- Ball ----

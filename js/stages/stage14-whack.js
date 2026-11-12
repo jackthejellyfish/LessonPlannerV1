@@ -25,14 +25,20 @@ import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '
 ========================================================= */
 const WHACK_ROUND_SECONDS = 15;
 const WHACK_HOLES = 12;              // 4 x 3
-// How long a monster stays up. Short enough to need attention, long
-// enough that a child who sees it can reach it on a big board.
-const WHACK_UP_MS = 1150;
-const WHACK_UP_MS_FAST = 820;        // the golden one is worth more AND harder
-const WHACK_SPAWN_MIN_MS = 330;
-const WHACK_SPAWN_MAX_MS = 620;
-const WHACK_BOMB_CHANCE = 0.16;
-const WHACK_GOLDEN_CHANCE = 0.12;
+// Eased across the board after play-testing: a monster now stays up
+// noticeably longer, bombs are rarer, and the end-of-round speed-up is
+// gentler. On a whiteboard a child has to physically walk/reach to a
+// hole, which the first tuning didn't allow for — it was built around
+// how fast a mouse can move.
+const WHACK_UP_MS = 1650;            // was 1150
+const WHACK_UP_MS_FAST = 1250;       // the golden one still ducks sooner (was 820)
+const WHACK_SPAWN_MIN_MS = 300;
+const WHACK_SPAWN_MAX_MS = 560;
+const WHACK_BOMB_CHANCE = 0.09;      // was 0.16
+const WHACK_GOLDEN_CHANCE = 0.13;
+// How much faster spawns get by the end of the round. 1 = no speed-up.
+const WHACK_END_URGENCY = 0.25;      // was 0.45
+const WHACK_VARIANTS = ['v1', 'v2', 'v3', 'v4'];
 
 /* =========================================================
    AUDIO
@@ -64,7 +70,7 @@ renderGameIntro('whackSetup', {
     { swatch: '<span class="whack-legend-swatch golden"></span>', label: 'Golden monster', points: '+3', tone: 'bonus' },
     { swatch: '<span class="whack-legend-swatch bomb"></span>', label: 'Bomb &mdash; do not tap!', points: '&minus;2', tone: 'bad' }
   ],
-  tip: 'The golden monster is worth three, but it ducks back down faster than the others &mdash; go for it the moment you see it.'
+  tip: 'The golden monster is worth three, but it ducks back down sooner than the others &mdash; go for it the moment you see it.'
 });
 
 export function renderWhackTeamInputs(count){
@@ -147,7 +153,7 @@ document.getElementById('whackBeginTurnBtn').addEventListener('click', async () 
 function clearWhackHole(hole){
   if(hole.timeout){ clearTimeout(hole.timeout); hole.timeout = null; }
   hole.kind = null;
-  hole.el.classList.remove('up', 'bomb', 'golden', 'bonked');
+  hole.el.classList.remove('up', 'bomb', 'golden', 'bonked', ...WHACK_VARIANTS);
 }
 
 function popWhackMonster(){
@@ -159,10 +165,16 @@ function popWhackMonster(){
     : roll < WHACK_BOMB_CHANCE + WHACK_GOLDEN_CHANCE ? 'golden'
     : 'monster';
   hole.kind = kind;
-  hole.el.classList.remove('bonked');
+  hole.el.classList.remove('bonked', ...WHACK_VARIANTS);
   hole.el.classList.toggle('bomb', kind === 'bomb');
   hole.el.classList.toggle('golden', kind === 'golden');
+  // A colour per pop, so the board doesn't look like twelve copies of
+  // the same creature. Bombs and golden ones carry their own look.
+  if(kind === 'monster'){
+    hole.el.classList.add(WHACK_VARIANTS[Math.floor(Math.random() * WHACK_VARIANTS.length)]);
+  }
   hole.el.classList.add('up');
+  spawnWhackDirt(hole);
   sfxWhackPop();
   hole.timeout = setTimeout(() => clearWhackHole(hole), kind === 'golden' ? WHACK_UP_MS_FAST : WHACK_UP_MS);
 }
@@ -190,12 +202,50 @@ function whackHit(index){
   state.whackScore = Math.max(0, state.whackScore + delta);
   document.getElementById('whackScoreDisplay').textContent = String(state.whackScore);
   showWhackPoints(hole, delta);
+  if(kind !== 'bomb') spawnWhackBurst(hole, kind === 'golden');
 
   // 'bonked' plays the squash-and-drop; the hole is cleared immediately
   // so the same monster can't be tapped twice.
   clearWhackHole(hole);
   hole.el.classList.add('bonked');
   setTimeout(() => hole.el.classList.remove('bonked'), 260);
+}
+
+/* ---- Effect particles ----
+   Plain spans with a direction in --dx/--dy, animated entirely by CSS
+   (transform + opacity) and removed on a timer. Deliberately NOT
+   canvas: this stage has no canvas at all, and the v2 performance work
+   established that the DOM layer is effectively free here while canvas
+   fill-rate is not. */
+function addWhackParticle(hole, className, dx, dy, lifeMs){
+  const el = document.createElement('span');
+  el.className = className;
+  el.style.setProperty('--dx', `${dx}px`);
+  el.style.setProperty('--dy', `${dy}px`);
+  hole.el.appendChild(el);
+  setTimeout(() => el.remove(), lifeMs);
+}
+
+// Dirt kicked out of the hole as something climbs through it.
+function spawnWhackDirt(hole){
+  for(let i = 0; i < 5; i++){
+    const dx = (Math.random() - 0.5) * 70;
+    const dy = -(14 + Math.random() * 24);
+    addWhackParticle(hole, 'whack-dirt', dx, dy, 480);
+  }
+}
+
+// The hit: a ring plus a spray of stars. A golden monster throws more
+// of them, so the big score reads as a bigger event.
+function spawnWhackBurst(hole, golden){
+  addWhackParticle(hole, 'whack-ring', 0, 0, 430);
+  const count = golden ? 8 : 5;
+  for(let i = 0; i < count; i++){
+    const ang = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+    addWhackParticle(hole, 'whack-burst',
+      Math.cos(ang) * (34 + Math.random() * 26),
+      Math.sin(ang) * (34 + Math.random() * 26), 540);
+  }
 }
 
 // A floating "+1" at the hole. DOM rather than canvas, matching the way
@@ -236,9 +286,9 @@ function startWhackRound(){
 
     if(elapsed >= nextSpawnAt){
       popWhackMonster();
-      // Spawns speed up as the round runs down, so the last few seconds
-      // are the frantic ones.
-      const urgency = 1 - (remaining / WHACK_ROUND_SECONDS) * 0.45;
+      // Spawns still speed up toward the end, but far less sharply than
+      // they did — the finish should feel busy, not punishing.
+      const urgency = 1 - (remaining / WHACK_ROUND_SECONDS) * WHACK_END_URGENCY;
       nextSpawnAt = elapsed + (WHACK_SPAWN_MIN_MS + Math.random() * (WHACK_SPAWN_MAX_MS - WHACK_SPAWN_MIN_MS)) * urgency;
     }
 
@@ -304,3 +354,5 @@ export function ensureWhackLayout(){ /* DOM grid — nothing to re-measure */ }
 
 document.getElementById('whackBackBtn').addEventListener('click', () => goToStage(13));
 document.getElementById('hoopNextStageBtn').addEventListener('click', () => goToStage(14));
+// Memory Match wires whackNextStageBtn itself — a "Next" handler lives
+// in the file for the stage it goes TO.

@@ -1,13 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
 /* =========================================================
-   THE FOUR GAMES ADDED IN v2.2
+   THE GAMES ADDED IN v2.2
    Each one is played for real — question, input, scoring, turn
-   resolution — rather than just loaded. The four differ enough in
-   input (drag-release, tap-the-moving-thing, tap-a-grid, flip-and-
-   remember) that a shared smoke test wouldn't prove much about any of
-   them; what each test below actually pins down is that the game's
-   own interaction produces a score and reaches the result modal.
+   resolution — rather than just loaded. They differ enough in input
+   (aim-then-power, tap-the-moving-thing, flip-and-remember) that a
+   shared smoke test wouldn't prove much about any of them; what each
+   test below pins down is that the game's own interaction produces a
+   score and reaches the result modal.
 ========================================================= */
 
 async function openGame(page, step, prefix) {
@@ -32,20 +32,33 @@ function watchErrors(page) {
   return errors;
 }
 
-test('Hoop Shot: three shots fire and the turn resolves', async ({ page }) => {
+test('Hoop Shot: two taps per shot fire it, and three shots end the turn', async ({ page }) => {
   const errors = watchErrors(page);
   await openGame(page, 12, 'hoop');
 
-  const box = await page.locator('#hoopCanvas').boundingBox();
-  for (let i = 0; i < 3; i++) {
-    const bx = box.x + box.width * 0.13, by = box.y + box.height * 0.84;
-    await page.mouse.move(bx, by);
-    await page.mouse.down();
-    // Drag back and down: the launch vector points from here to the
-    // ball, so this throws it up and to the right, toward the hoop.
-    await page.mouse.move(bx - box.width * 0.10, by + box.height * 0.16, { steps: 6 });
-    await page.mouse.up();
-    await page.waitForTimeout(2600);
+  const canvas = page.locator('#hoopCanvas');
+  const hint = page.locator('#hoopHint');
+  const shotsLeft = page.locator('#hoopShotsDisplay');
+  await expect(shotsLeft).toHaveText('3');
+
+  for (const remaining of ['2', '1', '0']) {
+    // Wait for the next ball to actually be ready. The shots counter
+    // ticks down the moment a shot resolves, but the fresh ball only
+    // appears a beat later — taps in that gap are ignored, which is
+    // exactly what made an earlier version of this test fail.
+    await expect(hint).toHaveText('Tap to set the angle!', { timeout: 9000 });
+
+    // Tap once to lock the angle, again to lock the power and launch.
+    // Deliberately NO dragging: the drag version of this game could
+    // leave the board mid-pull and never fire at all.
+    await canvas.click({ position: { x: 300, y: 200 } });
+    await expect(hint).toHaveText('Now tap to set the power!');
+    await canvas.click({ position: { x: 300, y: 200 } });
+
+    // Then wait for the shot to RESOLVE rather than guessing how long
+    // a miss takes — a ball that clatters off the rim stays live for
+    // several seconds.
+    await expect(shotsLeft).toHaveText(remaining, { timeout: 9000 });
   }
 
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 12000 });
@@ -75,28 +88,9 @@ test('Whack-a-Monster: monsters pop up and whacking them scores', async ({ page 
   expect(errors).toEqual([]);
 });
 
-test('Treasure Dig: five digs reveal tiles and end the turn', async ({ page }) => {
-  const errors = watchErrors(page);
-  await openGame(page, 14, 'dig');
-
-  for (let i = 0; i < 5; i++) {
-    await page.locator('.dig-tile:not(.dug)').first().click();
-    await page.waitForTimeout(260);
-  }
-  expect(await page.locator('.dig-tile.dug').count(),
-    'exactly the five allotted digs').toBe(5);
-  // A sixth tap must do nothing — the turn is spent.
-  await page.locator('.dig-tile:not(.dug)').first().click({ force: true }).catch(() => {});
-  expect(await page.locator('.dig-tile.dug').count()).toBe(5);
-
-  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 8000 });
-  await page.click('#digNextTeamBtn');
-  expect(errors).toEqual([]);
-});
-
 test('Memory Match: a matching pair stays face-up and scores', async ({ page }) => {
   const errors = watchErrors(page);
-  await openGame(page, 15, 'memory');
+  await openGame(page, 14, 'memory');
 
   // Read the symbols so the pair is matched deliberately rather than by
   // luck — a random-guess test would be flaky by construction.

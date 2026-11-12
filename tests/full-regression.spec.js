@@ -8,7 +8,7 @@ const { test, expect } = require('@playwright/test');
 // clicked via locator.evaluate(el => el.click()) to bypass Playwright's
 // visibility gate rather than treating that as a bug.
 //
-// .wrap (stepper + all 16 stages) stays hidden behind the lesson-select
+// .wrap (stepper + all 15 stages) stays hidden behind the lesson-select
 // screen (js/lessons.js) until a lesson card is picked — every test clicks
 // the first card right after goto() purely to get past that gate; which
 // lesson is picked doesn't matter for these structural assertions.
@@ -22,9 +22,9 @@ test('all 16 stages are reachable with zero console/page errors', async ({ page 
   await page.click('.lesson-card >> nth=0');
 
   const steps = page.locator('.step');
-  await expect(steps).toHaveCount(16);
+  await expect(steps).toHaveCount(15);
 
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 15; i++) {
     await steps.nth(i).evaluate((el) => el.click());
     await page.waitForTimeout(150);
   }

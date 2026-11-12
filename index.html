@@ -27,8 +27,7 @@
     <link rel="stylesheet" href="css/stage12-fruitninja.css" />
     <link rel="stylesheet" href="css/stage13-hoopshot.css" />
     <link rel="stylesheet" href="css/stage14-whack.css" />
-    <link rel="stylesheet" href="css/stage15-dig.css" />
-    <link rel="stylesheet" href="css/stage16-memory.css" />
+    <link rel="stylesheet" href="css/stage15-memory.css" />
     <link rel="stylesheet" href="css/fullscreen-game.css" />
     <link rel="stylesheet" href="css/print.css" />
   </head>
@@ -926,7 +925,7 @@
 
               <div id="hoopPlayArea" class="inv-play-area idle">
                 <canvas id="hoopCanvas" class="inv-canvas"></canvas>
-                <p class="game-hint hidden" id="hoopHint">Drag back from the ball and release to shoot!</p>
+                <p class="game-hint hidden" id="hoopHint">Tap to set the angle!</p>
                 <button class="btn btn-primary" id="hoopBeginTurnBtn" type="button">
                   Begin turn
                 </button>
@@ -1012,79 +1011,13 @@
           <button class="btn btn-ghost" id="whackBackBtn">← Back</button>
           <div style="display: flex; gap: 10px">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
-            <button class="btn btn-primary" id="whackNextStageBtn">Next: Treasure Dig →</button>
+            <button class="btn btn-primary" id="whackNextStageBtn">Next: Memory Match →</button>
           </div>
         </div>
       </section>
 
-      <!-- STAGE 15: TREASURE DIG -->
+      <!-- STAGE 15: MEMORY MATCH -->
       <section class="stage hidden" id="stage15">
-        <h2>Treasure Dig</h2>
-        <div class="stage-body">
-          <div id="digSetup"></div>
-
-          <div id="digGame" class="hidden pop-game-layout">
-            <div class="pop-sidebar">
-              <ul class="pop-team-list" id="digTeamList"></ul>
-              <div class="pop-turn-box">
-                <span id="digTurnBanner"></span>
-                <div class="pop-sidebar-actions">
-                  <button class="pop-sidebar-reset" id="digResetScoresBtn" type="button">
-                    Reset scores
-                  </button>
-                  <button class="pop-sidebar-reset" id="digChangeTeamsBtn" type="button">
-                    Change teams
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="pop-main">
-              <div class="pop-hud-card">
-                <div class="pop-hud">
-                  <div>
-                    <span class="pop-hud-label">Digs left</span
-                    ><span class="pop-hud-num" id="digDigsDisplay">5</span>
-                  </div>
-                  <div>
-                    <span class="pop-hud-label">Turn score</span
-                    ><span class="pop-hud-num" id="digScoreDisplay">0</span>
-                  </div>
-                </div>
-                <div class="timer-bar-track">
-                  <div class="timer-bar-fill" id="digTimerFill"></div>
-                </div>
-              </div>
-
-              <div id="digPlayArea" class="dig-play-area idle">
-                <div id="digGrid" class="dig-grid"></div>
-                <p class="game-hint hidden" id="digHint">Tap a square to dig!</p>
-                <button class="btn btn-primary" id="digBeginTurnBtn" type="button">
-                  Begin turn
-                </button>
-                <div class="game-over-banner hidden" id="digGameOverBanner">
-                  <div class="game-over-title">Game over</div>
-                  <div class="game-over-winner" id="digGameOverWinner"></div>
-                </div>
-              </div>
-
-              <button class="btn btn-primary hidden" id="digPlayAgainBtn" type="button">
-                Play again
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="stage-footer">
-          <button class="btn btn-ghost" id="digBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
-            <button class="btn btn-primary" id="digNextStageBtn">Next: Memory Match →</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- STAGE 16: MEMORY MATCH -->
-      <section class="stage hidden" id="stage16">
         <h2>Memory Match</h2>
         <div class="stage-body">
           <div id="memorySetup"></div>

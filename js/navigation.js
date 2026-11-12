@@ -11,8 +11,7 @@ import { cancelNeonRound, ensureNeonLayout } from './stages/stage11-neonarena.js
 import { cancelFruitRound, ensureFruitLayout } from './stages/stage12-fruitninja.js';
 import { cancelHoopRound, ensureHoopLayout } from './stages/stage13-hoopshot.js';
 import { cancelWhackRound, ensureWhackLayout } from './stages/stage14-whack.js';
-import { cancelDigRound, ensureDigLayout } from './stages/stage15-dig.js';
-import { cancelMemoryRound, ensureMemoryLayout } from './stages/stage16-memory.js';
+import { cancelMemoryRound, ensureMemoryLayout } from './stages/stage15-memory.js';
 import { enterFooterLayout, exitFooterLayout } from './fullscreenLayout.js';
 
 /* The team-game stages, in stage order. These take over the full
@@ -36,8 +35,7 @@ const GAME_STAGES = [
   { stage: 12, ensureLayout: ensureFruitLayout,    cancelRound: cancelFruitRound },
   { stage: 13, ensureLayout: ensureHoopLayout,     cancelRound: cancelHoopRound },
   { stage: 14, ensureLayout: ensureWhackLayout,    cancelRound: cancelWhackRound },
-  { stage: 15, ensureLayout: ensureDigLayout,      cancelRound: cancelDigRound },
-  { stage: 16, ensureLayout: ensureMemoryLayout,   cancelRound: cancelMemoryRound }
+  { stage: 15, ensureLayout: ensureMemoryLayout,   cancelRound: cancelMemoryRound }
 ];
 const FULLSCREEN_STAGES = new Set(GAME_STAGES.map(g => g.stage));
 
