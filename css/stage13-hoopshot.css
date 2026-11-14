@@ -1,7 +1,9 @@
 /* ---- Hoop Shot (Stage 13) ----
-   Reuses .inv-play-area/.inv-canvas (the shared dark canvas chrome) —
-   everything in the game itself is drawn on canvas, so only the legend
-   swatches and the begin button need styling here. */
+   Reuses .inv-play-area/.inv-canvas (the shared dark canvas chrome).
+   The court is drawn on canvas; the angle/power/shoot dock is real DOM
+   so the buttons are big, accessible, and hold-to-repeat. The dock sits
+   over the bottom ~20% of the canvas, which the game keeps clear for it
+   (HOOP_FLOOR_Y = 80 in js/stages/stage13-hoopshot.js). */
 
 .hoop-legend-swatch{
   display:block; width:28px; height:28px; border-radius:50%;
@@ -24,5 +26,64 @@
 }
 .inv-play-area:not(.idle) #hoopBeginTurnBtn{ display:none; }
 
-#hoopCanvas{ cursor:grab; touch-action:none; }
-#hoopCanvas:active{ cursor:grabbing; }
+#hoopCanvas{ cursor:crosshair; touch-action:none; }
+
+/* ---- Control dock ---- */
+.hoop-controls{
+  position:absolute; left:50%; bottom:clamp(8px,2vh,18px); transform:translateX(-50%);
+  z-index:22; display:flex; align-items:center; justify-content:center;
+  gap:clamp(10px,1.6vw,22px); flex-wrap:wrap;
+  width:max-content; max-width:calc(100% - 24px);
+  padding:clamp(8px,1.2vh,12px) clamp(10px,1.4vw,16px);
+  background:rgba(10,8,32,0.78); border:1px solid rgba(255,255,255,0.14);
+  border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  color:#fff; font-family:var(--font-display);
+}
+.inv-play-area.idle .hoop-controls{ display:none; }
+
+.hoop-control-group{
+  display:flex; align-items:center; gap:clamp(6px,0.8vw,10px);
+}
+.hoop-control-label{
+  font-size:clamp(12px,1.5vh,14px); font-weight:700; letter-spacing:0.06em;
+  text-transform:uppercase; color:rgba(255,255,255,0.7);
+}
+.hoop-control-value{
+  min-width:3.2ch; text-align:center; font-variant-numeric:tabular-nums;
+  font-size:clamp(20px,3vh,28px); font-weight:800;
+}
+.hoop-step-btn{
+  width:clamp(44px,6.5vh,60px); height:clamp(44px,6.5vh,60px);
+  border-radius:50%; border:2px solid rgba(124,255,234,0.6);
+  background:rgba(124,255,234,0.12); color:#7CFFEA;
+  font:800 clamp(24px,3.6vh,32px)/1 var(--font-display);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; touch-action:none; user-select:none;
+  transition:transform 0.12s ease, background 0.12s ease;
+}
+.hoop-step-btn:hover:not(:disabled){ background:rgba(124,255,234,0.24); transform:scale(1.06); }
+.hoop-step-btn:active:not(:disabled){ transform:scale(0.94); }
+.hoop-step-btn:disabled{ opacity:0.3; cursor:default; }
+
+.hoop-power-meter{
+  position:relative; width:clamp(70px,9vw,140px); height:clamp(12px,1.6vh,16px);
+  border-radius:999px; background:rgba(255,255,255,0.12); overflow:hidden;
+}
+.hoop-power-fill{
+  position:absolute; inset:0 auto 0 0; width:50%;
+  background:linear-gradient(90deg, #5BD75B, #FFD23F 60%, #FF4D4D);
+  background-size:clamp(70px,9vw,140px) 100%;
+  border-radius:inherit;
+}
+
+.hoop-shoot-btn{
+  padding:clamp(10px,1.6vh,16px) clamp(22px,3vw,40px);
+  border:none; border-radius:999px; cursor:pointer;
+  background:linear-gradient(180deg, #FFA45C, #FF7A1F); color:#fff;
+  font:800 clamp(18px,2.6vh,24px)/1 var(--font-display); letter-spacing:0.04em; text-transform:uppercase;
+  box-shadow:0 6px 0 #B9541A, 0 10px 22px rgba(255,122,31,0.4);
+  transition:transform 0.1s ease, box-shadow 0.1s ease;
+}
+.hoop-shoot-btn:hover:not(:disabled){ transform:translateY(-2px); }
+.hoop-shoot-btn:active:not(:disabled){ transform:translateY(4px); box-shadow:0 2px 0 #B9541A, 0 4px 12px rgba(255,122,31,0.4); }
+.hoop-shoot-btn:disabled{ opacity:0.4; cursor:default; }

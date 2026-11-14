@@ -75,6 +75,19 @@ export const LESSONS = [
     printWorksheetTitle: 'Present Perfect \u2014 Practice Worksheet',
     printFooter: 'Present Perfect \u2014 Interactive Lesson',
     mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+  },
+  {
+    id: 'amusement-park',
+    title: 'At the Amusement Park',
+    tagline: 'Say what you did with the past simple — and how it was with -ing / -ed adjectives.',
+    objective: 'By the end of this lesson, you will be able to say what you did at an amusement park using the past simple, and describe how it was and how you felt with -ing and -ed adjectives.',
+    freeIntro: 'Imagine you went to an amusement park. Ask a partner “What did you do?” and “How was it?”, then say or write five sentences about your day.',
+    pageTitle: 'At the Amusement Park — Interactive Lesson',
+    printRulesTitle: 'At the Amusement Park — Rules Reference',
+    printRulesSubtitle: 'Past simple (regular and irregular) and -ing / -ed adjectives',
+    printWorksheetTitle: 'At the Amusement Park — Practice Worksheet',
+    printFooter: 'At the Amusement Park — Interactive Lesson',
+    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
   }
 ];
 
@@ -87,11 +100,11 @@ export function getLesson(id){
 // than inventing a new palette just for this screen. `onSelect(id)` is
 // supplied by main.js, which owns the actual lesson-switch/full-reset
 // flow — this module only knows how to list and render lessons.
-// Five lessons now, and the four --rule accents would make card 5 a
-// repeat of card 1 — so the cycle gets a fifth entry. --primary-dark is
-// already in the palette (it is the button hover colour), so this adds a
-// distinct card colour without inventing a new one for this screen.
-const CARD_COLORS = ['var(--rule-a)', 'var(--rule-b)', 'var(--rule-c)', 'var(--rule-d)', 'var(--primary-dark)'];
+// Six lessons now, and the four --rule accents would make cards 5-6
+// repeats of cards 1-2 — so the cycle gets two more entries, both
+// already in the palette (--primary-dark is the button hover colour,
+// --timer the countdown amber), rather than inventing new colours.
+const CARD_COLORS = ['var(--rule-a)', 'var(--rule-b)', 'var(--rule-c)', 'var(--rule-d)', 'var(--primary-dark)', 'var(--timer)'];
 
 export function renderLessonCards(onSelect){
   const container = document.getElementById('lessonCards');

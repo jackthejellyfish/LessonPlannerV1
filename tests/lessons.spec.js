@@ -15,7 +15,7 @@ const { test, expect } = require('@playwright/test');
    {prompt, answer} banks and are covered by the error check alone.
 ========================================================= */
 
-const STAGE_COUNT = 15;
+const STAGE_COUNT = 14;
 
 test('every lesson renders every stage with no console errors', async ({ page }) => {
   const errors = [];
@@ -24,7 +24,7 @@ test('every lesson renders every stage with no console errors', async ({ page })
 
   await page.goto('/index.html');
   const lessonCount = await page.locator('.lesson-card').count();
-  expect(lessonCount).toBe(5);
+  expect(lessonCount).toBe(6);
 
   for (let lesson = 0; lesson < lessonCount; lesson++) {
     await page.goto('/index.html');

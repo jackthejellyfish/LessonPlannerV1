@@ -83,7 +83,7 @@ body.fullscreen-game .stage:not(.hidden) .stage-footer > div{ display:flex; gap:
    footer never overlap interactive game content (tiles, balls near the
    edge). The top figure is a flat clamp(), not a measured var like the
    footer's --compact-footer-h below — safe here because this stepper's
-   content is content-invariant (always the same 15 steps, one row, no
+   content is content-invariant (always the same 14 steps, one row, no
    wrap: .stepper has no flex-wrap and each .step is flex:1, so it only
    ever shrinks in place) unlike the footer, whose team-count/HUD-field
    content genuinely varies per game and per team count. Sized for the

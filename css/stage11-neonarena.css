@@ -60,9 +60,5 @@
   }
   .inv-play-area:not(.idle) #neonBeginTurnBtn{ display:none; }
 
-  .neon-hint{
-    position:absolute; top:14px; left:50%; transform:translateX(-50%);
-    z-index:22; margin:0; padding:8px 18px; border-radius:999px;
-    background:rgba(10,6,25,0.72); color:#E7FFC2; font-size:clamp(12px,1.6vh,15px);
-    box-shadow:0 4px 14px rgba(0,0,0,0.35); pointer-events:none;
-  }
+  /* Layout comes from the shared .game-hint (css/base.css). */
+  .neon-hint{ color:#E7FFC2; }

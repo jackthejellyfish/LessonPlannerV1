@@ -173,6 +173,40 @@ const LESSON_CONTENT = {
           {prompt:"Interview a partner: what have they done that you haven\u2019t? Write at least 3 sentences."},
         ]},
     ]
+  },
+  'amusement-park': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Fill in the blank with the past simple or the correct -ing / -ed adjective.",
+        questions:[
+          {prompt:"Yesterday I ___ a 3D film. (watch)", answer:"watched"},
+          {prompt:"We ___ on a roller coaster. (go)", answer:"went"},
+          {prompt:"She ___ the merry-go-round. (ride)", answer:"rode"},
+          {prompt:"The haunted house was ___. (scary / scared)", answer:"scary"},
+          {prompt:"The film was great. I was ___. (amazing / amazed)", answer:"amazed"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+        questions:[
+          {chips:["What","did","you","do","at","the","park","?"],answer:"What did you do at the park ?"},
+          {chips:["I","saw","a","parade","."],answer:"I saw a parade ."},
+          {chips:["How","was","the","roller","coaster","?"],answer:"How was the roller coaster ?"},
+          {chips:["It","was","exciting","and","I","was","excited","."],answer:"It was exciting and I was excited ."},
+          {chips:["We","visited","a","petting","zoo","."],answer:"We visited a petting zoo ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence about a day at an amusement park.",
+        questions:[
+          {prompt:'Write a sentence using "went on".',             hint:'I went on the ___.'},
+          {prompt:'Write a sentence using "saw".',                 hint:'We saw ___.'},
+          {prompt:'Write a sentence using "It was ___ing".',       hint:'The ___ was ___ing.'},
+          {prompt:'Write a sentence using "I was ___ed".',         hint:'I was ___ed because ___.'},
+          {prompt:'Write a question using "What did you".',        hint:'What did you ___?'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3–5 sentences using the past simple and -ing / -ed adjectives.",
+        questions:[
+          {prompt:"Imagine you went to an amusement park. What did you do? How was it? Write at least 3 sentences."},
+          {prompt:"Write about the most exciting day out you remember. Where did you go and how did you feel? Write at least 3 sentences."},
+          {prompt:"Ask four friends 'What did you do at the amusement park?'. What was the most popular attraction? Write at least 3 sentences."},
+        ]},
+    ]
   }
 };
 

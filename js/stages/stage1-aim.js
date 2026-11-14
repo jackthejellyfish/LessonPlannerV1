@@ -92,6 +92,36 @@ function buildAimIcon(type){
       <line x1="40" y1="18" x2="40" y2="60" stroke="var(--paper)" stroke-width="3"/>
     </svg>`;
   }
+  // --- Amusement Park lesson icons. Same flat-shape vocabulary.
+  if(type === 'coaster'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M6 62 C18 62 20 14 36 14 C52 14 50 48 64 48 C76 48 80 24 94 24" fill="none" stroke="var(--rule-c)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M22 40 V66 M36 16 V66 M52 36 V66 M66 48 V66 M84 30 V66" stroke="var(--muted)" stroke-width="3" stroke-linecap="round"/>
+      <g transform="rotate(-38 82 22)"><rect x="72" y="12" width="20" height="10" rx="3" fill="var(--rule-a)"/><circle cx="76" cy="24" r="3" fill="var(--ink)"/><circle cx="88" cy="24" r="3" fill="var(--ink)"/></g>
+    </svg>`;
+  }
+  if(type === 'carousel'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <polygon points="50,4 86,24 14,24" fill="var(--rule-c)"/>
+      <path d="M14 24 q6 6 12 0 q6 6 12 0 q6 6 12 0 q6 6 12 0 q6 6 12 0 q6 6 12 0" fill="var(--rule-d)"/>
+      <line x1="50" y1="24" x2="50" y2="60" stroke="var(--muted)" stroke-width="4"/>
+      <line x1="28" y1="28" x2="28" y2="46" stroke="var(--muted)" stroke-width="2"/>
+      <line x1="72" y1="28" x2="72" y2="40" stroke="var(--muted)" stroke-width="2"/>
+      <rect x="20" y="42" width="16" height="9" rx="4" fill="var(--rule-a)"/>
+      <rect x="64" y="36" width="16" height="9" rx="4" fill="var(--rule-b)"/>
+      <rect x="10" y="58" width="80" height="8" rx="4" fill="var(--rule-a)"/>
+    </svg>`;
+  }
+  if(type === 'ghost'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M14 66 V36 L36 18 L58 36 V66 Z" fill="var(--rule-b)"/>
+      <rect x="30" y="46" width="12" height="20" rx="2" fill="var(--paper)" opacity="0.7"/>
+      <path d="M60 62 V30 a16 16 0 0 1 32 0 V62 l-5 -5 l-6 5 l-5 -5 l-5 5 l-6 -5 Z" fill="var(--surface)" stroke="var(--muted)" stroke-width="2.5"/>
+      <circle cx="70" cy="30" r="3.5" fill="var(--ink)"/>
+      <circle cx="82" cy="30" r="3.5" fill="var(--ink)"/>
+      <ellipse cx="76" cy="42" rx="4" ry="5" fill="var(--ink)"/>
+    </svg>`;
+  }
   return '';
 }
 

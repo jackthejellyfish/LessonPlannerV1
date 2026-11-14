@@ -128,15 +128,6 @@ export let state = {
   whackScore: 0,
   whackRoundActive: false,
   whackRoundRAF: null,
-  // Stage 15 (Memory Match)
-  memoryTeams: [],
-  memoryCurrentTeam: 0,
-  memoryQuestionOrder: [],
-  memoryTurnsPlayed: 0,
-  memoryScore: 0,
-  memoryPairsFound: 0,
-  memoryRoundActive: false,
-  memoryRoundRAF: null,
   muted: false
 };
 
@@ -177,8 +168,6 @@ export function resetLessonState(lessonId = state.currentLesson){
     hoopScore: 0, hoopShotsLeft: 0, hoopRoundActive: false, hoopRoundRAF: null,
     whackTeams: [], whackCurrentTeam: 0, whackQuestionOrder: [], whackTurnsPlayed: 0,
     whackScore: 0, whackRoundActive: false, whackRoundRAF: null,
-    memoryTeams: [], memoryCurrentTeam: 0, memoryQuestionOrder: [], memoryTurnsPlayed: 0,
-    memoryScore: 0, memoryPairsFound: 0, memoryRoundActive: false, memoryRoundRAF: null,
     muted: wasMuted
   };
 }

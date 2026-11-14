@@ -336,6 +336,13 @@
     display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
     margin-top:clamp(8px, 1.5vh, 20px); padding-top:clamp(8px, 1.5vh, 18px); border-top:1px solid var(--line);
   }
+  /* The right-hand group of every footer (Print / Restart / Next). Was an
+     inline style="display:flex; gap:10px" repeated on ten stages, and
+     missing from the stages that had only a Next button, so footers
+     lined up differently from page to page. */
+  .footer-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
+  /* "Question 3 of 10" beside a progress bar — Stages 3 and 4. */
+  .progress-counter{ font-size:clamp(13px, 1.7vh, 15px); color:var(--muted); white-space:nowrap; }
   /* Soft, springy hover language shared by every button in the app —
      a slower cubic-bezier lift (not a fast linear color-swap) plus a
      colored glow, so interacting with anything clickable feels alive
@@ -384,8 +391,13 @@
   /* Shared in-game hint pill. Fruit Ninja, Billiards and Sky Slingshot
      each had their own near-identical version of this; the four games
      added in v2.2 use this one instead of adding four more. */
+  /* The one instruction pill used by every canvas/grid game. Billiards,
+     Neon Arena and Fruit Ninja each used to carry their own copy with
+     slightly different sizes, offsets and corner radii; they now add only
+     a text tint on top of this (see their stage CSS). */
   .game-hint{
     position:absolute; top:clamp(10px,2vh,20px); left:50%; transform:translateX(-50%);
+    max-width:calc(100% - 32px); text-align:center;
     z-index:22; margin:0; padding:8px 18px; border-radius:999px;
     background:rgba(10,8,32,0.68); color:#fff;
     font-size:clamp(12px,1.7vh,16px); font-weight:600;

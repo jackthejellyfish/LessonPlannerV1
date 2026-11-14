@@ -77,6 +77,20 @@ const LESSON_CONTENT = {
       { prompt: "Ask your partner if they have ever eaten sushi.", answer: "Have you ever eaten sushi?" },
       { prompt: "Make it a question: 'It has stopped raining.'", answer: "Has it stopped raining?" }
     ]
+  },
+  'amusement-park': {
+    HOOP_QUESTIONS: [
+      { prompt: "Ask your partner what they did at the amusement park.", answer: "What did you do at the amusement park?" },
+      { prompt: "Ask your partner about the roller coaster.", answer: "How was the roller coaster?" },
+      { prompt: "Make it a question: 'You watched a 3D film.'", answer: "Did you watch a 3D film?" },
+      { prompt: "Make it a question: 'She went on the roller coaster.'", answer: "Did she go on the roller coaster?" },
+      { prompt: "Ask your partner how they felt in the haunted house.", answer: "How did you feel in the haunted house?" },
+      { prompt: "Make it a question: 'They saw a parade.'", answer: "Did they see a parade?" },
+      { prompt: "Ask your partner about the 3D film.", answer: "How was the 3D film?" },
+      { prompt: "Make it a question: 'He rode the merry-go-round.'", answer: "Did he ride the merry-go-round?" },
+      { prompt: "Ask your partner what they ate at the park.", answer: "What did you eat at the park?" },
+      { prompt: "Ask your partner which attraction they visited first.", answer: "Which attraction did you visit first?" }
+    ]
   }
 };
 

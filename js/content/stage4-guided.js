@@ -74,6 +74,20 @@ const LESSON_CONTENT = {
       { chips: ["She", "hasn't", "been", "to", "Paris"] },
       { chips: ["The train", "has", "already", "left", "the station"] }
     ]
+  },
+  'amusement-park': {
+    SEMI_ITEMS: [
+      { chips: ["We", "went", "on", "a roller coaster"] },
+      { chips: ["She", "visited", "a", "petting zoo"] },
+      { chips: ["They", "saw", "a parade", "at the park"] },
+      { chips: ["I", "rode", "the", "merry-go-round"] },
+      { chips: ["He", "entered", "the", "haunted house"] },
+      { chips: ["The roller coaster", "was", "really", "exciting"] },
+      { chips: ["I", "was", "scared", "in the", "haunted house"] },
+      { chips: ["We", "were", "amazed", "by", "the 3D film"] },
+      { chips: ["The parade", "was", "boring", "for", "my brother"] },
+      { chips: ["My sister", "won", "a prize", "at", "the park"] }
+    ]
   }
 };
 

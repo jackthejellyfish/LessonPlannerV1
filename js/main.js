@@ -29,7 +29,6 @@ import { cancelNeonRound, renderNeonTeamInputs, ensureNeonLayout } from './stage
 import { cancelFruitRound, renderFruitTeamInputs, ensureFruitLayout } from './stages/stage12-fruitninja.js';
 import { cancelHoopRound, renderHoopTeamInputs, ensureHoopLayout } from './stages/stage13-hoopshot.js';
 import { cancelWhackRound, renderWhackTeamInputs, ensureWhackLayout } from './stages/stage14-whack.js';
-import { cancelMemoryRound, renderMemoryTeamInputs, ensureMemoryLayout } from './stages/stage15-memory.js';
 
 // Every content/stageN-*.js file exports its own applyLesson(id), which
 // mutates its exported arrays/objects in place (see that file's header
@@ -53,13 +52,11 @@ import { applyLesson as applyStage11Content } from './content/stage11-neonarena.
 import { applyLesson as applyStage12Content } from './content/stage12-fruitninja.js';
 import { applyLesson as applyStage13Content } from './content/stage13-hoopshot.js';
 import { applyLesson as applyStage14Content } from './content/stage14-whack.js';
-import { applyLesson as applyStage15Content } from './content/stage15-memory.js';
 
 const CONTENT_APPLIERS = [
   applyStage1Content, applyStage2Content, applyStage3Content, applyStage4Content, applyStage5Content,
   applyStage6Content, applyStage7Content, applyStage8Content, applyStage9Content, applyStage10Content,
-  applyStage11Content, applyStage12Content, applyStage13Content, applyStage14Content,
-  applyStage15Content
+  applyStage11Content, applyStage12Content, applyStage13Content, applyStage14Content
 ];
 
 function applyLessonContent(id){
@@ -113,8 +110,7 @@ const GAMES = [
   { stage: 11, prefix: 'neon',      ensureLayout: ensureNeonLayout,     cancelRound: cancelNeonRound,      renderTeamInputs: renderNeonTeamInputs },
   { stage: 12, prefix: 'fruit',     ensureLayout: ensureFruitLayout,    cancelRound: cancelFruitRound,     renderTeamInputs: renderFruitTeamInputs },
   { stage: 13, prefix: 'hoop',      ensureLayout: ensureHoopLayout,     cancelRound: cancelHoopRound,      renderTeamInputs: renderHoopTeamInputs },
-  { stage: 14, prefix: 'whack',     ensureLayout: ensureWhackLayout,    cancelRound: cancelWhackRound,     renderTeamInputs: renderWhackTeamInputs },
-  { stage: 15, prefix: 'memory',    ensureLayout: ensureMemoryLayout,   cancelRound: cancelMemoryRound,    renderTeamInputs: renderMemoryTeamInputs }
+  { stage: 14, prefix: 'whack',     ensureLayout: ensureWhackLayout,    cancelRound: cancelWhackRound,     renderTeamInputs: renderWhackTeamInputs }
 ];
 
 function resizeCurrentStageCanvas(){
@@ -229,11 +225,21 @@ function selectLesson(id){
 }
 renderLessonCards(selectLesson);
 
-document.getElementById('changeLessonBtn').addEventListener('click', async () => {
-  if(!await confirmDialog('Change lesson? This will restart the app and discard the current scores.', { confirmLabel: 'Change lesson', danger: true })) return;
+function showLessonSelect(){
+  // Leave any running game cleanly before the picker covers it.
+  GAMES.forEach(g => g.cancelRound());
   document.getElementById('wrap').classList.add('hidden');
   document.getElementById('lessonSelect').classList.remove('hidden');
+}
+
+document.getElementById('changeLessonBtn').addEventListener('click', async () => {
+  if(!await confirmDialog('Change lesson? This will restart the app and discard the current scores.', { confirmLabel: 'Change lesson', danger: true })) return;
+  showLessonSelect();
 });
+
+// The last stage's "Finish" — the end of the lesson, so no warning about
+// discarding scores; the game is over by the time anyone presses it.
+document.getElementById('whackFinishBtn').addEventListener('click', showLessonSelect);
 
 /* =========================================================
    INIT

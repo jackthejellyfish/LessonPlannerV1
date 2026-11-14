@@ -80,6 +80,20 @@ const LESSON_CONTENT = {
       { prompt: "Has anyone in your family won a prize?", answer: "e.g. Yes, my sister has won a medal.", points: 25 },
       { prompt: "What have you learned in English this year?", answer: "e.g. I have learned the present perfect.", points: 30 }
     ]
+  },
+  'amusement-park': {
+    WHEEL_QUESTIONS: [
+      { prompt: "Imagine you went to an amusement park. What did you do?", answer: "e.g. I went on a roller coaster.", points: 10 },
+      { prompt: "Name three things you did at the amusement park.", answer: "e.g. I saw a parade, I rode the merry-go-round and I ate candy floss.", points: 100 },
+      { prompt: "How was the roller coaster? How did you feel?", answer: "e.g. It was exciting. I was excited!", points: 15 },
+      { prompt: "Which attraction is the scariest? Why?", answer: "e.g. The haunted house. It was scary — I was scared!", points: 5 },
+      { prompt: "What was the most boring thing you did last weekend?", answer: "e.g. I watched TV. It was boring. I was bored.", points: 200 },
+      { prompt: "Make a question: 'you / do / at the park'", answer: "What did you do at the park?", points: 20 },
+      { prompt: "Tell us about an amazing film you watched.", answer: "e.g. I watched ___. It was amazing!", points: 1 },
+      { prompt: "Make it past: 'We see a parade.'", answer: "We saw a parade.", points: 50 },
+      { prompt: "What did you eat or buy the last time you went out?", answer: "e.g. I ate an ice cream and bought a T-shirt.", points: 25 },
+      { prompt: "What is the most popular attraction in your class? Ask!", answer: "e.g. The roller coaster — six people went on it.", points: 30 }
+    ]
   }
 };
 

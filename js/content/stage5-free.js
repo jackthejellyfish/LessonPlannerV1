@@ -89,6 +89,24 @@ const LESSON_CONTENT = {
       'My <span class="blank">___</span> <span class="blank">has</span> <span class="blank">___</span> <span class="blank">___</span>.',
       'I <span class="blank">have</span> <span class="blank">___</span> <span class="blank">___</span>, but I <span class="blank">haven\u2019t</span> <span class="blank">___</span> <span class="blank">___</span> yet.'
     ]
+  },
+  'amusement-park': {
+    // Verbs in the past simple, then the -ing / -ed adjective pairs -
+    // everything a student needs to answer "What did you do?" and
+    // "How was it?" without having to ask.
+    WORD_BANK: [
+      ["watch","watched"], ["visit","visited"], ["enter","entered"], ["see","saw"],
+      ["go","went"], ["ride","rode"], ["eat","ate"], ["buy","bought"], ["win","won"],
+      ["exciting","excited"], ["boring","bored"], ["amazing","amazed"], ["scary","scared"],
+      ["tiring","tired"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'At the amusement park, I <span class="blank">___</span> <span class="blank">___</span>.',
+      'I <span class="blank">went</span> on the <span class="blank">___</span>. It was <span class="blank">___ing</span>!',
+      'The <span class="blank">___</span> was <span class="blank">___ing</span>, so I was <span class="blank">___ed</span>.',
+      'What <span class="blank">did</span> you do at the amusement park? — I <span class="blank">___</span> <span class="blank">___</span>.',
+      'How <span class="blank">was</span> the <span class="blank">___</span>? — It was <span class="blank">___</span>. I was <span class="blank">___</span>.'
+    ]
   }
 };
 

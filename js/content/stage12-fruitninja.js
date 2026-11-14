@@ -71,6 +71,20 @@ const LESSON_CONTENT = {
       { prompt: "Is this right? 'It has stopped raining.'", answer: "Yes \u2014 that's correct!" },
       { prompt: "Is this right? 'I have buyed a new bike.'", answer: "No \u2014 'I have bought a new bike.'" }
     ]
+  },
+  'amusement-park': {
+    FRUIT_QUESTIONS: [
+      { prompt: "Is this right? 'I goed on a roller coaster.'", answer: "No — 'I went on a roller coaster.'" },
+      { prompt: "Is this right? 'She watched a 3D film.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this right? 'We seed a parade.'", answer: "No — 'We saw a parade.'" },
+      { prompt: "Is this right? 'The roller coaster was excited.'", answer: "No — 'The roller coaster was exciting.'" },
+      { prompt: "Is this right? 'I was boring at the parade.'", answer: "No — 'I was bored at the parade.'" },
+      { prompt: "Is this right? 'He rided the merry-go-round.'", answer: "No — 'He rode the merry-go-round.'" },
+      { prompt: "Is this right? 'The haunted house was scary.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this right? 'They visitted a petting zoo.'", answer: "No — 'They visited a petting zoo.'" },
+      { prompt: "Is this right? 'We were amazed by the film.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this right? 'I was scaring in the haunted house.'", answer: "No — 'I was scared in the haunted house.'" }
+    ]
   }
 };
 

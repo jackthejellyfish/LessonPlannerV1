@@ -71,6 +71,20 @@ const LESSON_CONTENT = {
       { prompt: "Complete: 'I ___ (read) that book.'", answer: "have read" },
       { prompt: "Complete: 'She ___ (take) my pen.'", answer: "has taken" }
     ]
+  },
+  'amusement-park': {
+    INV_QUESTIONS: [
+      { prompt: "Complete: 'Yesterday I ___ (go) on a roller coaster.'", answer: "went" },
+      { prompt: "Complete: 'She ___ (watch) a 3D film.'", answer: "watched" },
+      { prompt: "Complete: 'We ___ (see) a parade.'", answer: "saw" },
+      { prompt: "Complete: 'They ___ (enter) a haunted house.'", answer: "entered" },
+      { prompt: "Complete: 'He ___ (ride) the merry-go-round.'", answer: "rode" },
+      { prompt: "Complete: 'My class ___ (visit) a petting zoo.'", answer: "visited" },
+      { prompt: "Complete: 'I ___ (eat) candy floss.'", answer: "ate" },
+      { prompt: "Complete: 'You ___ (win) a big teddy bear!'", answer: "won" },
+      { prompt: "Complete: 'My dad ___ (buy) a souvenir.'", answer: "bought" },
+      { prompt: "Complete: 'We ___ (take) lots of photos.'", answer: "took" }
+    ]
   }
 };
 

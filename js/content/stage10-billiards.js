@@ -71,6 +71,20 @@ const LESSON_CONTENT = {
       { prompt: "Complete: 'The children ___ gone to bed.'", answer: "have" },
       { prompt: "Complete: '___ your sister ever flown on a plane?'", answer: "Has" }
     ]
+  },
+  'amusement-park': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Complete: 'The roller coaster was ___.' (excite)", answer: "exciting" },
+      { prompt: "Complete: 'I was very ___ on the roller coaster.' (excite)", answer: "excited" },
+      { prompt: "Complete: 'The parade was long and ___.' (bore)", answer: "boring" },
+      { prompt: "Complete: 'My little brother was ___.' (bore)", answer: "bored" },
+      { prompt: "Complete: 'The 3D film was ___!' (amaze)", answer: "amazing" },
+      { prompt: "Complete: 'We were ___ by the fireworks.' (amaze)", answer: "amazed" },
+      { prompt: "Complete: 'The haunted house was ___.' (scary / scared)", answer: "scary" },
+      { prompt: "Complete: 'She was ___ of the ghost.' (scary / scared)", answer: "scared" },
+      { prompt: "Complete: 'We walked all day. It was ___.' (tire)", answer: "tiring" },
+      { prompt: "Complete: 'After the park, they were very ___.' (tire)", answer: "tired" }
+    ]
   }
 };
 

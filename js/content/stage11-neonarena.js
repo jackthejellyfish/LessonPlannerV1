@@ -71,6 +71,20 @@ const LESSON_CONTENT = {
       { prompt: "Make it negative: 'It has stopped raining.'", answer: "It hasn't stopped raining." },
       { prompt: "Make it negative: 'I have read that book.'", answer: "I haven't read that book." }
     ]
+  },
+  'amusement-park': {
+    NEON_QUESTIONS: [
+      { prompt: "Make it past: 'I watch a 3D film.'", answer: "I watched a 3D film." },
+      { prompt: "Make it past: 'We visit a petting zoo.'", answer: "We visited a petting zoo." },
+      { prompt: "Make it past: 'They see a parade.'", answer: "They saw a parade." },
+      { prompt: "Make it past: 'She enters a haunted house.'", answer: "She entered a haunted house." },
+      { prompt: "Make it past: 'He goes on a roller coaster.'", answer: "He went on a roller coaster." },
+      { prompt: "Make it past: 'I ride the merry-go-round.'", answer: "I rode the merry-go-round." },
+      { prompt: "Make it past: 'The film is amazing.'", answer: "The film was amazing." },
+      { prompt: "Make it past: 'We are excited.'", answer: "We were excited." },
+      { prompt: "Make it past: 'My friends ride the Ferris wheel.'", answer: "My friends rode the Ferris wheel." },
+      { prompt: "Make it past: 'You win a prize!'", answer: "You won a prize!" }
+    ]
   }
 };
 

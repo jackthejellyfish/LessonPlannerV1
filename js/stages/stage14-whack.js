@@ -354,5 +354,4 @@ export function ensureWhackLayout(){ /* DOM grid — nothing to re-measure */ }
 
 document.getElementById('whackBackBtn').addEventListener('click', () => goToStage(13));
 document.getElementById('hoopNextStageBtn').addEventListener('click', () => goToStage(14));
-// Memory Match wires whackNextStageBtn itself — a "Next" handler lives
-// in the file for the stage it goes TO.
+// Whack-a-Monster is the last stage, so it has no Next button.

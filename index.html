@@ -27,7 +27,6 @@
     <link rel="stylesheet" href="css/stage12-fruitninja.css" />
     <link rel="stylesheet" href="css/stage13-hoopshot.css" />
     <link rel="stylesheet" href="css/stage14-whack.css" />
-    <link rel="stylesheet" href="css/stage15-memory.css" />
     <link rel="stylesheet" href="css/fullscreen-game.css" />
     <link rel="stylesheet" href="css/print.css" />
   </head>
@@ -114,10 +113,11 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="learnBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
+          <div class="footer-actions">
             <button class="btn btn-ghost" id="printRulesBtn" type="button">
               Print rules
             </button>
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="learnNextBtn">
               Next: Controlled practice →
             </button>
@@ -149,7 +149,7 @@
           <div class="progress-line">
             <span
               id="mcCounter"
-              style="font-size: 14px; color: var(--muted)"
+              class="progress-counter"
             ></span>
             <div class="progress-track">
               <div class="progress-fill" id="mcProgressFill"></div>
@@ -162,9 +162,12 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="controlledBackBtn">← Back</button>
-          <button class="btn btn-primary" id="controlledNextBtn">
-            Next: Guided practice →
-          </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="controlledNextBtn">
+              Next: Guided practice →
+            </button>
+          </div>
         </div>
       </section>
 
@@ -194,7 +197,7 @@
           <div class="progress-line">
             <span
               id="semiCounter"
-              style="font-size: 14px; color: var(--muted)"
+              class="progress-counter"
             ></span>
             <div class="progress-track">
               <div class="progress-fill" id="semiProgressFill"></div>
@@ -217,9 +220,12 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="guidedBackBtn">← Back</button>
-          <button class="btn btn-primary" id="guidedNextBtn">
-            Next: Free practice →
-          </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="guidedNextBtn">
+              Next: Free practice →
+            </button>
+          </div>
         </div>
       </section>
 
@@ -297,15 +303,18 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="freeBackBtn">← Back</button>
-          <button class="btn btn-primary" id="freeNextBtn">
-            Next: Ball Pop →
-          </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="freeNextBtn">
+              Next: Ball Pop →
+            </button>
+          </div>
         </div>
       </section>
 
       <!-- STAGE 6: BALL POP CHALLENGE -->
       <section class="stage hidden" id="stage6">
-        <h2>Ball Pop Challenge</h2>
+        <h2>Ball Pop</h2>
         <div class="stage-body">
           <div id="popSetup"></div>
 
@@ -381,10 +390,8 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="popBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="popNextBtn">
               Next: Star Defender →
             </button>
@@ -467,12 +474,10 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="invBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="invNextBtn">
-              Next: Spin Wheel →
+              Next: Spin the Wheel →
             </button>
           </div>
         </div>
@@ -551,12 +556,10 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="wheelBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="wheelNextBtn">
-              Next: Practice Questions →
+              Next: Practice questions →
             </button>
           </div>
         </div>
@@ -564,13 +567,13 @@
 
       <!-- STAGE 9: PRACTICE QUESTIONS + WORKSHEET -->
       <section class="stage hidden" id="stage9">
-        <h2>Practice Questions</h2>
+        <h2>Practice questions</h2>
         <div class="stage-body">
           <div class="qs-layout">
             <div class="qs-controls">
               <div class="qs-set-tabs" id="qsSetTabs"></div>
               <div class="qs-progress-row">
-                <div class="progress-track" style="flex: 1">
+                <div class="progress-track">
                   <div class="progress-fill" id="qsProgressFill"></div>
                 </div>
                 <span class="score" id="qsScore"></span>
@@ -594,13 +597,11 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="qsBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
+          <div class="footer-actions">
             <button class="btn btn-ghost" id="qsPrintBtn" type="button">
               Print worksheet
             </button>
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="qsNextStageBtn" type="button">
               Next: Billiards →
             </button>
@@ -658,7 +659,7 @@
 
               <div id="billiardsPlayArea" class="inv-play-area idle">
                 <canvas id="billiardsCanvas" class="inv-canvas"></canvas>
-                <p class="billiards-hint hidden" id="billiardsHint">
+                <p class="game-hint billiards-hint hidden" id="billiardsHint">
                   One shot — drag away from the cue ball, release to strike!
                 </p>
                 <button
@@ -692,10 +693,8 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="billiardsBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button
               class="btn btn-primary"
               id="billiardsNextStageBtn"
@@ -757,7 +756,7 @@
 
               <div id="neonPlayArea" class="inv-play-area idle">
                 <canvas id="neonCanvas" class="inv-canvas"></canvas>
-                <p class="neon-hint hidden" id="neonHint">
+                <p class="game-hint neon-hint hidden" id="neonHint">
                   Move: WASD or arrow keys · Click or tap to shoot
                 </p>
                 <button
@@ -785,10 +784,8 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="neonBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">
-              ↺ Restart lesson
-            </button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button
               class="btn btn-primary"
               id="neonNextStageBtn"
@@ -849,7 +846,7 @@
 
               <div id="fruitPlayArea" class="inv-play-area idle">
                 <canvas id="fruitCanvas" class="inv-canvas"></canvas>
-                <p class="fruit-hint hidden" id="fruitHint">
+                <p class="game-hint fruit-hint hidden" id="fruitHint">
                   Swipe across a shape to slice it!
                 </p>
                 <button
@@ -877,7 +874,7 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="fruitBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
+          <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="fruitNextStageBtn">Next: Hoop Shot →</button>
           </div>
@@ -925,7 +922,23 @@
 
               <div id="hoopPlayArea" class="inv-play-area idle">
                 <canvas id="hoopCanvas" class="inv-canvas"></canvas>
-                <p class="game-hint hidden" id="hoopHint">Tap to set the angle!</p>
+                <p class="game-hint hidden" id="hoopHint">Set the angle and power, then SHOOT!</p>
+                <div class="hoop-controls" id="hoopControls">
+                  <div class="hoop-control-group">
+                    <span class="hoop-control-label">Angle</span>
+                    <button class="hoop-step-btn" id="hoopAngleDown" type="button" aria-label="Lower the angle">&minus;</button>
+                    <span class="hoop-control-value" id="hoopAngleValue">55°</span>
+                    <button class="hoop-step-btn" id="hoopAngleUp" type="button" aria-label="Raise the angle">+</button>
+                  </div>
+                  <div class="hoop-control-group">
+                    <span class="hoop-control-label">Power</span>
+                    <button class="hoop-step-btn" id="hoopPowerDown" type="button" aria-label="Less power">&minus;</button>
+                    <span class="hoop-power-meter" aria-hidden="true"><span class="hoop-power-fill" id="hoopPowerFill"></span></span>
+                    <span class="hoop-control-value" id="hoopPowerValue">50%</span>
+                    <button class="hoop-step-btn" id="hoopPowerUp" type="button" aria-label="More power">+</button>
+                  </div>
+                  <button class="hoop-shoot-btn" id="hoopShootBtn" type="button">Shoot!</button>
+                </div>
                 <button class="btn btn-primary" id="hoopBeginTurnBtn" type="button">
                   Begin turn
                 </button>
@@ -943,7 +956,7 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="hoopBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
+          <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="hoopNextStageBtn">Next: Whack-a-Monster →</button>
           </div>
@@ -1009,75 +1022,9 @@
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="whackBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
+          <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
-            <button class="btn btn-primary" id="whackNextStageBtn">Next: Memory Match →</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- STAGE 15: MEMORY MATCH -->
-      <section class="stage hidden" id="stage15">
-        <h2>Memory Match</h2>
-        <div class="stage-body">
-          <div id="memorySetup"></div>
-
-          <div id="memoryGame" class="hidden pop-game-layout">
-            <div class="pop-sidebar">
-              <ul class="pop-team-list" id="memoryTeamList"></ul>
-              <div class="pop-turn-box">
-                <span id="memoryTurnBanner"></span>
-                <div class="pop-sidebar-actions">
-                  <button class="pop-sidebar-reset" id="memoryResetScoresBtn" type="button">
-                    Reset scores
-                  </button>
-                  <button class="pop-sidebar-reset" id="memoryChangeTeamsBtn" type="button">
-                    Change teams
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="pop-main">
-              <div class="pop-hud-card">
-                <div class="pop-hud">
-                  <div>
-                    <span class="pop-hud-label">Time left</span
-                    ><span class="pop-hud-num" id="memoryTimeDisplay">--</span>
-                  </div>
-                  <div>
-                    <span class="pop-hud-label">Pairs</span
-                    ><span class="pop-hud-num" id="memoryScoreDisplay">0</span>
-                  </div>
-                </div>
-                <div class="timer-bar-track">
-                  <div class="timer-bar-fill" id="memoryTimerFill"></div>
-                </div>
-              </div>
-
-              <div id="memoryPlayArea" class="memory-play-area idle">
-                <div id="memoryGrid" class="memory-grid"></div>
-                <p class="game-hint hidden" id="memoryHint">Find the matching pairs!</p>
-                <button class="btn btn-primary" id="memoryBeginTurnBtn" type="button">
-                  Begin turn
-                </button>
-                <div class="game-over-banner hidden" id="memoryGameOverBanner">
-                  <div class="game-over-title">Game over</div>
-                  <div class="game-over-winner" id="memoryGameOverWinner"></div>
-                </div>
-              </div>
-
-              <button class="btn btn-primary hidden" id="memoryPlayAgainBtn" type="button">
-                Play again
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="stage-footer">
-          <button class="btn btn-ghost" id="memoryBackBtn">← Back</button>
-          <div style="display: flex; gap: 10px">
-            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
-            
+            <button class="btn btn-primary" id="whackFinishBtn" type="button">Finish: choose a lesson ✓</button>
           </div>
         </div>
       </section>

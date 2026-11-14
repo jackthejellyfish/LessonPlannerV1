@@ -8,12 +8,12 @@ const { test, expect } = require('@playwright/test');
 // clicked via locator.evaluate(el => el.click()) to bypass Playwright's
 // visibility gate rather than treating that as a bug.
 //
-// .wrap (stepper + all 15 stages) stays hidden behind the lesson-select
+// .wrap (stepper + all 14 stages) stays hidden behind the lesson-select
 // screen (js/lessons.js) until a lesson card is picked — every test clicks
 // the first card right after goto() purely to get past that gate; which
 // lesson is picked doesn't matter for these structural assertions.
 
-test('all 16 stages are reachable with zero console/page errors', async ({ page }) => {
+test('all 14 stages are reachable with zero console/page errors', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`PAGEERROR: ${e.message}`));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`); });
@@ -22,9 +22,9 @@ test('all 16 stages are reachable with zero console/page errors', async ({ page 
   await page.click('.lesson-card >> nth=0');
 
   const steps = page.locator('.step');
-  await expect(steps).toHaveCount(15);
+  await expect(steps).toHaveCount(14);
 
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 14; i++) {
     await steps.nth(i).evaluate((el) => el.click());
     await page.waitForTimeout(150);
   }
@@ -91,4 +91,14 @@ test('stage 9 practice questions has 4 tabs', async ({ page }) => {
   await page.locator('.step').nth(8).evaluate((el) => el.click());
   await page.waitForTimeout(200);
   await expect(page.locator('.qs-tab')).toHaveCount(4);
+});
+
+test('the last stage has a Finish button that returns to the lesson picker', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  const steps = page.locator('.step');
+  await steps.nth(13).evaluate((el) => el.click());
+  await page.locator('#whackFinishBtn').evaluate((el) => el.click());
+  await expect(page.locator('#lessonSelect')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#wrap')).toHaveClass(/hidden/);
 });

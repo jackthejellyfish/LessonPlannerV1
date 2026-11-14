@@ -40,6 +40,13 @@ const LESSON_CONTENT = {
       { icon: 'book', sentenceHtml: 'I <span class="hl">have finished</span> my book already.' },
       { icon: 'trophy', sentenceHtml: 'They <span class="hl">have never won</span> a medal before.' }
     ]
+  },
+  'amusement-park': {
+    AIM_EXAMPLES: [
+      { icon: 'coaster', sentenceHtml: 'I <span class="hl">went</span> on a roller coaster. It was <span class="hl">exciting</span>!' },
+      { icon: 'carousel', sentenceHtml: 'She <span class="hl">rode</span> the merry-go-round. She was <span class="hl">bored</span>.' },
+      { icon: 'ghost', sentenceHtml: 'We <span class="hl">entered</span> a haunted house. We were <span class="hl">scared</span>!' }
+    ]
   }
 };
 

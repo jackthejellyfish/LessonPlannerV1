@@ -147,6 +147,36 @@ const LESSON_CONTENT = {
       suitcase: "var(--rule-c)", book: "var(--rule-c)", cake: "var(--rule-c)", trophy: "var(--rule-c)",
       path: "var(--rule-a)", tick: "var(--rule-a)", clock: "var(--rule-a)"
     }
+  },
+  'amusement-park': {
+    RULES: [
+      { name: "Past simple: regular verbs", formula: "verb + -ed", color: "var(--rule-a)",
+        examples: [["watch","ed a 3D film"],["visit","ed a petting zoo"],["enter","ed a haunted house"]] },
+      { name: "Past simple: irregular verbs", formula: "these change completely — learn them!", color: "var(--rule-b)",
+        examples: [["I"," saw a parade. (see → saw)"],["We"," went on a roller coaster. (go → went)"],["He"," rode the merry-go-round. (ride → rode)"]] },
+      { name: "What did you do?", formula: "What did you do at the amusement park? → I + past simple", color: "var(--rule-c)",
+        examples: [["I"," watched a 3D film."],["My friend"," visited a petting zoo."],["We"," ate candy floss."]] },
+      { name: "-ing adjectives: the thing", formula: "How was the ___? → It was + -ing adjective", color: "var(--rule-d)",
+        examples: [["The roller coaster"," was exciting."],["The 3D film"," was amazing."],["The merry-go-round"," was boring."]] },
+      { name: "-ed adjectives: how you feel", formula: "I was / We were + -ed adjective", color: "var(--rule-a)",
+        examples: [["I"," was excited."],["She"," was amazed."],["They"," were bored."]] },
+      { name: "Watch out!", formula: "-ing = the thing · -ed = the person · scary → scared", color: "var(--rule-b)",
+        examples: [["The haunted house"," was scary. (not scaring)"],["I"," was scared! (not scaried)"],["The parade"," was boring, so I was bored."]] }
+    ],
+    COMPARE_DEMOS: [
+      { labelA: "It was… (-ing)", labelB: "I was… (-ed)", valueA: 75, valueB: 75, iconA: "coaster", iconB: "face-excited",
+        caption: 'The roller coaster was <span class="hl">exciting</span>. I was <span class="hl">excited</span>!' },
+      { labelA: "It was… (-ing)", labelB: "I was… (-ed)", valueA: 75, valueB: 75, iconA: "carousel", iconB: "face-bored",
+        caption: 'The merry-go-round was <span class="hl">boring</span>. I was <span class="hl">bored</span>.' },
+      { labelA: "It was… (-ing)", labelB: "I was… (-ed)", valueA: 75, valueB: 75, iconA: "glasses3d", iconB: "face-amazed",
+        caption: 'The 3D film was <span class="hl">amazing</span>. I was <span class="hl">amazed</span>!' },
+      { labelA: "It was…", labelB: "I was…", valueA: 75, valueB: 75, iconA: "ghost", iconB: "face-scared",
+        caption: 'The haunted house was <span class="hl">scary</span>. I was <span class="hl">scared</span>!' }
+    ],
+    COMPARE_ICON_COLORS: {
+      coaster: "var(--rule-c)", carousel: "var(--rule-c)", glasses3d: "var(--rule-c)", ghost: "var(--rule-b)",
+      'face-excited': "var(--rule-d)", 'face-bored': "var(--rule-d)", 'face-amazed': "var(--rule-d)", 'face-scared': "var(--rule-d)"
+    }
   }
 };
 

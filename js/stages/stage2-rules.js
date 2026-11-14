@@ -184,6 +184,65 @@ export function buildCompareIcon(type, valuePct, color){
       <path d="M${35 - 13 * sc} 36 L${35 - 3 * sc} ${36 + 11 * sc} L${35 + 15 * sc} ${36 - 12 * sc}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`;
   }
+  // --- Amusement Park lesson icons: an attraction (-ing: what it was
+  // like) paired with a face (-ed: how you felt). Paired, not
+  // magnitude-based, so `scale` only nudges the size.
+  if(type === 'coaster'){
+    return `<svg viewBox="0 0 90 70" width="90" height="70">
+      <path d="M4 64 C14 64 16 16 32 16 C48 16 46 48 60 48 C72 48 76 24 88 24" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
+      <path d="M18 44 V68 M32 18 V68 M48 38 V68 M62 48 V68 M80 30 V68" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round"/>
+      <g transform="rotate(-36 78 22)"><rect x="68" y="12" width="${16 + 4 * scale}" height="10" rx="3" fill="${color}"/><circle cx="72" cy="24" r="3" fill="var(--ink)"/><circle cx="84" cy="24" r="3" fill="var(--ink)"/></g>
+    </svg>`;
+  }
+  if(type === 'carousel'){
+    return `<svg viewBox="0 0 80 70" width="80" height="70">
+      <polygon points="40,4 72,22 8,22" fill="${color}"/>
+      <line x1="40" y1="22" x2="40" y2="58" stroke="var(--muted)" stroke-width="4"/>
+      <line x1="22" y1="22" x2="22" y2="42" stroke="var(--muted)" stroke-width="2"/>
+      <line x1="58" y1="22" x2="58" y2="36" stroke="var(--muted)" stroke-width="2"/>
+      <rect x="14" y="40" width="16" height="9" rx="4" fill="${color}" opacity="0.7"/>
+      <rect x="50" y="34" width="16" height="9" rx="4" fill="${color}" opacity="0.7"/>
+      <rect x="6" y="58" width="68" height="8" rx="4" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'glasses3d'){
+    return `<svg viewBox="0 0 90 70" width="90" height="70">
+      <rect x="6" y="22" width="78" height="30" rx="8" fill="${color}"/>
+      <rect x="13" y="28" width="26" height="18" rx="5" fill="#E4574B"/>
+      <rect x="51" y="28" width="26" height="18" rx="5" fill="#31A8E0"/>
+      <path d="M41 34 Q45 30 49 34" fill="none" stroke="var(--paper)" stroke-width="3"/>
+      <text x="45" y="16" text-anchor="middle" font-family="var(--font-display)" font-weight="800" font-size="14" fill="${color}">3D</text>
+    </svg>`;
+  }
+  if(type === 'ghost'){
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M15 64 V30 a20 20 0 0 1 40 0 V64 l-6 -6 l-7 6 l-7 -6 l-6 6 l-7 -6 Z" fill="${color}"/>
+      <circle cx="28" cy="30" r="4" fill="var(--paper)"/>
+      <circle cx="42" cy="30" r="4" fill="var(--paper)"/>
+      <ellipse cx="35" cy="44" rx="5" ry="6" fill="var(--paper)"/>
+    </svg>`;
+  }
+  if(type.startsWith('face-')){
+    const mood = type.slice(5);
+    const r = 24 + 4 * scale;
+    const f = 'var(--ink)';
+    const eyes = {
+      excited: `<path d="M23 31 l5 -5 l5 5 M37 31 l5 -5 l5 5" fill="none" stroke="${f}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+      bored:   `<path d="M22 30 h11 M37 30 h11" stroke="${f}" stroke-width="3.5" stroke-linecap="round"/><path d="M22 26 h11 M37 26 h11" stroke="${f}" stroke-width="2" stroke-linecap="round" opacity="0.4"/>`,
+      amazed:  `<circle cx="28" cy="29" r="5" fill="var(--paper)" stroke="${f}" stroke-width="2.5"/><circle cx="42" cy="29" r="5" fill="var(--paper)" stroke="${f}" stroke-width="2.5"/><circle cx="28" cy="29" r="2" fill="${f}"/><circle cx="42" cy="29" r="2" fill="${f}"/>`,
+      scared:  `<circle cx="28" cy="30" r="4.5" fill="var(--paper)" stroke="${f}" stroke-width="2"/><circle cx="42" cy="30" r="4.5" fill="var(--paper)" stroke="${f}" stroke-width="2"/><circle cx="28" cy="31" r="1.6" fill="${f}"/><circle cx="42" cy="31" r="1.6" fill="${f}"/><path d="M22 21 l7 3 M48 21 l-7 3" stroke="${f}" stroke-width="2.5" stroke-linecap="round"/>`
+    }[mood] || '';
+    const mouth = {
+      excited: `<path d="M24 41 Q35 56 46 41 Z" fill="${f}"/>`,
+      bored:   `<path d="M28 46 h14" stroke="${f}" stroke-width="3.5" stroke-linecap="round"/>`,
+      amazed:  `<ellipse cx="35" cy="46" rx="5" ry="7" fill="${f}"/>`,
+      scared:  `<path d="M25 47 q3.3 -4 6.6 0 t6.6 0 t6.6 0" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round"/><path d="M56 22 q4 6 0 9 q-4 -3 0 -9 Z" fill="#31A8E0"/>`
+    }[mood] || '';
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <circle cx="35" cy="36" r="${r}" fill="${color}"/>
+      ${eyes}${mouth}
+    </svg>`;
+  }
   return '';
 }
 

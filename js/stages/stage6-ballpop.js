@@ -33,7 +33,7 @@ let popRowColors = [];
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('popSetup', {
   prefix: 'pop',
-  title: 'Ball Pop Challenge',
+  title: 'Ball Pop',
   steps: [
     'One team answers a question.',
     'Tap every ball you can before the time runs out.',

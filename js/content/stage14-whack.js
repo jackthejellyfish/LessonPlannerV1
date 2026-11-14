@@ -81,6 +81,20 @@ const LESSON_CONTENT = {
       { prompt: "Which is right? 'It has stop / has stopped raining.'", answer: "has stopped" },
       { prompt: "Which is right? 'They hasn't / haven't arrived.'", answer: "haven't" }
     ]
+  },
+  'amusement-park': {
+    WHACK_QUESTIONS: [
+      { prompt: "Which is right? 'I goed / went on a roller coaster.'", answer: "went" },
+      { prompt: "Which is right? 'We saw / seed a parade.'", answer: "saw" },
+      { prompt: "Which is right? 'She rode / rided the merry-go-round.'", answer: "rode" },
+      { prompt: "Which is right? 'They visited / visitted a petting zoo.'", answer: "visited" },
+      { prompt: "Which is right? 'The roller coaster was exciting / excited.'", answer: "exciting" },
+      { prompt: "Which is right? 'I was exciting / excited.'", answer: "excited" },
+      { prompt: "Which is right? 'The parade was boring / bored.'", answer: "boring" },
+      { prompt: "Which is right? 'My brother was boring / bored.'", answer: "bored" },
+      { prompt: "Which is right? 'The haunted house was scary / scared.'", answer: "scary" },
+      { prompt: "Which is right? 'We were amazing / amazed by the film.'", answer: "amazed" }
+    ]
   }
 };
 

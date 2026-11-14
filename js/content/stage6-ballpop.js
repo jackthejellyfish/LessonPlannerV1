@@ -71,6 +71,20 @@ const LESSON_CONTENT = {
       { prompt: "What is the past participle of 'buy'?", answer: "bought" },
       { prompt: "What is the past participle of 'be'?", answer: "been" }
     ]
+  },
+  'amusement-park': {
+    POP_QUESTIONS: [
+      { prompt: "What is the past simple of 'watch'?", answer: "watched" },
+      { prompt: "What is the past simple of 'visit'?", answer: "visited" },
+      { prompt: "What is the past simple of 'enter'?", answer: "entered" },
+      { prompt: "What is the past simple of 'see'? (it's irregular!)", answer: "saw" },
+      { prompt: "What is the past simple of 'go'? (it's irregular!)", answer: "went" },
+      { prompt: "What is the past simple of 'ride'? (it's irregular!)", answer: "rode" },
+      { prompt: "What is the past simple of 'eat'? (it's irregular!)", answer: "ate" },
+      { prompt: "What is the past simple of 'buy'? (it's irregular!)", answer: "bought" },
+      { prompt: "What is the past simple of 'win'? (it's irregular!)", answer: "won" },
+      { prompt: "What is the past simple of 'take'? (it's irregular!)", answer: "took" }
+    ]
   }
 };
 

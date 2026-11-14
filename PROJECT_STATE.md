@@ -6,6 +6,67 @@
 
 ---
 
+## VERSION 3 (2026-11-14) — read this first
+
+Overrides v2 where they differ. **14 stages, 6 lessons.**
+
+### Memory Match removed
+Stage 15 deleted (stage/content/css files, state fields, the `GAMES` and
+`GAME_STAGES` rows, the stepper label, its test). Whack-a-Monster
+(stage 14) is now the last stage, and its footer has a
+**Finish: choose a lesson** button (`#whackFinishBtn`) that returns to the
+lesson picker without the "discard scores?" warning the ⇄ button shows.
+
+### Hoop Shot rebuilt around direct control
+Per feedback: the hoop must not move, angle/power must be easy to set, and
+only the ball's starting spot should change.
+
+- **The hoop is fixed** (`HOOP_X = 80`); its post and backboard now live
+  in the cached backdrop.
+- **Angle and power are set directly** with a DOM control dock at the
+  bottom of the court: −/+ buttons (hold to repeat, accelerating),
+  tapping/sliding on the court to point the shot (direction = angle,
+  distance = power), and the arrow keys. **Nothing fires until SHOOT**
+  (or Space/Enter). The two-tap timing sweeps are gone.
+- **Every shot starts from a new random spot** (x 8–56%, never within
+  10% of the previous one).
+- The court floor moved up to `HOOP_FLOOR_Y = 80` so the dock sits on the
+  apron below it rather than over the play.
+- The angle is applied through `HOOP_ASPECT_REF` (1.9) so the number on
+  the dock roughly matches what you see on a widescreen board; physics
+  stays in %-space so gameplay is identical at any size.
+- The dotted preview shows only the rising half of the arc — enough to
+  aim with, not enough to solve the shot.
+- `HOOP_SPEED_MIN/MAX` (58/106) were picked by simulating every
+  angle × power combination from every start spot at 1.97:1 and 1.45:1:
+  every spot has a band of scoring shots, sitting between ~20% and 100%
+  power.
+
+### Lesson 6: At the Amusement Park
+Past simple (regular + irregular) for attractions, plus -ing / -ed
+adjectives (exciting/excited, boring/bored, amazing/amazed, scary/scared,
+extended with tiring/tired). Built from the textbook unit "At the
+Amusement Park" and extended with extra attractions (Ferris wheel, candy
+floss, souvenirs, prizes, photos). Stage 2 uses the "something else" shape:
+six rule cards and four attraction-vs-feeling demos. New icons:
+`coaster`/`carousel`/`ghost` (stage 1) and
+`coaster`/`carousel`/`glasses3d`/`ghost`/`face-{excited,bored,amazed,scared}`
+(stage 2).
+
+### Consistency pass
+- One `.game-hint` pill for every game; Billiards/Neon/Fruit only add a
+  text tint now (they each had their own slightly different copy).
+- Footers: inline `style="display:flex; gap:10px"` (×10) replaced with a
+  `.footer-actions` class, and every stage after the Aim page now has the
+  same **Restart lesson** button (stages 2–5 were missing it).
+- Inline counter styles → `.progress-counter`.
+- Names now match between headings, game intros and Next buttons
+  ("Ball Pop", "Spin the Wheel", "Practice questions").
+- Removed the stray `undefined/` folder of screenshots committed by an
+  earlier script.
+
+---
+
 ## VERSION 2 (2026-11-11) — read this first
 
 A feedback-driven pass. Everything below this section still describes

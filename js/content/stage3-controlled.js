@@ -80,6 +80,20 @@ const LESSON_CONTENT = {
       { word: "She has ___ a new bike.", correct: "bought", options: ["buyed", "bought", "buy"] },
       { word: "The train has already ___.", correct: "arrived", options: ["arrived", "arrive", "arriving"] }
     ]
+  },
+  'amusement-park': {
+    MC_QUESTIONS: [
+      { word: "Yesterday I ___ a 3D film.", correct: "watched", options: ["watched", "watch", "watching"] },
+      { word: "We ___ a parade at the park.", correct: "saw", options: ["seed", "saw", "see"] },
+      { word: "She ___ the merry-go-round.", correct: "rode", options: ["rided", "ride", "rode"] },
+      { word: "They ___ on a roller coaster.", correct: "went", options: ["went", "goed", "go"] },
+      { word: "He ___ the haunted house.", correct: "entered", options: ["enter", "entered", "entred"] },
+      { word: "I ___ a petting zoo with my class.", correct: "visited", options: ["visit", "visitted", "visited"] },
+      { word: "The roller coaster was ___!", correct: "exciting", options: ["exciting", "excited", "excite"] },
+      { word: "The film was very long. I was ___.", correct: "bored", options: ["boring", "bored", "bore"] },
+      { word: "The haunted house was ___.", correct: "scary", options: ["scared", "scaring", "scary"] },
+      { word: "The 3D film was great. We were ___!", correct: "amazed", options: ["amazed", "amazing", "amaze"] }
+    ]
   }
 };
 

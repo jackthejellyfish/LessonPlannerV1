@@ -4,7 +4,7 @@ const { test, expect } = require('@playwright/test');
    THE GAMES ADDED IN v2.2
    Each one is played for real — question, input, scoring, turn
    resolution — rather than just loaded. They differ enough in input
-   (aim-then-power, tap-the-moving-thing, flip-and-remember) that a
+   (aim-and-shoot, tap-the-moving-thing) that a
    shared smoke test wouldn't prove much about any of them; what each
    test below pins down is that the game's own interaction produces a
    score and reaches the result modal.
@@ -32,32 +32,39 @@ function watchErrors(page) {
   return errors;
 }
 
-test('Hoop Shot: two taps per shot fire it, and three shots end the turn', async ({ page }) => {
+test('Hoop Shot: angle and power are set directly, then SHOOT fires; three shots end the turn', async ({ page }) => {
   const errors = watchErrors(page);
   await openGame(page, 12, 'hoop');
 
-  const canvas = page.locator('#hoopCanvas');
-  const hint = page.locator('#hoopHint');
   const shotsLeft = page.locator('#hoopShotsDisplay');
+  const angle = page.locator('#hoopAngleValue');
+  const power = page.locator('#hoopPowerValue');
+  const shoot = page.locator('#hoopShootBtn');
   await expect(shotsLeft).toHaveText('3');
+  await expect(page.locator('#hoopControls')).toBeVisible();
+
+  // The +/- buttons change the values directly — no timing involved.
+  const a0 = await angle.textContent();
+  await page.click('#hoopAngleUp');
+  await page.click('#hoopAngleUp');
+  expect(await angle.textContent()).not.toBe(a0);
+  await expect(power).toHaveText('50%');
+  await page.click('#hoopPowerUp');
+  await expect(power).toHaveText('51%');
+  // Keyboard works too.
+  await page.keyboard.press('ArrowLeft');
+  await expect(power).toHaveText('50%');
+
+  // Tapping the court points the shot but never fires it.
+  await page.locator('#hoopCanvas').click({ position: { x: 600, y: 150 } });
+  await expect(shotsLeft).toHaveText('3');
+  await expect(shoot).toBeEnabled();
 
   for (const remaining of ['2', '1', '0']) {
-    // Wait for the next ball to actually be ready. The shots counter
-    // ticks down the moment a shot resolves, but the fresh ball only
-    // appears a beat later — taps in that gap are ignored, which is
-    // exactly what made an earlier version of this test fail.
-    await expect(hint).toHaveText('Tap to set the angle!', { timeout: 9000 });
-
-    // Tap once to lock the angle, again to lock the power and launch.
-    // Deliberately NO dragging: the drag version of this game could
-    // leave the board mid-pull and never fire at all.
-    await canvas.click({ position: { x: 300, y: 200 } });
-    await expect(hint).toHaveText('Now tap to set the power!');
-    await canvas.click({ position: { x: 300, y: 200 } });
-
-    // Then wait for the shot to RESOLVE rather than guessing how long
-    // a miss takes — a ball that clatters off the rim stays live for
-    // several seconds.
+    await expect(shoot).toBeEnabled({ timeout: 9000 });
+    await shoot.click();
+    // Controls lock while the ball is in the air.
+    await expect(page.locator('#hoopAngleUp')).toBeDisabled();
     await expect(shotsLeft).toHaveText(remaining, { timeout: 9000 });
   }
 
@@ -85,34 +92,5 @@ test('Whack-a-Monster: monsters pop up and whacking them scores', async ({ page 
 
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 20000 });
   await page.click('#whackNextTeamBtn');
-  expect(errors).toEqual([]);
-});
-
-test('Memory Match: a matching pair stays face-up and scores', async ({ page }) => {
-  const errors = watchErrors(page);
-  await openGame(page, 14, 'memory');
-
-  // Read the symbols so the pair is matched deliberately rather than by
-  // luck — a random-guess test would be flaky by construction.
-  const glyphs = await page.locator('.memory-front').allTextContents();
-  const first = glyphs.indexOf(glyphs[0]);
-  const second = glyphs.indexOf(glyphs[0], first + 1);
-  await page.locator('.memory-card').nth(first).click();
-  await page.locator('.memory-card').nth(second).click();
-  await page.waitForTimeout(400);
-
-  expect(await page.locator('.memory-card.matched').count(),
-    'both cards of a matched pair stay up').toBe(2);
-  await expect(page.locator('#memoryScoreDisplay')).toHaveText('1/6');
-
-  // A deliberate MISmatch must flip both back down again.
-  const other = glyphs.findIndex((g) => g !== glyphs[0]);
-  const otherPartner = glyphs.findIndex((g, i) => i !== other && g !== glyphs[0] && g !== glyphs[other]);
-  await page.locator('.memory-card').nth(other).click();
-  await page.locator('.memory-card').nth(otherPartner).click();
-  await page.waitForTimeout(1200);
-  expect(await page.locator('.memory-card.flipped:not(.matched)').count(),
-    'a mismatched pair turns back over').toBe(0);
-
   expect(errors).toEqual([]);
 });
