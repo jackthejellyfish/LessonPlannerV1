@@ -17,7 +17,7 @@ lesson, then steps through 14 stages: teaching first, then team games that
 quiz the same language.
 
 - **Live site:** `classroom-games-omega.vercel.app`. Pushing to `main` on
-  GitHub (`jackthejellyfish/classroom-games`) auto-deploys on Vercel in about
+  GitHub (`jackthejellyfish/LessonPlannerV1`) auto-deploys on Vercel in about
   30 seconds.
 - **Stack:** plain HTML, CSS and native ES modules. No framework, no build
   step, no runtime dependencies apart from Google Fonts. `package.json` exists
