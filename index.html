@@ -233,72 +233,92 @@
       <section class="stage hidden" id="stage5">
         <h2>Free practice</h2>
         <div class="stage-body">
-          <div class="stopwatch" id="stopwatch">
-            <div class="stopwatch-display">
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                maxlength="2"
-                id="stopwatchMin"
-                value="03"
-                aria-label="Minutes"
-              />
-              <span class="colon">:</span>
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                maxlength="2"
-                id="stopwatchSec"
-                value="00"
-                aria-label="Seconds"
-              />
-            </div>
-            <div class="stopwatch-adjust">
-              <button
-                class="adjust-btn"
-                id="stopwatchMinus"
-                type="button"
-                aria-label="Subtract one minute"
-              >
-                −
-              </button>
-              <button
-                class="adjust-btn"
-                id="stopwatchPlus"
-                type="button"
-                aria-label="Add one minute"
-              >
-                +
-              </button>
-            </div>
-            <div class="stopwatch-controls">
-              <button
-                class="btn btn-primary"
-                id="stopwatchToggle"
-                type="button"
-              >
-                Start
-              </button>
-              <button class="btn btn-ghost" id="stopwatchReset" type="button">
-                Reset
-              </button>
-            </div>
+          <!-- Three slides, one at a time (renderFreeSlide in
+               js/stages/stage5-free.js): the task, then the timer with
+               the helper language beside it. All three stay in the DOM so the running
+               timer is never torn down by a slide change. -->
+          <div class="free-slides">
+            <section class="free-slide" id="freeSlideTask">
+              <div class="free-task-card" id="freeTask"></div>
+            </section>
+
+            <section class="free-slide hidden" id="freeSlideGo">
+              <div class="free-go">
+                <div class="free-go-main">
+                  <p class="free-go-task" id="freeGoTask"></p>
+                  <ol class="free-go-steps" id="freeGoSteps"></ol>
+                  <div class="stopwatch" id="stopwatch">
+                    <div class="stopwatch-display">
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        maxlength="2"
+                        id="stopwatchMin"
+                        value="03"
+                        aria-label="Minutes"
+                      />
+                      <span class="colon">:</span>
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        maxlength="2"
+                        id="stopwatchSec"
+                        value="00"
+                        aria-label="Seconds"
+                      />
+                    </div>
+                    <div class="stopwatch-adjust">
+                      <button
+                        class="adjust-btn"
+                        id="stopwatchMinus"
+                        type="button"
+                        aria-label="Subtract one minute"
+                      >
+                        −
+                      </button>
+                      <button
+                        class="adjust-btn"
+                        id="stopwatchPlus"
+                        type="button"
+                        aria-label="Add one minute"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div class="stopwatch-controls">
+                      <button
+                        class="btn btn-primary"
+                        id="stopwatchToggle"
+                        type="button"
+                      >
+                        Start
+                      </button>
+                      <button class="btn btn-ghost" id="stopwatchReset" type="button">
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="free-go-help">
+                  <div class="free-card" id="sentenceStartersCard">
+                    <h3>Sentence starters</h3>
+                    <div class="scaffold-list" id="scaffoldList"></div>
+                  </div>
+                  <div class="free-card" id="wordBankCard">
+                    <h3>Word bank</h3>
+                    <div class="word-bank-row" id="wordBank"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
 
-          <p class="free-intro" id="freeIntro"></p>
-
-          <div class="free-layout">
-            <div class="free-card" id="sentenceStartersCard">
-              <h3>Sentence starters</h3>
-              <div class="scaffold-list" id="scaffoldList"></div>
-            </div>
-
-            <div class="free-card prominent" id="wordBankCard">
-              <h3>Word bank</h3>
-              <div class="word-bank-row" id="wordBank"></div>
-            </div>
+          <div class="learn-nav">
+            <button class="btn btn-ghost" id="freePrevSlideBtn" type="button">← Previous</button>
+            <div class="free-steps" id="freeSteps"></div>
+            <button class="btn btn-primary" id="freeNextSlideBtn" type="button">Next →</button>
           </div>
         </div>
         <div class="stage-footer">

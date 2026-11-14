@@ -102,3 +102,41 @@ test('the last stage has a Finish button that returns to the lesson picker', asy
   await expect(page.locator('#lessonSelect')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wrap')).toHaveClass(/hidden/);
 });
+
+test('stage 5 shows the task first, then the timer with the useful language', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(4).evaluate((el) => el.click());
+
+  // The task comes first, on its own, and fits without scrolling.
+  await expect(page.locator('#freeSlideTask')).toBeVisible();
+  await expect(page.locator('.free-headline')).not.toBeEmpty();
+  await expect(page.locator('#stopwatch')).toBeHidden();
+  const overflow = await page.locator('#freeSlideTask').evaluate((el) => el.scrollHeight - el.clientHeight);
+  expect(overflow, 'task slide should not need scrolling').toBeLessThanOrEqual(1);
+
+  await page.click('#freeNextSlideBtn');
+  await expect(page.locator('#stopwatch')).toBeVisible();
+  await expect(page.locator('#scaffoldList .frame')).toHaveCount(5);
+  await expect(page.locator('#wordBank .wordbank-chip').first()).toBeVisible();
+  await expect(page.locator('#freeNextSlideBtn')).toHaveText('Next: Ball Pop →');
+
+  await page.click('#freeNextSlideBtn');
+  await expect(page.locator('#stage6')).toBeVisible();
+});
+
+test('stage 5 slides fit without scrolling on a 1280x720 projector, in every lesson', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/index.html');
+  const lessons = await page.locator('.lesson-card').count();
+  for (let i = 0; i < lessons; i++) {
+    await page.goto('/index.html');
+    await page.locator('.lesson-card').nth(i).click();
+    await page.locator('.step').nth(4).evaluate((el) => el.click());
+    for (const slide of ['#freeSlideTask', '#freeSlideGo']) {
+      if (slide === '#freeSlideGo') await page.click('#freeNextSlideBtn');
+      const overflow = await page.locator(slide).evaluate((el) => el.scrollHeight - el.clientHeight);
+      expect(overflow, `lesson ${i + 1} ${slide} overflow`).toBeLessThanOrEqual(1);
+    }
+  }
+});

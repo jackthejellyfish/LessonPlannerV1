@@ -1,18 +1,66 @@
+import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { escapeHtml } from '../utils.js';
 import { sfxTimeUp } from '../audio.js';
-import { getCurrentLesson } from '../lessons.js';
-import { WORD_BANK, SCAFFOLD_FRAMES } from '../content/stage5-free.js';
+import { WORD_BANK, SCAFFOLD_FRAMES, FREE_TASK } from '../content/stage5-free.js';
 
 /* =========================================================
    STAGE 5 — FREE PRACTICE
-========================================================= */
 
-export function renderWordBank(){
-  document.getElementById('freeIntro').textContent = getCurrentLesson().freeIntro;
-  document.getElementById('wordBank').innerHTML = WORD_BANK.map(([base, comp]) => `
+   Two slides, one at a time, same idea as Stage 2:
+     1. The task  — what to do, big, with an example exchange. Sized
+                    to fit the stage without scrolling.
+     2. Your turn — the timer and the task restated on the left, the
+                    sentence starters and word bank (smaller) on the
+                    right.
+   This replaced a single page that put the timer, the task, five
+   sentence frames and a 14-chip word bank on screen at once, with the
+   word bank styled as the most prominent thing — per feedback, the
+   TASK has to be the focus and the helper language secondary.
+
+   Both slides stay in the DOM and are only shown/hidden, so a
+   timer that is running keeps running if the teacher steps back.
+========================================================= */
+const FREE_SLIDES = [
+  { id: 'freeSlideTask', label: 'The task' },
+  { id: 'freeSlideGo', label: 'Your turn' }
+];
+
+function renderFreeTask(){
+  const { headline, steps, example } = FREE_TASK;
+  document.getElementById('freeTask').innerHTML = `
+    <p class="free-eyebrow">Your task</p>
+    <h3 class="free-headline">${escapeHtml(headline)}</h3>
+    <div class="free-task-body">
+    <ol class="free-task-steps">
+      ${steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}
+    </ol>
+    <div class="free-example">
+      <p class="free-example-label">Example</p>
+      ${example.map(([who, line]) => `
+        <div class="free-bubble ${who === 'A' ? 'a' : 'b'}">
+          <span class="free-bubble-who">${escapeHtml(who)}</span>
+          <span class="free-bubble-text">${escapeHtml(line)}</span>
+        </div>`).join('')}
+    </div>
+    </div>
+  `;
+  document.getElementById('freeGoTask').textContent = headline;
+  document.getElementById('freeGoSteps').innerHTML = steps.map(step => `<li>${escapeHtml(step)}</li>`).join('');
+}
+
+function wordBankChips(){
+  return WORD_BANK.map(([base, comp]) => `
     <span class="wordbank-chip">${escapeHtml(base)} → <strong>${escapeHtml(comp)}</strong></span>
   `).join('');
+}
+
+// Name kept from before the rework: main.js calls this on every lesson
+// switch and restart, so it re-renders everything lesson-specific here.
+export function renderWordBank(){
+  renderFreeTask();
+  document.getElementById('wordBank').innerHTML = wordBankChips();
+  renderFreeSlide();
 }
 
 export function renderScaffoldList(){
@@ -20,6 +68,40 @@ export function renderScaffoldList(){
     <div class="frame">${frame}</div>
   `).join('');
 }
+
+export function renderFreeSlide(){
+  const index = Math.max(0, Math.min(state.freeIndex || 0, FREE_SLIDES.length - 1));
+  state.freeIndex = index;
+  FREE_SLIDES.forEach((slide, i) => {
+    document.getElementById(slide.id).classList.toggle('hidden', i !== index);
+  });
+
+  // Named steps rather than anonymous dots: "1 The task · 2 Your
+  // turn" tells a class where they are at a glance.
+  const steps = document.getElementById('freeSteps');
+  steps.innerHTML = FREE_SLIDES.map((slide, i) => `
+    <button class="free-step ${i === index ? 'active' : ''} ${i < index ? 'done' : ''}" data-i="${i}" type="button">
+      <span class="free-step-num">${i + 1}</span>${slide.label}
+    </button>
+  `).join('');
+  steps.querySelectorAll('.free-step').forEach(btn => {
+    btn.addEventListener('click', () => { state.freeIndex = Number(btn.dataset.i); renderFreeSlide(); });
+  });
+
+  document.getElementById('freePrevSlideBtn').disabled = index === 0;
+  document.getElementById('freeNextSlideBtn').textContent = index < FREE_SLIDES.length - 1
+    ? `Next: ${FREE_SLIDES[index + 1].label} →`
+    : 'Next: Ball Pop →';
+}
+
+document.getElementById('freePrevSlideBtn').addEventListener('click', () => {
+  if(state.freeIndex > 0){ state.freeIndex--; renderFreeSlide(); }
+});
+document.getElementById('freeNextSlideBtn').addEventListener('click', () => {
+  if(state.freeIndex >= FREE_SLIDES.length - 1){ goToStage(6); return; }
+  state.freeIndex++;
+  renderFreeSlide();
+});
 
 /* =========================================================
    MINIMALIST COUNTDOWN TIMER (Free practice)

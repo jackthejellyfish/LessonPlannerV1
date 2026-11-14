@@ -53,6 +53,25 @@ six rule cards and four attraction-vs-feeling demos. New icons:
 `coaster`/`carousel`/`glasses3d`/`ghost`/`face-{excited,bored,amazed,scared}`
 (stage 2).
 
+### Free practice (Stage 5) is a two-slide sequence
+Per feedback that the page was overwhelming: **1 The task** (big
+headline, three numbered steps beside an example A/B exchange) → **2 Your
+turn** (timer + task restated on the left; sentence starters above the
+word bank, in smaller type, on the right). The "1 The task / 2 Your turn"
+strip sits in the slide nav between Previous and Next; the last Next goes
+to Ball Pop. The task text is a per-lesson `FREE_TASK`
+(`{headline, steps[], example[[speaker, line]]}`) in
+`js/content/stage5-free.js`; `freeIntro` in `js/lessons.js` is gone. Both
+slides stay in the DOM (only toggled), so a running timer survives moving
+between them. `state.freeIndex` tracks the slide.
+
+**Both slides must fit with no scrolling** — a test checks every lesson at
+1280x720. Health is the tightest (long word-bank phrases); a side-by-side
+starters/word-bank layout was tried and was worse for it.
+
+> **Gotcha:** don't reuse `.learn-dots` outside Stage 2 — the tests count
+> `.learn-dots .demo-dot` to size Stage 2's deck.
+
 ### Consistency pass
 - One `.game-hint` pill for every game; Billiards/Neon/Fruit only add a
   text tint now (they each had their own slightly different copy).

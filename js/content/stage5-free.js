@@ -3,6 +3,18 @@
 ========================================================= */
 const LESSON_CONTENT = {
   comparatives: {
+    FREE_TASK: {
+      headline: "Compare two things you know.",
+      steps: [
+        "Choose two people, animals or things.",
+        "Tell your partner five ways they are different.",
+        "Swap — now your partner compares two things."
+      ],
+      example: [
+        ["A", "Who is taller, you or your brother?"],
+        ["B", "My brother is taller than me, but I’m faster than him!"]
+      ]
+    },
     // Reference list shown during free practice — every comparative
     // introduced somewhere earlier in the lesson.
     WORD_BANK: [
@@ -22,6 +34,18 @@ const LESSON_CONTENT = {
     ]
   },
   health: {
+    FREE_TASK: {
+      headline: "Give your partner some health advice.",
+      steps: [
+        "Your partner tells you a problem: “I’ve got a headache.”",
+        "Give advice with should and shouldn’t.",
+        "Swap. Do it five times each."
+      ],
+      example: [
+        ["A", "I’ve got a sore throat."],
+        ["B", "You should drink some hot tea. You shouldn’t shout!"]
+      ]
+    },
     // Reference list shown during free practice — every ailment/advice
     // pair introduced somewhere earlier in the lesson.
     WORD_BANK: [
@@ -42,6 +66,18 @@ const LESSON_CONTENT = {
     ]
   },
   'comparatives-superlatives': {
+    FREE_TASK: {
+      headline: "Compare three things — then choose the best.",
+      steps: [
+        "Choose three people, animals or things.",
+        "Compare them: bigger, faster, more interesting…",
+        "Say which one is the best of all, and why."
+      ],
+      example: [
+        ["A", "Which is the fastest: a car, a bike or a plane?"],
+        ["B", "A car is faster than a bike, but a plane is the fastest!"]
+      ]
+    },
     WORD_BANK: [
       ["tall","taller / tallest"], ["big","bigger / biggest"], ["hot","hotter / hottest"],
       ["nice","nicer / nicest"], ["safe","safer / safest"], ["happy","happier / happiest"],
@@ -58,6 +94,18 @@ const LESSON_CONTENT = {
     ]
   },
   'will-wont': {
+    FREE_TASK: {
+      headline: "Make predictions about next year.",
+      steps: [
+        "Ask your partner: “What will you do next year?”",
+        "Answer with will and won’t — five sentences.",
+        "Swap and ask again."
+      ],
+      example: [
+        ["A", "What will you do next year?"],
+        ["B", "I will learn to swim. I won’t eat so much chocolate!"]
+      ]
+    },
     WORD_BANK: [
       ["I will","I\u2019ll"], ["you will","you\u2019ll"], ["he will","he\u2019ll"],
       ["she will","she\u2019ll"], ["we will","we\u2019ll"], ["they will","they\u2019ll"],
@@ -74,6 +122,18 @@ const LESSON_CONTENT = {
     ]
   },
   'present-perfect': {
+    FREE_TASK: {
+      headline: "Find out what your partner has done.",
+      steps: [
+        "Ask “Have you ever…?” questions.",
+        "Answer: “Yes, I have” or “No, I haven’t” — then say more.",
+        "Find three things you have BOTH done."
+      ],
+      example: [
+        ["A", "Have you ever ridden a horse?"],
+        ["B", "Yes, I have! Have you?"]
+      ]
+    },
     // Base verb paired with its past participle — the form students
     // actually need to reach for while speaking freely.
     WORD_BANK: [
@@ -91,6 +151,20 @@ const LESSON_CONTENT = {
     ]
   },
   'amusement-park': {
+    FREE_TASK: {
+      headline: "Imagine you went to an amusement park.",
+      steps: [
+        "Ask your partner: “What did you do?”",
+        "Then ask: “How was it?” and “How did you feel?”",
+        "Swap. What was the most popular attraction?"
+      ],
+      example: [
+        ["A", "What did you do at the amusement park?"],
+        ["B", "I went on a roller coaster."],
+        ["A", "How was it?"],
+        ["B", "It was exciting. I was excited!"]
+      ]
+    },
     // Verbs in the past simple, then the -ing / -ed adjective pairs -
     // everything a student needs to answer "What did you do?" and
     // "How was it?" without having to ask.
@@ -112,6 +186,8 @@ const LESSON_CONTENT = {
 
 export const WORD_BANK = [];
 export const SCAFFOLD_FRAMES = [];
+// {headline, steps[], example[[speaker, line]]} — Stage 5's first slide.
+export const FREE_TASK = { headline: '', steps: [], example: [] };
 
 export function applyLesson(id){
   const data = LESSON_CONTENT[id] || LESSON_CONTENT.comparatives;
@@ -119,5 +195,6 @@ export function applyLesson(id){
   WORD_BANK.push(...data.WORD_BANK);
   SCAFFOLD_FRAMES.length = 0;
   SCAFFOLD_FRAMES.push(...data.SCAFFOLD_FRAMES);
+  Object.assign(FREE_TASK, data.FREE_TASK);
 }
 applyLesson('comparatives');
