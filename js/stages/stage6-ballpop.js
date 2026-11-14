@@ -6,8 +6,10 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { renderGameIntro } from '../gameIntro.js';
 import { POP_QUESTIONS } from '../content/stage6-ballpop.js';
 import { createCanvasResizer } from '../canvasGame.js';
-import { drawGlow, createLowResLayer } from '../canvasGlow.js';
+import { drawGlow } from '../canvasGlow.js';
+import { stepParticles, frameFactor } from '../canvasEffects.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { createTimerHud, setTimerFill } from '../hud.js';
 
 /* =========================================================
    STAGE 6 — BALL POP CHALLENGE
@@ -221,7 +223,12 @@ function showFloatingText(container, xPct, yPct, text, color, extraClass = ''){
 // Half resolution on top of the shared cap: this canvas draws ONLY
 // glow rings and particles behind real DOM ball buttons, so there is no
 // crisp edge for the upscale to soften.
-const popCanvasResizer = createCanvasResizer('popParticleCanvas', 'popPlayArea', null, { renderScale: 0.42 });
+// A resize wipes the canvas buffer. While the loop is running the next
+// frame repaints it anyway; while it's parked (see startPopParticleLoop)
+// nothing would, so repaint the one still frame here.
+const popCanvasResizer = createCanvasResizer('popParticleCanvas', 'popPlayArea', () => {
+  if(!state.popParticleRAF) renderPopCanvas();
+}, { renderScale: 0.42 });
 export function resizePopCanvas(){ popCanvasResizer.resize(); }
 
 // Cache the 2D context per canvas element instead of calling
@@ -314,30 +321,33 @@ function popMultiplierActive(){
   return performance.now() < state.popMultiplierUntil;
 }
 
-function updatePopBallAnims(){
+// `k` = 60fps-frames elapsed (frameFactor), so a ball grows in at the
+// same real-time speed on a 30fps classroom PC as on a 120Hz panel.
+function updatePopBallAnims(k){
+  const ease = 1 - Math.pow(1 - POP_BALL_EASE_SPEED, k);
   for(const anim of state.popBallAnims){
-    anim.scale += (1 - anim.scale) * POP_BALL_EASE_SPEED;
-    anim.alpha += (1 - anim.alpha) * POP_BALL_EASE_SPEED;
+    // A ball that has finished growing in is left alone. This used to
+    // rewrite every live ball's transform and opacity on every frame for
+    // as long as it was on screen — a style invalidation per ball per
+    // frame for a value that had stopped changing.
+    if(anim.settled) continue;
+    anim.scale += (1 - anim.scale) * ease;
+    anim.alpha += (1 - anim.alpha) * ease;
+    if(anim.scale > 0.995 && anim.alpha > 0.995){
+      anim.scale = 1;
+      anim.alpha = 1;
+      anim.settled = true;
+    }
     anim.el.style.transform = `translate(-50%,-50%) scale(${anim.scale})`;
     anim.el.style.opacity = anim.alpha;
   }
 }
 
-function updatePopParticles(){
-  for(const p of state.popParticles){
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.2;      // gravity — a constant downward pull each frame
-    p.vx *= 0.983;    // drag — horizontal speed bleeds off gradually
-    p.alpha -= p.decay;
-    p.size *= 0.974;  // gentle continuous shrink
-  }
-  state.popParticles = state.popParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+function updatePopParticles(k){
+  // gravity 0.2/frame, horizontal drag 0.983, gentle shrink 0.974
+  stepParticles(state.popParticles, k, { gravity: 0.2, dragX: 0.983, shrink: 0.974 });
 }
 
-// The bokeh field is composited at quarter resolution and upscaled —
-// see createLowResLayer's header for the measurements behind that.
-const popBlobLayer = createLowResLayer(0.25);
 
 function renderPopCanvas(){
   const canvas = popCanvasResizer.getCanvas();
@@ -345,44 +355,14 @@ function renderPopCanvas(){
   const ctx = getPopCtx(canvas);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Animated background: slow-floating bokeh blobs — large,
-  // semi-transparent, coloured circles that give the canvas visual
-  // depth without competing with the actual game content. Seeded from
-  // a fixed-length array so they're consistent within a round.
-  if(!state.popBgBlobs || state.popBgBlobs.length === 0){
-    state.popBgBlobs = Array.from({ length: 8 }, (_, i) => ({
-      x: Math.random(), y: Math.random(),
-      r: 0.08 + Math.random() * 0.12,
-      vx: (Math.random() - 0.5) * 0.00018,
-      vy: (Math.random() - 0.5) * 0.00012,
-      color: ['#B266FF', '#31E6E0', '#FFD23F', '#FF6B6B'][i % 4],
-      phase: Math.random() * Math.PI * 2
-    }));
-  }
-  // These 8 blobs were, by measurement, the single most expensive thing
-  // in this entire app: 50.0ms/frame with them vs 16.7ms without, on an
-  // otherwise EMPTY stage — no balls, no particles (see
-  // tests/perf.spec.js and js/canvasGlow.js's header). The cost was
-  // re-rasterizing eight big alpha-blended radial gradients across the
-  // whole canvas every frame. Caching the gradient object (the previous
-  // optimization here) didn't help, because building the gradient was
-  // never the expensive part — FILLING it was. Now each blob is a
-  // pre-rasterized sprite that's simply blitted, which looks identical
-  // and costs a small fraction of the time. Drift and pulse are
-  // unchanged: both are applied at blit time.
-  popBlobLayer(ctx, canvas, (lctx, lw, lh) => {
-    for(const b of state.popBgBlobs){
-      b.x += b.vx; b.y += b.vy;
-      if(b.x < -b.r) b.x = 1 + b.r;
-      if(b.x > 1 + b.r) b.x = -b.r;
-      if(b.y < -b.r) b.y = 1 + b.r;
-      if(b.y > 1 + b.r) b.y = -b.r;
-      const alphaRatio = 0.6 + 0.4 * Math.sin(Date.now() / 1800 + b.phase); // 0.2..1.0, scaling the 0.1 peak below
-      // Radius scales off WIDTH (as it always has, so a blob keeps its
-      // proportions), but the centre's y must scale off HEIGHT.
-      drawGlow(lctx, b.x * lw, b.y * lh, b.r * lw, b.color, alphaRatio * 0.1);
-    }
-  });
+  // No animated bokeh any more. Eight drifting glows were redrawn here
+  // every frame (a quarter-resolution pass plus a full-canvas upscale),
+  // which kept this the slowest game in the app; moving them to a CSS
+  // layer just moved the cost to the compositor (measured: worse, an
+  // oversized layer re-composited every frame). The play area's own
+  // static gradient background (.pop-play-area) carries the colour, and
+  // this canvas now draws only what is genuinely dynamic: ball rings
+  // and particles.
 
   // Above POP_PARTICLE_GLOW_LIMIT live particles, a bomb/mega moment is
   // already under load — drop shadowBlur everywhere this frame (both
@@ -467,12 +447,26 @@ function renderPopCanvas(){
   ctx.restore();
 }
 
+// The loop PARKS itself once there is nothing left to animate — no
+// round running, no balls, no particles still fading. It used to run
+// for as long as Stage 6 was open, including the long stretches a class
+// spends between turns, in the question modal, or on the game-over
+// screen: a full canvas redraw every frame to drift eight background
+// blobs nobody was looking at. Parked, the last frame simply stays on
+// screen. startPopRound() restarts it.
 export function startPopParticleLoop(){
   if(state.popParticleRAF) return; // already running
-  function frame(){
-    updatePopBallAnims();
-    updatePopParticles();
+  let last = performance.now();
+  function frame(now){
+    const k = frameFactor(now - last);
+    last = now;
+    updatePopBallAnims(k);
+    updatePopParticles(k);
     renderPopCanvas();
+    if(!state.popRoundActive && state.popParticles.length === 0 && state.popBallAnims.length === 0){
+      state.popParticleRAF = null;
+      return;
+    }
     state.popParticleRAF = requestAnimationFrame(frame);
   }
   state.popParticleRAF = requestAnimationFrame(frame);
@@ -1081,11 +1075,12 @@ function startPopRound(){
 
   document.getElementById('popPopsDisplay').textContent = '0';
   document.getElementById('popTimeDisplay').textContent = POP_ROUND_SECONDS;
-  document.getElementById('popTimerFill').style.width = '100%';
+  setTimerFill(document.getElementById('popTimerFill'), 1);
 
   const playArea = document.getElementById('popPlayArea');
   playArea.classList.remove('idle');
   document.getElementById('popBallLayer').innerHTML = '';
+  startPopParticleLoop(); // may have parked between turns
   spawnPopBall();
   scheduleBombsForRound();
   scheduleGemsForRound();
@@ -1094,11 +1089,11 @@ function startPopRound(){
   const start = performance.now();
   const timeDisplay = document.getElementById('popTimeDisplay');
   const timerFill = document.getElementById('popTimerFill');
+  const updateTimerHud = createTimerHud(timeDisplay, timerFill, POP_ROUND_SECONDS);
   const popsEl = document.getElementById('popPopsDisplay');
   function tick(now){
     const remaining = Math.max(0, POP_ROUND_SECONDS - (now - start) / 1000);
-    timeDisplay.textContent = Math.ceil(remaining);
-    timerFill.style.width = (remaining / POP_ROUND_SECONDS * 100) + '%';
+    updateTimerHud(remaining);
     // Live "×2 active" cue on the score number itself for the whole
     // window, not just the instant it's popped — a room full of players
     // needs to keep seeing it, not just catch a one-off flash.
@@ -1169,7 +1164,7 @@ function finishPopRound(){
       renderPopTurnBanner();
       document.getElementById('popBeginTurnBtn').disabled = false;
       document.getElementById('popTimeDisplay').textContent = '--';
-      document.getElementById('popTimerFill').style.width = '100%';
+      setTimerFill(document.getElementById('popTimerFill'), 1);
     }
   });
 }

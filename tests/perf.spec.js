@@ -41,10 +41,16 @@ const SAMPLE_MS = 5000;       // how long to watch a live round for
 // harness vary by roughly +/-5fps, so a threshold set at the peak would
 // fail on noise rather than on regressions.
 //
-//   before (pre canvasGlow / render-scale)   after        guard
-//   Ball Pop      12.9 - 16.6 fps            34 - 41      27
-//   Fruit Ninja   ~20 fps                    38 - 52      33
-//   Stage 1 idle  60 fps                     60           55
+//   before (pre canvasGlow / render-scale)   v2 pass      v3 pass (2026-11-14)
+//   Ball Pop      12.9 - 16.6 fps            34 - 46      54 - 60
+//   Fruit Ninja   ~20 fps                    38 - 55      40 - 60
+//   Stage 1 idle  60 fps                     60           60
+//
+// The v3 pass (see PROJECT_STATE.md) mostly removed work AROUND the
+// games — an always-on full-viewport background animation, a backdrop
+// blur over every game's footer, per-frame layout from the timer bars —
+// and parked loops that were redrawing still scenes. See
+// tests/perf-games.spec.js for every game at 2560x1440.
 //
 // Fruit Ninja's ceiling is lower than it was mid-optimization because
 // the difficulty retune (FRUIT_GRAVITY and the spawn volleys) roughly
@@ -56,7 +62,7 @@ const SAMPLE_MS = 5000;       // how long to watch a live round for
 // reads ~32fps; measured after the other ten specs have warmed the
 // machine up, the same build reads ~24fps. That is the harness, not the
 // app. Run `npx playwright test perf` on its own when comparing builds.
-const MIN_FPS = { ballpop: 21, fruit: 28, idle: 50 };
+const MIN_FPS = { ballpop: 35, fruit: 30, idle: 50 };
 
 // A self-driving rAF loop running alongside whatever the page is doing.
 // It measures the rate the display pipeline actually achieves, so it

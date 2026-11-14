@@ -6,6 +6,7 @@ import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '..
 import { renderGameIntro } from '../gameIntro.js';
 import { WHACK_QUESTIONS } from '../content/stage14-whack.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { createTimerHud, setTimerFill } from '../hud.js';
 
 /* =========================================================
    STAGE 14 — WHACK-A-MONSTER
@@ -268,7 +269,7 @@ function startWhackRound(){
 
   document.getElementById('whackScoreDisplay').textContent = '0';
   document.getElementById('whackTimeDisplay').textContent = String(WHACK_ROUND_SECONDS);
-  document.getElementById('whackTimerFill').style.width = '100%';
+  setTimerFill(document.getElementById('whackTimerFill'), 1);
   document.getElementById('whackPlayArea').classList.remove('idle');
   document.getElementById('whackHint').classList.remove('hidden');
   whackHoles.forEach(clearWhackHole);
@@ -277,12 +278,12 @@ function startWhackRound(){
   let nextSpawnAt = 250;
   const timeDisplay = document.getElementById('whackTimeDisplay');
   const timerFill = document.getElementById('whackTimerFill');
+  const updateTimerHud = createTimerHud(timeDisplay, timerFill, WHACK_ROUND_SECONDS);
 
   function tick(now){
     const elapsed = now - start;
     const remaining = Math.max(0, WHACK_ROUND_SECONDS - elapsed / 1000);
-    timeDisplay.textContent = String(Math.ceil(remaining));
-    timerFill.style.width = (remaining / WHACK_ROUND_SECONDS * 100) + '%';
+    updateTimerHud(remaining);
 
     if(elapsed >= nextSpawnAt){
       popWhackMonster();
@@ -331,7 +332,7 @@ function finishWhackRound(){
     renderWhackTurnBanner();
     document.getElementById('whackBeginTurnBtn').disabled = false;
     document.getElementById('whackTimeDisplay').textContent = '--';
-    document.getElementById('whackTimerFill').style.width = '100%';
+    setTimerFill(document.getElementById('whackTimerFill'), 1);
   });
 }
 

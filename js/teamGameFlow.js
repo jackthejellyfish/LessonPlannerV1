@@ -3,6 +3,7 @@ import { confirmDialog } from './confirmDialog.js';
 import { renderResultStandings } from './teamColorPicker.js';
 import { showGameIntroMenu } from './gameIntro.js';
 import { burstFromElement } from './particles.js';
+import { setTimerFill } from './hud.js';
 
 /* =========================================================
    SHARED TEAM-GAME ORCHESTRATION
@@ -89,7 +90,7 @@ export function finishTeamGame({ prefix, teams, hasTimerHud = false, setPlayArea
   document.getElementById(`${prefix}BeginTurnBtn`).classList.add('hidden');
   if(hasTimerHud){
     document.getElementById(`${prefix}TimeDisplay`).textContent = '--';
-    document.getElementById(`${prefix}TimerFill`).style.width = '0%';
+    setTimerFill(document.getElementById(`${prefix}TimerFill`), 0);
   }
   document.getElementById(`${prefix}GameOverWinner`).textContent = winnerText;
   document.getElementById(`${prefix}GameOverBanner`).classList.remove('hidden');

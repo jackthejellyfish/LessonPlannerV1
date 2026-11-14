@@ -34,7 +34,6 @@ export let state = {
   popBallAnims: [],       // every currently-live ball's {el, xPct, yPct, color, scale, alpha, special}
   popSpecialUsedThisRound: false,
   popSwarmRemaining: 0,   // balls still to clear from the special-ball swarm, if one is in progress
-  popBgBlobs: [],         // animated background bokeh blobs for the Ball Pop canvas
   popBombTimeouts: [],    // scheduled setTimeout ids for bombs not yet spawned this round
   popActiveBombs: [],     // currently live bombs: { bomb, anim, fuseInterval, expireTimeout }
   popGemTimeouts: [],     // scheduled setTimeout ids for gems not yet spawned this round
@@ -142,7 +141,7 @@ export function resetLessonState(lessonId = state.currentLesson){
     mcIndex: 0, mcScore: 0, mcAnswered: false, mcTimerRAF: null, mcStarted: false,
     semiIndex: 0, semiScore: 0, semiBank: [], semiAnswer: [], semiChecked: false, semiTimerRAF: null, semiStarted: false,
     popTeams: [], popCurrentTeam: 0, popQuestionOrder: [], popTurnsPlayed: 0, popScore: 0, popRoundActive: false, popRoundRAF: null,
-    popParticles: [], popParticleRAF: null, popBallAnims: [], popSpecialUsedThisRound: false, popSwarmRemaining: 0, popBgBlobs: [],
+    popParticles: [], popParticleRAF: null, popBallAnims: [], popSpecialUsedThisRound: false, popSwarmRemaining: 0,
     popBombTimeouts: [], popActiveBombs: [],
     popGemTimeouts: [], popActiveGems: [],
     popMultiTimeouts: [], popActiveMulti: [], popMultiplierUntil: 0,

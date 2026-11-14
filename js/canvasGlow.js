@@ -138,37 +138,3 @@ export function createBackdrop(renderFn){
     ctx.globalAlpha = prevAlpha;
   };
 }
-
-/* ---- Low-resolution effect layers ----
-   For content that is large, soft and translucent — Ball Pop's drifting
-   bokeh field being the motivating case. Caching each blob as a sprite
-   (above) was not enough on its own: eight blobs up to ~618px across,
-   alpha-blended over a full-size canvas, is ~2.4 million blended pixels
-   every frame no matter how the gradient itself is produced. Measured at
-   21fps even after the sprite cache; 60fps with the blobs removed.
-
-   The trick is that this content has no high-frequency detail to lose.
-   Rendering the whole field into a quarter-size offscreen canvas and
-   upscaling it costs 16x fewer blended pixels and then ONE blit, and
-   for soft gradients the upscale is visually indistinguishable — the
-   bilinear smoothing it introduces is the look already being drawn.
-   Per-blob drift and pulse are untouched, because the field is still
-   re-rendered live every frame, just smaller.
-
-   `renderFn(ctx, w, h, scale)` receives the LAYER's dimensions; multiply
-   any full-canvas coordinate by `scale`. */
-export function createLowResLayer(scale = 0.25){
-  let layer = null, lw = 0, lh = 0;
-
-  return function draw(ctx, canvas, renderFn){
-    const w = Math.max(1, Math.round(canvas.width * scale));
-    const h = Math.max(1, Math.round(canvas.height * scale));
-    if(!layer) layer = document.createElement('canvas');
-    if(lw !== w || lh !== h){ layer.width = w; layer.height = h; lw = w; lh = h; }
-
-    const lctx = layer.getContext('2d');
-    lctx.clearRect(0, 0, w, h);
-    renderFn(lctx, w, h, scale);
-    ctx.drawImage(layer, 0, 0, canvas.width, canvas.height);
-  };
-}

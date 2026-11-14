@@ -8,8 +8,9 @@ import { HOOP_QUESTIONS } from '../content/stage13-hoopshot.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
-import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, frameFactor } from '../canvasEffects.js';
 import { createBackdrop, drawGlow } from '../canvasGlow.js';
+import { setTimerFill } from '../hud.js';
 
 /* =========================================================
    STAGE 13 — HOOP SHOT
@@ -145,7 +146,23 @@ function renderHoopTurnBanner(){
 /* =========================================================
    CANVAS
 ========================================================= */
-const hoopCanvasResizer = createCanvasResizer('hoopCanvas', 'hoopPlayArea');
+// A resize wipes the canvas buffer; make sure the next frame repaints.
+const hoopCanvasResizer = createCanvasResizer('hoopCanvas', 'hoopPlayArea', () => invalidateHoop());
+
+/* ---- Render on demand ----
+   Most of a Hoop Shot turn is a team deciding on an angle and power
+   while nothing moves. The loop used to redraw the court 60 times a
+   second through all of it. Now it only draws while something is in
+   motion (the ball in flight, an effect fading, a shake), plus a couple
+   of frames after. Every aim change goes through syncHoopControls(),
+   which marks the canvas dirty, so the preview arc still follows the
+   controls instantly. */
+let hoopDirtyFrames = 2;
+function invalidateHoop(){ hoopDirtyFrames = 2; }
+function hoopSceneIsMoving(){
+  return (hoopBall && hoopBall.flying) || hoopFloatTexts.length > 0 || hoopShockwaves.length > 0
+    || performance.now() < hoopShake.until;
+}
 export function ensureHoopLayout(){
   if(state.hoopTeams.length > 0){ hoopCanvasResizer.resize(); renderHoopCanvas(); }
 }
@@ -262,6 +279,7 @@ function visualAngle(){
 }
 
 function syncHoopControls(){
+  invalidateHoop();
   const aim = hoopCanAim();
   document.getElementById('hoopAngleValue').textContent = `${visualAngle()}°`;
   document.getElementById('hoopPowerValue').textContent = `${Math.round(hoopPower)}%`;
@@ -416,7 +434,7 @@ function startHoopRound(){
 
   document.getElementById('hoopScoreDisplay').textContent = '0';
   document.getElementById('hoopShotsDisplay').textContent = String(HOOP_SHOTS_PER_TURN);
-  document.getElementById('hoopTimerFill').style.width = '100%';
+  setTimerFill(document.getElementById('hoopTimerFill'), 1);
   document.getElementById('hoopPlayArea').classList.remove('idle');
   document.getElementById('hoopHint').classList.remove('hidden');
   hoopCanvasResizer.resize();
@@ -427,7 +445,11 @@ function startHoopRound(){
     const dt = Math.min(50, now - last) / 1000;
     last = now;
     updateHoop(dt);
-    renderHoopCanvas();
+    if(hoopSceneIsMoving()) hoopDirtyFrames = 2;
+    if(hoopDirtyFrames > 0){
+      hoopDirtyFrames--;
+      renderHoopCanvas();
+    }
     state.hoopRoundRAF = requestAnimationFrame(tick);
   }
   state.hoopRoundRAF = requestAnimationFrame(tick);
@@ -453,7 +475,7 @@ export function cancelHoopRound(){
    PHYSICS
 ========================================================= */
 function updateHoop(dt){
-  hoopFloatTexts = updateFloatTexts(hoopFloatTexts);
+  hoopFloatTexts = updateFloatTexts(hoopFloatTexts, frameFactor(dt * 1000));
   hoopShockwaves = updateShockwaves(hoopShockwaves);
 
   if(!hoopBall || !hoopBall.flying) return;
@@ -545,7 +567,7 @@ function resolveHoopShot(scored){
   hoopResolving = true;
   state.hoopShotsLeft--;
   document.getElementById('hoopShotsDisplay').textContent = String(Math.max(0, state.hoopShotsLeft));
-  document.getElementById('hoopTimerFill').style.width = `${(state.hoopShotsLeft / HOOP_SHOTS_PER_TURN) * 100}%`;
+  setTimerFill(document.getElementById('hoopTimerFill'), state.hoopShotsLeft / HOOP_SHOTS_PER_TURN);
 
   // A beat before the next ball so the result registers.
   setTimeout(() => {
@@ -575,7 +597,7 @@ function finishHoopRound(){
     renderHoopTurnBanner();
     document.getElementById('hoopBeginTurnBtn').disabled = false;
     document.getElementById('hoopShotsDisplay').textContent = String(HOOP_SHOTS_PER_TURN);
-    document.getElementById('hoopTimerFill').style.width = '100%';
+    setTimerFill(document.getElementById('hoopTimerFill'), 1);
   });
 }
 

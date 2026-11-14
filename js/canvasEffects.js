@@ -84,3 +84,46 @@ export function drawShockwaves(ctx, list, scale = 1){
     ctx.restore();
   }
 }
+
+/* ---- Frame-rate-independent particle stepping ----
+   Every game used to advance its particles by a fixed amount PER FRAME
+   (x += vx; alpha -= decay; ...). That ties effect speed to frame rate:
+   on a classroom PC managing 30fps every burst lived twice as long in
+   real time, so twice as many particles were alive at once, which made
+   the frame rate worse still — a feedback loop on exactly the machines
+   that could least afford it. On a 120Hz panel effects ran double speed.
+
+   `k` is "how many 60fps frames' worth of time just passed"
+   (frameFactor(dtMs)), and every per-frame constant is scaled by it —
+   multiplicative ones (drag, shrink) by exponent, so the curve is the
+   same shape at any frame rate. Tuned values are unchanged: at 60fps
+   k is 1 and this is the exact arithmetic each game already had.
+
+   Dead particles are compacted out IN PLACE rather than with
+   .filter(), which allocated a fresh array every frame per game. */
+export const FRAME_MS = 1000 / 60;
+
+// Clamped so a long stall (tab switch, GC pause) can't fling everything.
+export function frameFactor(dtMs){
+  return Math.min(3, Math.max(0, dtMs) / FRAME_MS);
+}
+
+export function stepParticles(list, k, { gravity = 0, dragX = 1, dragY = 1, shrink = 0.97 } = {}){
+  const dragXk = dragX === 1 ? 1 : Math.pow(dragX, k);
+  const dragYk = dragY === 1 ? 1 : Math.pow(dragY, k);
+  const shrinkK = Math.pow(shrink, k);
+  let alive = 0;
+  for(let i = 0; i < list.length; i++){
+    const p = list[i];
+    p.x += p.vx * k;
+    p.y += p.vy * k;
+    p.vy += gravity * k;
+    p.vx *= dragXk;
+    p.vy *= dragYk;
+    p.alpha -= p.decay * k;
+    p.size *= shrinkK;
+    if(p.alpha > 0 && p.size > 0.3) list[alive++] = p;
+  }
+  list.length = alive;
+  return list;
+}

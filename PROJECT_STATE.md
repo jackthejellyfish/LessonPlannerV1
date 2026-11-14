@@ -84,6 +84,67 @@ starters/word-bank layout was tried and was worse for it.
 - Removed the stray `undefined/` folder of screenshots committed by an
   earlier script.
 
+### Performance pass (v3.1)
+Measured with `tests/perf-games.spec.js`: every game at **2560x1440**,
+6x CPU throttle, reporting frame rate plus Chrome's own main-thread
+counters (busy %, layouts/s, style recalcs/s). On a fast dev box frame rate
+pins at 60, so the main-thread counters are what reveal waste.
+
+| | live fps before → after | main thread between turns |
+|---|---|---|
+| Stage 1 (idle page) | 54 → 60 | 38% → 0% |
+| Ball Pop | 21 → 48-59 | 7% → 0% |
+| Star Defender | 24 → 59-60 | 23% → 0% |
+| Billiards | 29 → 60 | 2% → 0% |
+| Neon Arena | 28 → 55-60 | 8% → 0% |
+| Fruit Ninja | 28 → 53-60 | 9% → 0% |
+| Hoop Shot | 29 → 60 | 2% → 0% |
+| Whack | 24 → 60 | 3% → 0% |
+
+What changed, biggest first:
+- **Page background no longer animates.** `body` animated
+  `background-position` across four full-viewport gradients forever, which
+  re-paints the whole screen every frame, including under every fullscreen
+  game. Measured alternatives: a transform-animated oversized GPU layer was
+  *worse* (40fps, compositor-bound). Static wins outright.
+- **No `backdrop-filter`.** The fullscreen footer blurred the game canvas
+  behind it on every frame (at 0.92 opacity — invisible). Same for the
+  game-over banner.
+- **Timer bars: `js/hud.js`.** Every game wrote `textContent` and
+  `style.width` on every frame (~30 layouts/s). `createTimerHud()` writes
+  text only when the second changes and drains the bar with
+  `transform: scaleX()`. Use `setTimerFill(el, fraction)` — never set a
+  `.timer-bar-fill`'s width. `timerRing.js` got the same text fix.
+- **Render on demand** in the turn-based games. Billiards and Hoop Shot
+  only redraw while something moves (`billiardsSceneIsStill()`,
+  `hoopSceneIsMoving()`), plus 2 frames after; anything else that changes
+  the picture calls `invalidateBilliards()` / `invalidateHoop()`
+  (`syncHoopControls()` does it for every aim change). Ball Pop's loop
+  **parks** when no round is running and nothing is fading, and
+  `startPopRound()` restarts it.
+- **Ball Pop:** the 8 canvas bokeh blobs are gone (the play area's static
+  CSS gradient carries the colour); settled balls are no longer rewritten
+  every frame; the bomb/gem/multiplier pulses and the mega/multiplier
+  flashes animate an overlay's `opacity` instead of `filter`/`box-shadow`
+  on the ball or the whole play area. Star Defender's life-lost flash got
+  the same overlay treatment.
+- **Billiards:** the table (rails, felt gradient, pockets) is cached in an
+  offscreen layer; ball `shadowBlur` replaced by an offset disc. No
+  `shadowBlur` remains anywhere in the app.
+- **Frame-rate independence:** `stepParticles()` / `frameFactor()` in
+  `js/canvasEffects.js`, and `updateFloatTexts(list, k)`. Particles and
+  float text used fixed per-frame steps, so a 30fps PC kept every burst
+  alive twice as long (more particles → slower → longer bursts). Tuned
+  constants are unchanged: at 60fps `k = 1`.
+
+> **Rules of thumb for new effects:** animate only `transform` and
+> `opacity`; never animate `filter`, `box-shadow`, `background-*`,
+> `width`/`height`/`top`/`left`, or use `backdrop-filter`; don't write the
+> same DOM value every frame; don't redraw a canvas that hasn't changed;
+> and don't "fix" a paint cost by promoting a huge layer — measure it.
+> CSS animations override inline styles, so never put a `transform`
+> animation on an element whose transform JS sets (Ball Pop's balls).
+
 ---
 
 ## VERSION 2 (2026-11-11) — read this first

@@ -9,7 +9,8 @@ import { createCanvasResizer } from '../canvasGame.js';
 import { drawGlow, createBackdrop } from '../canvasGlow.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
-import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, stepParticles, frameFactor } from '../canvasEffects.js';
+import { createTimerHud, setTimerFill } from '../hud.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses.
@@ -280,13 +281,8 @@ function spawnNeonParticles(x, y, color, count = 18, scale = 1){
     });
   }
 }
-function updateNeonParticles(){
-  for(const p of state.neonParticles){
-    p.x += p.vx; p.y += p.vy;
-    p.vx *= 0.97; p.vy *= 0.97;
-    p.alpha -= p.decay; p.size *= 0.97;
-  }
-  state.neonParticles = state.neonParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+function updateNeonParticles(k){
+  stepParticles(state.neonParticles, k, { dragX: 0.97, dragY: 0.97 });
 }
 
 /* =========================================================
@@ -635,8 +631,9 @@ function updateNeonGame(dt){
   }
   state.neonPickups = state.neonPickups.filter(pu => !pu.collected && (performance.now() - pu.spawnedAt) < 7000);
 
-  updateNeonParticles();
-  neonFloatTexts = updateFloatTexts(neonFloatTexts);
+  const k = frameFactor(dt);
+  updateNeonParticles(k);
+  neonFloatTexts = updateFloatTexts(neonFloatTexts, k);
   neonShockwaves = updateShockwaves(neonShockwaves);
 }
 
@@ -1025,7 +1022,7 @@ function startNeonRound(){
 
   document.getElementById('neonScoreDisplay').textContent = '0';
   document.getElementById('neonTimeDisplay').textContent = NEON_ROUND_SECONDS;
-  document.getElementById('neonTimerFill').style.width = '100%';
+  setTimerFill(document.getElementById('neonTimerFill'), 1);
   renderNeonLives();
 
   const playArea = document.getElementById('neonPlayArea');
@@ -1040,6 +1037,7 @@ function startNeonRound(){
   let lastTime = start;
   const timeDisplay = document.getElementById('neonTimeDisplay');
   const timerFill = document.getElementById('neonTimerFill');
+  const updateTimerHud = createTimerHud(timeDisplay, timerFill, NEON_ROUND_SECONDS);
 
   function tick(now){
     const dt = Math.min(50, now - lastTime);
@@ -1047,8 +1045,7 @@ function startNeonRound(){
     const elapsedMs = now - start;
     const remaining = Math.max(0, NEON_ROUND_SECONDS - elapsedMs / 1000);
 
-    timeDisplay.textContent = Math.ceil(remaining);
-    timerFill.style.width = (remaining / NEON_ROUND_SECONDS * 100) + '%';
+    updateTimerHud(remaining);
 
     if(elapsedMs >= nextEnemyAt){ spawnNeonEnemy(); nextEnemyAt = elapsedMs + (560 + Math.random() * 520); }
     if(elapsedMs >= nextPickupAt){ spawnNeonPickup(); nextPickupAt = elapsedMs + (5000 + Math.random() * 3500); }
@@ -1106,7 +1103,7 @@ function finishNeonRound(){
       renderNeonTurnBanner();
       document.getElementById('neonBeginTurnBtn').disabled = false;
       document.getElementById('neonTimeDisplay').textContent = '--';
-      document.getElementById('neonTimerFill').style.width = '100%';
+      setTimerFill(document.getElementById('neonTimerFill'), 1);
     }
   });
 }

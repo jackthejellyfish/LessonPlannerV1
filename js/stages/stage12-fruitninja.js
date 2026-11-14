@@ -8,8 +8,9 @@ import { FRUIT_QUESTIONS } from '../content/stage12-fruitninja.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
-import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, stepParticles, frameFactor } from '../canvasEffects.js';
 import { createBackdrop, drawGlow } from '../canvasGlow.js';
+import { createTimerHud, setTimerFill } from '../hud.js';
 
 /* =========================================================
    STAGE 12 — FRUIT NINJA
@@ -202,13 +203,8 @@ function spawnFruitParticles(x, y, color, count = 16, speedMult = 1){
     });
   }
 }
-function updateFruitParticles(){
-  for(const p of state.fruitParticles){
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.2; p.vx *= 0.98;
-    p.alpha -= p.decay; p.size *= 0.97;
-  }
-  state.fruitParticles = state.fruitParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+function updateFruitParticles(k){
+  stepParticles(state.fruitParticles, k, { gravity: 0.2, dragX: 0.98 });
 }
 
 /* =========================================================
@@ -639,7 +635,7 @@ function startFruitRound(){
 
   document.getElementById('fruitScoreDisplay').textContent = '0';
   document.getElementById('fruitTimeDisplay').textContent = FRUIT_ROUND_SECONDS;
-  document.getElementById('fruitTimerFill').style.width = '100%';
+  setTimerFill(document.getElementById('fruitTimerFill'), 1);
 
   const playArea = document.getElementById('fruitPlayArea');
   playArea.classList.remove('idle');
@@ -651,6 +647,7 @@ function startFruitRound(){
   let lastTime = start;
   const timeDisplay = document.getElementById('fruitTimeDisplay');
   const timerFill = document.getElementById('fruitTimerFill');
+  const updateTimerHud = createTimerHud(timeDisplay, timerFill, FRUIT_ROUND_SECONDS);
 
   function tick(now){
     const dt = Math.min(50, now - lastTime);
@@ -658,8 +655,7 @@ function startFruitRound(){
     const elapsedMs = now - start;
     const remaining = Math.max(0, FRUIT_ROUND_SECONDS - elapsedMs / 1000);
 
-    timeDisplay.textContent = Math.ceil(remaining);
-    timerFill.style.width = (remaining / FRUIT_ROUND_SECONDS * 100) + '%';
+    updateTimerHud(remaining);
 
     if(elapsedMs >= nextSpawnAt){
       // Volleys rather than one-at-a-time. "More fruit being thrown up"
@@ -672,8 +668,9 @@ function startFruitRound(){
 
     updateFruitShapes(dt / 1000);
     updateFruitTrail();
-    updateFruitParticles();
-    fruitFloatTexts = updateFloatTexts(fruitFloatTexts);
+    const k = frameFactor(dt);
+    updateFruitParticles(k);
+    fruitFloatTexts = updateFloatTexts(fruitFloatTexts, k);
     fruitShockwaves = updateShockwaves(fruitShockwaves);
     renderFruitCanvas();
 
@@ -724,7 +721,7 @@ function finishFruitRound(){
       renderFruitTurnBanner();
       document.getElementById('fruitBeginTurnBtn').disabled = false;
       document.getElementById('fruitTimeDisplay').textContent = '--';
-      document.getElementById('fruitTimerFill').style.width = '100%';
+      setTimerFill(document.getElementById('fruitTimerFill'), 1);
     }
   });
 }

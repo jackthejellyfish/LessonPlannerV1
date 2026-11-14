@@ -8,7 +8,7 @@ import { BILLIARDS_QUESTIONS, BILLIARDS_BALLS } from '../content/stage10-billiar
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
-import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves } from '../canvasEffects.js';
+import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, stepParticles, frameFactor } from '../canvasEffects.js';
 
 // Rising "+N" text on every pocketed ball — same shared canvas
 // float-text helper every other canvas game uses.
@@ -20,6 +20,24 @@ let billiardsFloatTexts = [];
 // game now uses.
 let billiardsShake = createShakeState();
 let billiardsShockwaves = [];
+
+/* ---- Render on demand ----
+   Billiards is turn-based: most of a turn is the class discussing a
+   shot while every ball sits still. The loop used to redraw the whole
+   table 60 times a second regardless. Now a frame is only drawn while
+   something is actually changing (a ball rolling or dropping, an effect
+   fading, a shake) plus a couple of frames after it stops so the final
+   positions land. Anything that changes the picture without going
+   through the physics (a resize, a new rack) calls invalidateBilliards();
+   the aim drag renders itself directly from its pointer handler. */
+let billiardsDirtyFrames = 2;
+function invalidateBilliards(){ billiardsDirtyFrames = 2; }
+function billiardsSceneIsStill(){
+  if(dragging) return false;
+  if(state.billiardsParticles.length || billiardsFloatTexts.length || billiardsShockwaves.length) return false;
+  if(performance.now() < billiardsShake.until) return false;
+  return state.billiardsBalls.every(b => b.pocketed || (!b.capturing && b.vx === 0 && b.vy === 0));
+}
 // Same "scale canvas-drawn effects relative to a reference width" trick
 // as Star Defender's canvasScale() — used only for the shockwave rings.
 const BILLIARDS_REFERENCE_WIDTH = 900;
@@ -247,6 +265,7 @@ function loadBilliardsRack(){
   billiardsShockwaves = [];
   billiardsShake = createShakeState();
   cueAwaitingStrike = true;
+  invalidateBilliards();
   document.getElementById('billiardsScoreDisplay').textContent = '0';
 }
 
@@ -326,19 +345,16 @@ function spawnBilliardsParticles(x, y, color, count = 14, speedMult = 1){
     });
   }
 }
-function updateBilliardsParticles(){
-  for(const p of state.billiardsParticles){
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.08; p.vx *= 0.98;
-    p.alpha -= p.decay; p.size *= 0.97;
-  }
-  state.billiardsParticles = state.billiardsParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+function updateBilliardsParticles(k){
+  stepParticles(state.billiardsParticles, k, { gravity: 0.08, dragX: 0.98 });
 }
 
 /* =========================================================
    CANVAS SIZING
 ========================================================= */
-const billiardsCanvasResizer = createCanvasResizer('billiardsCanvas', 'billiardsPlayArea');
+// A resize clears the canvas buffer, so the next frame must repaint even
+// if nothing on the table is moving (see billiardsDirtyFrames).
+const billiardsCanvasResizer = createCanvasResizer('billiardsCanvas', 'billiardsPlayArea', invalidateBilliards);
 export function resizeBilliardsCanvas(){ billiardsCanvasResizer.resize(); }
 export function ensureBilliardsLayout(){
   if(state.billiardsTeams.length > 0) resizeBilliardsCanvas();
@@ -603,8 +619,9 @@ function billiardsPhysicsStep(dtSec, bounds, pockets, pocketR, friction){
 }
 
 function updateBilliardsPhysics(dt){
-  updateBilliardsParticles();
-  billiardsFloatTexts = updateFloatTexts(billiardsFloatTexts);
+  const k = frameFactor(dt);
+  updateBilliardsParticles(k);
+  billiardsFloatTexts = updateFloatTexts(billiardsFloatTexts, k);
   billiardsShockwaves = updateShockwaves(billiardsShockwaves);
   if(!state.billiardsRoundActive || !state.billiardsBalls.length) return;
   const canvas = billiardsCanvasResizer.getCanvas();
@@ -645,7 +662,11 @@ function startBilliardsRound(){
     const dt = Math.min(50, now - lastTime);
     lastTime = now;
     updateBilliardsPhysics(dt);
-    renderBilliardsCanvas();
+    if(!billiardsSceneIsStill()) billiardsDirtyFrames = 2;
+    if(billiardsDirtyFrames > 0){
+      billiardsDirtyFrames--;
+      renderBilliardsCanvas();
+    }
     if(state.billiardsRoundActive){
       state.billiardsRoundRAF = requestAnimationFrame(tick);
     }
@@ -694,7 +715,7 @@ function drawBilliardsPowerMeter(ctx, canvas, power){
 
   const fillColor = power < 0.5 ? '#5C9C7C' : power < 0.8 ? '#C97A3D' : '#C1665C';
   const fillW = Math.max(barH, barW * power);
-  ctx.shadowColor = fillColor; ctx.shadowBlur = 10;
+  // No shadowBlur glow: it re-blurred the bar on every pointer move.
   ctx.fillStyle = fillColor;
   ctx.beginPath();
   ctx.roundRect(x, y, fillW, barH, barH / 2);
@@ -712,14 +733,18 @@ function drawBilliardsPowerMeter(ctx, canvas, power){
 /* =========================================================
    RENDERING
 ========================================================= */
-function renderBilliardsCanvas(){
-  const canvas = billiardsCanvasResizer.getCanvas();
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  ctx.save();
-  applyShake(ctx, billiardsShake);
+/* The table itself (background, rails, felt gradient, pockets) never
+   changes between resizes, but was rebuilt, gradient included, on every
+   frame. It is drawn once into an offscreen layer and blitted. */
+let billiardsTableLayer = null;
+function getBilliardsTableLayer(canvas){
+  if(billiardsTableLayer && billiardsTableLayer.width === canvas.width && billiardsTableLayer.height === canvas.height){
+    return billiardsTableLayer;
+  }
+  billiardsTableLayer = billiardsTableLayer || document.createElement('canvas');
+  billiardsTableLayer.width = canvas.width;
+  billiardsTableLayer.height = canvas.height;
+  const ctx = billiardsTableLayer.getContext('2d');
 
   ctx.fillStyle = '#EAF6F2';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -729,41 +754,51 @@ function renderBilliardsCanvas(){
   const railThickness = tableScale * 0.035;
   const railRadius = railThickness * 0.7;
 
-  ctx.save();
   ctx.fillStyle = '#FF9F7A';
   ctx.beginPath();
   ctx.roundRect(bounds.left - railThickness, bounds.top - railThickness,
     (bounds.right - bounds.left) + railThickness * 2, (bounds.bottom - bounds.top) + railThickness * 2, railRadius);
   ctx.fill();
-  ctx.restore();
 
-  ctx.save();
   const felt = ctx.createLinearGradient(0, bounds.top, 0, bounds.bottom);
   felt.addColorStop(0, '#BDEEDD'); felt.addColorStop(1, '#8FDCC4');
   ctx.fillStyle = felt;
   ctx.beginPath();
   ctx.roundRect(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, railRadius * 0.5);
   ctx.fill();
-  ctx.restore();
 
-  const pockets = billiardsPockets(canvas);
   const pocketR = tableScale * (POCKET_RADIUS_PCT / 100);
-  for(const p of pockets){
-    ctx.save();
-    ctx.fillStyle = '#2B2B3A';
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = Math.max(2, canvas.width * 0.004);
+  ctx.fillStyle = '#2B2B3A';
+  for(const p of billiardsPockets(canvas)){
     ctx.beginPath(); ctx.arc(p.x, p.y, pocketR * 0.75, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = Math.max(2, canvas.width * 0.004);
     ctx.stroke();
-    ctx.restore();
   }
+  return billiardsTableLayer;
+}
 
+function renderBilliardsCanvas(){
+  const canvas = billiardsCanvasResizer.getCanvas();
+  if(!canvas || canvas.width === 0) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  applyShake(ctx, billiardsShake);
+
+  ctx.drawImage(getBilliardsTableLayer(canvas), 0, 0);
+
+  const bounds = billiardsTableBounds(canvas);
+  const tableScale = bounds.right - bounds.left;
+
+  // One save/restore for the whole batch rather than one per particle.
+  ctx.save();
   for(const p of state.billiardsParticles){
-    ctx.save();
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
     ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
   }
+  ctx.restore();
 
   drawShockwaves(ctx, billiardsShockwaves, canvas.width / BILLIARDS_REFERENCE_WIDTH);
   drawFloatTexts(ctx, billiardsFloatTexts, Math.max(16, tableScale * 0.05));
@@ -817,6 +852,10 @@ function renderBilliardsCanvas(){
   // for a top-down view, but a deliberate stylization so a moving ball
   // visibly rolls instead of sliding as a flat, static disc. A ball mid
   // pocket-drop (captureScale < 1) shrinks and fades as it eases in.
+  // Every ball has the same radius, so the number font is the same string
+  // for all of them: set once per frame rather than parsed once per ball.
+  const numberFont = state.billiardsBalls && state.billiardsBalls.length
+    ? `bold ${Math.max(9, state.billiardsBalls[0].r * 0.85)}px sans-serif` : '';
   for(const ball of state.billiardsBalls || []){
     if(ball.pocketed) continue;
     const scale = ball.captureScale != null ? ball.captureScale : 1;
@@ -824,7 +863,10 @@ function renderBilliardsCanvas(){
 
     ctx.save();
     ctx.globalAlpha = scale;
-    ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+    // Drop shadow as a plain offset disc under the ball. This was
+    // ctx.shadowBlur, which blurs a copy of every ball on every frame.
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.arc(ball.x, ball.y + rx * 0.16, rx * 1.04, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = ball.color;
     ctx.beginPath(); ctx.arc(ball.x, ball.y, rx, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
@@ -847,7 +889,8 @@ function renderBilliardsCanvas(){
       ctx.fillStyle = '#ffffff';
       ctx.beginPath(); ctx.arc(0, 0, rx * 0.5, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#222';
-      ctx.font = `bold ${Math.max(9, rx * 0.85)}px sans-serif`;
+      // A ball shrinking into a pocket still needs its own size.
+      ctx.font = scale === 1 ? numberFont : `bold ${Math.max(9, rx * 0.85)}px sans-serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(String(ball.value), 0, 0);
       ctx.restore();

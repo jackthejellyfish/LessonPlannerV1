@@ -55,20 +55,22 @@
   html, body{ height:100%; }
   body{
     margin:0;
-    /* 4 blobs now, one per --rule accent color (was 3 — --rule-a/b/d,
-       hardcoded as rgb() so they can animate through a transparent
-       alpha; --rule-c was the one accent color missing from this list).
-       Slightly stronger opacity than before (was 0.12/0.12/0.08) for a
-       touch more presence, per feedback the app could use more visual
-       energy — still soft enough not to fight the actual page content. */
+    /* Soft colour blobs, one per --rule accent. PAINTED ONCE, NOT
+       ANIMATED — measured at 2560x1440 under 6x CPU throttle
+       (tests/perf-games.spec.js), an idle Stage 1 page:
+         drifting via background-position (the old way) . 54fps, main thread 38% busy
+         drifting via a transform-animated GPU layer ..... 40fps (compositor-bound)
+         static ........................................... 60fps, main thread 0%
+       Animating background-position re-paints the whole viewport every
+       frame; moving an oversized layer instead just shifts that cost to
+       the compositor, which on a PC without GPU compositing is worse.
+       The gentle drift wasn't worth either price. */
     background:
-      radial-gradient(circle at 20% 20%, rgba(92,138,130,0.16), transparent 45%),
-      radial-gradient(circle at 80% 75%, rgba(133,119,168,0.16), transparent 45%),
-      radial-gradient(circle at 50% 100%, rgba(191,154,84,0.1), transparent 50%),
-      radial-gradient(circle at 90% 15%, rgba(201,123,108,0.1), transparent 45%),
+      radial-gradient(circle at 15% 15%, rgba(92,138,130,0.16), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(133,119,168,0.16), transparent 40%),
+      radial-gradient(circle at 50% 105%, rgba(191,154,84,0.1), transparent 45%),
+      radial-gradient(circle at 92% 10%, rgba(201,123,108,0.1), transparent 38%),
       var(--paper);
-    background-size: 200% 200%;
-    animation: driftBg 26s ease-in-out infinite alternate;
     color: var(--ink);
     font-family: var(--font-body);
     font-size: clamp(15px, 2vh, 21px);
@@ -78,10 +80,7 @@
     display:flex; flex-direction:column;
     padding: clamp(8px, 1.5vh, 20px) clamp(10px, 2vw, 20px);
   }
-  @keyframes driftBg{
-    0%{ background-position: 0% 0%, 100% 100%, 50% 100%, 100% 0%; }
-    100%{ background-position: 30% 25%, 70% 65%, 60% 80%, 65% 30%; }
-  }
+
   h1,h2,h3{font-family:var(--font-display); margin:0;}
   .wrap{
     max-width:1500px; margin:0 auto; position:relative; width:100%;

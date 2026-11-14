@@ -66,7 +66,11 @@ body.fullscreen-game .stage:not(.hidden) > h2{ display:none; }
 body.fullscreen-game .stage:not(.hidden) .stage-footer{
   position:fixed; left:0; right:0; bottom:0; z-index:55;
   margin:0; border-top:1px solid rgba(255,255,255,0.12);
-  background:rgba(14,12,28,0.92); backdrop-filter:blur(10px);
+  /* Solid, not frosted glass. backdrop-filter re-blurs whatever is
+     behind the bar every time it changes — and behind this bar is a
+     game canvas that changes 60 times a second. At 0.92 opacity the
+     blur was nearly invisible anyway. */
+  background:rgba(14,12,28,0.96);
   padding:10px clamp(14px,2.5vw,32px);
   display:flex; align-items:center; gap:clamp(10px,2vw,24px);
 }

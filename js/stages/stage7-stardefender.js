@@ -9,8 +9,9 @@ import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
 import { confirmDialog } from '../confirmDialog.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
-import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
+import { createShakeState, triggerShake, applyShake, stepParticles, frameFactor } from '../canvasEffects.js';
 import { drawGlow, createBackdrop } from '../canvasGlow.js';
+import { createTimerHud, setTimerFill } from '../hud.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses, local module state like Plinko's own
@@ -236,13 +237,8 @@ function spawnInvParticles(x, y, color, count, scale = 1){
     });
   }
 }
-function updateInvParticles(){
-  for(const p of state.invParticles){
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.15; p.vx *= 0.98;
-    p.alpha -= p.decay; p.size *= 0.97;
-  }
-  state.invParticles = state.invParticles.filter(p => p.alpha > 0 && p.size > 0.3);
+function updateInvParticles(k){
+  stepParticles(state.invParticles, k, { gravity: 0.15, dragX: 0.98 });
 }
 
 function spawnInvEnemy(){
@@ -471,8 +467,9 @@ function updateInvGame(dt){
   state.invEnemies = state.invEnemies.filter(e => !e.dead);
   state.invPickups = state.invPickups.filter(pu => !pu.collected);
 
-  updateInvParticles();
-  invFloatTexts = updateFloatTexts(invFloatTexts);
+  const k = frameFactor(dt);
+  updateInvParticles(k);
+  invFloatTexts = updateFloatTexts(invFloatTexts, k);
   const shockNow = performance.now();
   state.invShockwaves = state.invShockwaves.filter(sw => shockNow - sw.createdAt < INV_SHOCKWAVE_DURATION_MS);
 }
@@ -861,7 +858,7 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
 
   document.getElementById('invScoreDisplay').textContent = '0';
   document.getElementById('invTimeDisplay').textContent = durationSeconds;
-  document.getElementById('invTimerFill').style.width = '100%';
+  setTimerFill(document.getElementById('invTimerFill'), 1);
   renderInvLives();
 
   const playArea = document.getElementById('invPlayArea');
@@ -875,6 +872,7 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
   let lastTime = start;
   const timeDisplay = document.getElementById('invTimeDisplay');
   const timerFill = document.getElementById('invTimerFill');
+  const updateTimerHud = createTimerHud(timeDisplay, timerFill, durationSeconds);
 
   function tick(now){
     const dt = Math.min(50, now - lastTime);
@@ -882,8 +880,7 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
     const elapsedMs = now - start;
     const remaining = Math.max(0, durationSeconds - elapsedMs / 1000);
 
-    timeDisplay.textContent = Math.ceil(remaining);
-    timerFill.style.width = (remaining / durationSeconds * 100) + '%';
+    updateTimerHud(remaining);
 
     if(elapsedMs >= nextEnemyAt){
       spawnInvEnemy();
@@ -955,7 +952,7 @@ function finishInvRound(){
       renderInvTurnBanner();
       document.getElementById('invBeginTurnBtn').disabled = false;
       document.getElementById('invTimeDisplay').textContent = '--';
-      document.getElementById('invTimerFill').style.width = '100%';
+      setTimerFill(document.getElementById('invTimerFill'), 1);
     }
   });
 }

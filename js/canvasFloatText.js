@@ -13,9 +13,18 @@ export function spawnFloatText(list, x, y, text, color, vy = -1.0){
   list.push({ x, y, text, color, alpha: 1, vy });
 }
 
-export function updateFloatTexts(list, decay = 0.013){
-  for(const t of list){ t.y += t.vy; t.alpha -= decay; }
-  return list.filter(t => t.alpha > 0);
+// `k` = 60fps-frames elapsed (see frameFactor in canvasEffects.js), so
+// text rises and fades at the same real-time speed at any frame rate.
+export function updateFloatTexts(list, k = 1, decay = 0.013){
+  let alive = 0;
+  for(let i = 0; i < list.length; i++){
+    const t = list[i];
+    t.y += t.vy * k;
+    t.alpha -= decay * k;
+    if(t.alpha > 0) list[alive++] = t;
+  }
+  list.length = alive;
+  return list;
 }
 
 // The glow behind this text used to be ctx.shadowBlur, which re-blurs
