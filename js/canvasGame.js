@@ -1,3 +1,4 @@
+import { isLowQuality } from './quality.js';
 /* =========================================================
    CANVAS GAME HELPER
    Every canvas-based game (Ball Pop's particle layer, Star Defender,
@@ -44,20 +45,43 @@
    rather than running a loop the whole time its stage is open. */
 const MAX_BUFFER_WIDTH = 820;
 
+// Lite mode (js/quality.js) renders every game canvas at 70% of its
+// usual buffer width: half the pixels to fill, for content that is
+// already soft and upscaled.
+const LITE_BUFFER_SCALE = 0.7;
+
 function bufferSize(playArea, renderScale, maxBufferWidth){
   const w = playArea.clientWidth, h = playArea.clientHeight;
   if(w <= 0 || h <= 0) return { w: 0, h: 0 };
-  const scale = Math.min(renderScale, maxBufferWidth / w);
+  const cap = isLowQuality() ? maxBufferWidth * LITE_BUFFER_SCALE : maxBufferWidth;
+  const scale = Math.min(renderScale, cap / w);
   if(scale >= 1) return { w, h };
   return { w: Math.max(1, Math.round(w * scale)), h: Math.max(1, Math.round(h * scale)) };
 }
 
-export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScale = 1, maxBufferWidth = MAX_BUFFER_WIDTH } = {}){
+/* `contextAttributes` is passed to the FIRST getContext('2d') call, which
+   is the only one that counts, so a game that wants them must get its
+   context through getContext() below everywhere, never straight from
+   the canvas element. `{ alpha: false }` is for games whose backdrop
+   covers the whole canvas every frame: the browser then knows the
+   canvas is opaque and doesn't blend a full-screen layer over whatever
+   is behind it. The cost is that clearing such a canvas leaves it
+   BLACK, so those games paint their backdrop instead of clearing. */
+export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScale = 1, maxBufferWidth = MAX_BUFFER_WIDTH, contextAttributes = undefined } = {}){
   let canvasEl = null;
+  let ctx = null;
 
   function getCanvas(){
     if(!canvasEl) canvasEl = document.getElementById(canvasId);
     return canvasEl;
+  }
+
+  function getContext(){
+    if(!ctx){
+      const c = getCanvas();
+      if(c) ctx = c.getContext('2d', contextAttributes);
+    }
+    return ctx;
   }
 
   // Every call also schedules one extra pass a frame later — cheap
@@ -100,5 +124,5 @@ export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScal
     resizeTimer = setTimeout(resize, 100);
   });
 
-  return { resize, getCanvas };
+  return { resize, getCanvas, getContext };
 }

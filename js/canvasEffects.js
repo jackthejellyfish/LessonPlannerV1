@@ -1,3 +1,5 @@
+import { isLowQuality } from './quality.js';
+
 /* =========================================================
    SHARED CANVAS IMPACT EFFECTS — screen shake + shockwave rings.
    Same stateless, caller-owns-the-state convention as
@@ -62,6 +64,7 @@ export function updateShockwaves(list){
 // invScale) — passed in rather than assumed, since every game's own
 // reference width differs.
 export function drawShockwaves(ctx, list, scale = 1){
+  const lite = isLowQuality(); // lite mode drops the wide faint outer ring
   for(const sw of list){
     const t = (performance.now() - sw.createdAt) / sw.durationMs;
     if(t >= 1) continue;
@@ -70,12 +73,14 @@ export function drawShockwaves(ctx, list, scale = 1){
     // shape on a dark field; a second wider, fainter ring reads as the
     // same bloom without asking the renderer to blur anything.
     ctx.save();
-    ctx.globalAlpha = (1 - t) * 0.35;
     ctx.strokeStyle = sw.color;
-    ctx.lineWidth = sw.lineWidth * scale * 3.5;
-    ctx.beginPath();
-    ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2);
-    ctx.stroke();
+    if(!lite){
+      ctx.globalAlpha = (1 - t) * 0.35;
+      ctx.lineWidth = sw.lineWidth * scale * 3.5;
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     ctx.globalAlpha = 1 - t;
     ctx.lineWidth = sw.lineWidth * scale;
     ctx.beginPath();

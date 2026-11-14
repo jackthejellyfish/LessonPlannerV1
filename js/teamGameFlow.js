@@ -1,3 +1,4 @@
+import { escapeHtml } from './utils.js';
 import { sfxFanfare } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
 import { renderResultStandings } from './teamColorPicker.js';
@@ -38,6 +39,34 @@ import { setTimerFill } from './hud.js';
 // reason to force it) — when given, the modal is tinted to the acting
 // team's own color (`--tc`) and a confetti burst fires from that team's
 // own standings pill in the same color.
+/* ---- Setup -> play, and the turn banner ----
+   The same three pieces every team game had written out for itself.
+   Each game still assigns its own state explicitly (state.popTeams =
+   readTeamsFromSetup('pop', ...)), so every field stays grep-able;
+   only the DOM work is shared. */
+
+// The team rows on a game's setup screen, as fresh team objects.
+export function readTeamsFromSetup(prefix, rowColors){
+  return Array.from(document.querySelectorAll(`#${prefix}TeamInputs input`)).map((input, i) => ({
+    name: input.value.trim() || 'Team',
+    color: rowColors[i],
+    total: 0
+  }));
+}
+
+// Swaps a game from its setup screen to its play screen.
+export function showGameScreen(prefix){
+  document.getElementById(`${prefix}Setup`).classList.add('hidden');
+  document.getElementById(`${prefix}Game`).classList.remove('hidden');
+  document.getElementById(`${prefix}GameOverBanner`).classList.add('hidden');
+}
+
+// "<Team>'s turn — question 3 of 10" (Spin the Wheel says "spin").
+export function renderTurnBanner(prefix, team, turnNumber, totalTurns, noun = 'question'){
+  document.getElementById(`${prefix}TurnBanner`).innerHTML =
+    `<strong>${escapeHtml(team.name)}</strong>'s turn — ${noun} ${turnNumber} of ${totalTurns}`;
+}
+
 export function showTurnResultModal(nextBtnId, { teams, currentTeamIndex } = {}){
   return new Promise(resolve => {
     const modalBody = document.getElementById('popResultBody');

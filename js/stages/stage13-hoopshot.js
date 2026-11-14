@@ -1,16 +1,17 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { beep, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { HOOP_QUESTIONS } from '../content/stage13-hoopshot.js';
 import { createCanvasResizer } from '../canvasGame.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, frameFactor } from '../canvasEffects.js';
 import { createBackdrop, drawGlow } from '../canvasGlow.js';
 import { setTimerFill } from '../hud.js';
+import { noteFrame } from '../quality.js';
 
 /* =========================================================
    STAGE 13 — HOOP SHOT
@@ -121,15 +122,12 @@ renderHoopTeamInputs(2);
 wireAddTeamButton('hoopTeamInputs', 'hoopAddTeamBtn', renderHoopTeamInputs);
 
 document.getElementById('hoopStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#hoopTeamInputs input')).map(i => i.value.trim() || 'Team');
-  state.hoopTeams = names.map((name, i) => ({ name, color: hoopRowColors[i], total: 0 }));
+  state.hoopTeams = readTeamsFromSetup('hoop', hoopRowColors);
   state.hoopCurrentTeam = 0;
   state.hoopTurnsPlayed = 0;
   state.hoopQuestionOrder = shuffle(HOOP_QUESTIONS.map((_, i) => i));
 
-  document.getElementById('hoopSetup').classList.add('hidden');
-  document.getElementById('hoopGame').classList.remove('hidden');
-  document.getElementById('hoopGameOverBanner').classList.add('hidden');
+  showGameScreen('hoop');
   renderHoopScoreboard();
   renderHoopTurnBanner();
   ensureHoopLayout();
@@ -139,15 +137,18 @@ function renderHoopScoreboard(){
   renderTeamScoreboard('hoopTeamList', state.hoopTeams, state.hoopCurrentTeam);
 }
 function renderHoopTurnBanner(){
-  document.getElementById('hoopTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.hoopTeams[state.hoopCurrentTeam].name)}</strong>'s turn — question ${state.hoopTurnsPlayed + 1} of ${HOOP_QUESTIONS.length}`;
+  renderTurnBanner('hoop', state.hoopTeams[state.hoopCurrentTeam], state.hoopTurnsPlayed + 1, HOOP_QUESTIONS.length);
 }
 
 /* =========================================================
    CANVAS
 ========================================================= */
 // A resize wipes the canvas buffer; make sure the next frame repaints.
-const hoopCanvasResizer = createCanvasResizer('hoopCanvas', 'hoopPlayArea', () => invalidateHoop());
+// Opaque canvas — see the note on neonCanvasResizer in stage 11.
+const hoopCanvasResizer = createCanvasResizer('hoopCanvas', 'hoopPlayArea', (canvas) => {
+  invalidateHoop();
+  if(!state.hoopRoundActive) renderHoopBackground(hoopCanvasResizer.getContext(), canvas);
+}, { contextAttributes: { alpha: false } });
 
 /* ---- Render on demand ----
    Most of a Hoop Shot turn is a team deciding on an angle and power
@@ -443,6 +444,7 @@ function startHoopRound(){
   let last = performance.now();
   function tick(now){
     const dt = Math.min(50, now - last) / 1000;
+    noteFrame();
     last = now;
     updateHoop(dt);
     if(hoopSceneIsMoving()) hoopDirtyFrames = 2;
@@ -465,7 +467,7 @@ export function cancelHoopRound(){
     const hint = document.getElementById('hoopHint');
     if(hint) hint.classList.add('hidden');
     const canvas = hoopCanvasResizer.getCanvas();
-    if(canvas){ canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+    if(canvas) renderHoopBackground(hoopCanvasResizer.getContext(), canvas);
     const begin = document.getElementById('hoopBeginTurnBtn');
     if(begin) begin.disabled = false;
   }
@@ -612,7 +614,7 @@ function endHoopGame(){
 function renderHoopCanvas(){
   const canvas = hoopCanvasResizer.getCanvas();
   if(!canvas || canvas.width === 0) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = hoopCanvasResizer.getContext();
   const W = canvas.width, H = canvas.height;
   const toX = (pct) => (pct / 100) * W;
   const toY = (pct) => (pct / 100) * H;

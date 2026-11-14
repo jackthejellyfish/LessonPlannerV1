@@ -1,3 +1,4 @@
+import { isLowQuality } from './quality.js';
 /* =========================================================
    CACHED GLOW / BACKDROP LAYERS
 
@@ -93,7 +94,9 @@ export function getGlowSprite(color, falloff = 1){
 // `alpha` is the peak opacity at the centre — apply the pulse/fade here
 // rather than baking it into the sprite (see getGlowSprite above).
 export function drawGlow(ctx, x, y, radius, color, alpha = 1, falloff = 1){
-  if(alpha <= 0.004 || radius <= 0) return;
+  // Lite mode (js/quality.js): glows are the biggest remaining fill cost
+  // and pure decoration, so they are the first thing to go.
+  if(alpha <= 0.004 || radius <= 0 || isLowQuality()) return;
   const sprite = getGlowSprite(color, falloff);
   const prev = ctx.globalAlpha;
   ctx.globalAlpha = prev * alpha;
@@ -129,12 +132,26 @@ export function createBackdrop(renderFn){
     // Backdrops are opaque and cover the full canvas, so this doubles as
     // the frame's clear — callers that used to clearRect first no longer
     // need to, and 'copy' skips blending the blit entirely.
-    const prevOp = ctx.globalCompositeOperation;
-    const prevAlpha = ctx.globalAlpha;
-    ctx.globalCompositeOperation = 'copy';
+    //
+    // Under a screen shake the caller has already translated the
+    // context, and a translated 'copy' blit leaves an uncovered strip
+    // along one edge (transparent, or BLACK on an opaque canvas). So
+    // while shaking: lay the backdrop down untranslated first, then the
+    // shaken copy over it. Two blits, but only for the ~300ms of a shake.
+    const t = ctx.getTransform();
+    const shaken = t.e !== 0 || t.f !== 0;
+    ctx.save();
     ctx.globalAlpha = 1;
+    if(shaken){
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = 'copy';
+      ctx.drawImage(layer, 0, 0);
+      ctx.setTransform(t);
+      ctx.globalCompositeOperation = 'source-over';
+    } else {
+      ctx.globalCompositeOperation = 'copy';
+    }
     ctx.drawImage(layer, 0, 0);
-    ctx.globalCompositeOperation = prevOp;
-    ctx.globalAlpha = prevAlpha;
+    ctx.restore();
   };
 }

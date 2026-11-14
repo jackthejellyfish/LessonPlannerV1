@@ -1,6 +1,6 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { ensureAudio, beep, sfxIncorrect, sfxTimeUp, audioOut } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -8,8 +8,9 @@ import { POP_QUESTIONS } from '../content/stage6-ballpop.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { drawGlow } from '../canvasGlow.js';
 import { stepParticles, frameFactor } from '../canvasEffects.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { createTimerHud, setTimerFill } from '../hud.js';
+import { particleCount, noteFrame, isLowQuality } from '../quality.js';
 
 /* =========================================================
    STAGE 6 — BALL POP CHALLENGE
@@ -59,15 +60,12 @@ renderPopTeamInputs(2);
 wireAddTeamButton('popTeamInputs', 'popAddTeamBtn', renderPopTeamInputs);
 
 document.getElementById('popStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#popTeamInputs input')).map(i => i.value.trim() || 'Team');
-  state.popTeams = names.map((name, i) => ({ name, color: popRowColors[i], total: 0 }));
+  state.popTeams = readTeamsFromSetup('pop', popRowColors);
   state.popCurrentTeam = 0;
   state.popTurnsPlayed = 0;
   state.popQuestionOrder = shuffle(POP_QUESTIONS.map((_, i) => i));
 
-  document.getElementById('popSetup').classList.add('hidden');
-  document.getElementById('popGame').classList.remove('hidden');
-  document.getElementById('popGameOverBanner').classList.add('hidden');
+  showGameScreen('pop');
   resizePopCanvas();
   startPopParticleLoop();
   renderPopScoreboard();
@@ -79,8 +77,7 @@ function renderPopScoreboard(){
 }
 
 function renderPopTurnBanner(){
-  document.getElementById('popTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.popTeams[state.popCurrentTeam].name)}</strong>'s turn — question ${state.popTurnsPlayed + 1} of ${POP_QUESTIONS.length}`;
+  renderTurnBanner('pop', state.popTeams[state.popCurrentTeam], state.popTurnsPlayed + 1, POP_QUESTIONS.length);
 }
 
 function askPopQuestion(){
@@ -151,20 +148,56 @@ function sfxMultiplier(){
   [520, 660, 830, 1046, 1318].forEach((f, i) => beep(f, 0.1, 'sawtooth', 0.14, i * 0.045));
 }
 
+/* ---- One-shot DOM effects (rings, sparkles, "+1" text) ----
+   Each used to be: create a div, wait a requestAnimationFrame so the
+   browser would register its starting style, set the end style so a
+   CSS transition ran, then remove it on a setTimeout. The rAF dance
+   forces a style flush per effect, and the timers pile up during a
+   burst. Now each effect is one Web Animations call: the start and end
+   states are in the keyframes, the compositor runs it (transform and
+   opacity only), and the element is recycled when it finishes instead
+   of being thrown away — a fast run of pops reuses the same few nodes. */
+const popFxPool = [];
+const POP_FX_POOL_MAX = 40;
+
+function acquirePopFx(container, className, xPct, yPct){
+  const el = popFxPool.pop() || document.createElement('div');
+  el.className = className;
+  el.style.left = xPct + '%';
+  el.style.top = yPct + '%';
+  container.appendChild(el);
+  return el;
+}
+
+function playPopFx(el, keyframes, options){
+  const anim = el.animate(keyframes, { fill: 'both', ...options }); // 'both': the first frame also holds during a delay
+  anim.onfinish = () => {
+    anim.cancel();
+    el.remove();
+    el.removeAttribute('style');
+    el.textContent = '';
+    if(popFxPool.length < POP_FX_POOL_MAX) popFxPool.push(el);
+  };
+}
+
 // Expanding ring fired from the click point — colored to match the
 // outcome (ball color for a correct pop, red for a bad-ball miss).
-function spawnShockwave(container, xPct, yPct, color){
-  const ring = document.createElement('div');
-  ring.className = 'pop-shockwave';
-  ring.style.left = xPct + '%';
-  ring.style.top = yPct + '%';
+function spawnShockwave(container, xPct, yPct, color, { mega = false, delay = 0 } = {}){
+  const ring = acquirePopFx(container, mega ? 'pop-shockwave mega' : 'pop-shockwave', xPct, yPct);
   ring.style.borderColor = color;
-  container.appendChild(ring);
-  requestAnimationFrame(() => {
-    ring.style.transform = 'translate(-50%,-50%) scale(2.6)';
-    ring.style.opacity = '0';
-  });
-  setTimeout(() => ring.remove(), 470);
+  playPopFx(ring, [
+    { transform: 'translate(-50%,-50%) scale(0.3)', opacity: 0.9 },
+    { transform: `translate(-50%,-50%) scale(${mega ? 3.4 : 2.6})`, opacity: 0 }
+  ], { duration: 450, easing: 'ease-out', delay });
+}
+
+// The score number's little "bump" whenever it changes.
+function bumpPopScore(){
+  const popsEl = document.getElementById('popPopsDisplay');
+  popsEl.textContent = state.popScore;
+  popsEl.animate([
+    { transform: 'scale(1)' }, { transform: 'scale(1.3)', offset: 0.4 }, { transform: 'scale(1)' }
+  ], { duration: 260, easing: 'ease-out' });
 }
 
 // A gem's signature effect — small sparkle glyphs flying outward from
@@ -173,39 +206,30 @@ function spawnShockwave(container, xPct, yPct, color){
 // has its own distinct "personality" instead of just being a bigger
 // version of a normal pop.
 function spawnPopSparkles(container, xPct, yPct, color, count = 6){
+  if(isLowQuality()) return; // decoration on top of the shockwave/particles/text
   for(let i = 0; i < count; i++){
-    const sparkle = document.createElement('div');
-    sparkle.className = 'pop-sparkle';
-    sparkle.style.left = xPct + '%';
-    sparkle.style.top = yPct + '%';
+    const sparkle = acquirePopFx(container, 'pop-sparkle', xPct, yPct);
     sparkle.style.setProperty('--spark-color', color);
-    container.appendChild(sparkle);
 
     const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.6 - 0.3);
     const dist = 28 + Math.random() * 24;
     const dx = Math.cos(angle) * dist, dy = Math.sin(angle) * dist;
-    requestAnimationFrame(() => {
-      sparkle.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1) rotate(${120 + Math.random() * 180}deg)`;
-      sparkle.style.opacity = '0';
-    });
-    setTimeout(() => sparkle.remove(), 600);
+    playPopFx(sparkle, [
+      { transform: 'translate(-50%,-50%) scale(0) rotate(0deg)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1) rotate(${120 + Math.random() * 180}deg)`, opacity: 0 }
+    ], { duration: 550, easing: 'cubic-bezier(.2,.8,.3,1)' });
   }
 }
 
 // Floating "+1" / "−1" combat-text, rising and fading at the click point.
 function showFloatingText(container, xPct, yPct, text, color, extraClass = ''){
-  const el = document.createElement('div');
-  el.className = 'pop-float-text' + (extraClass ? ' ' + extraClass : '');
+  const el = acquirePopFx(container, 'pop-float-text' + (extraClass ? ' ' + extraClass : ''), xPct, yPct);
   el.textContent = text;
-  el.style.left = xPct + '%';
-  el.style.top = yPct + '%';
   el.style.color = color;
-  container.appendChild(el);
-  requestAnimationFrame(() => {
-    el.style.transform = 'translate(-50%, -160%) scale(1.3)';
-    el.style.opacity = '0';
-  });
-  setTimeout(() => el.remove(), 700);
+  playPopFx(el, [
+    { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+    { transform: 'translate(-50%,-160%) scale(1.3)', opacity: 0 }
+  ], { duration: 600, easing: 'cubic-bezier(.2,.7,.4,1)' });
 }
 
 /* =========================================================
@@ -260,6 +284,7 @@ const POP_PARTICLE_GLOW_LIMIT = 60;
 const POP_PARTICLE_HARD_CAP = 200;
 
 function spawnPopParticles(xPx, yPx, count = 40, speedMult = 1, sizeMult = 1){
+  count = particleCount(count); // lite mode: fewer per burst (js/quality.js)
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
     const speed = (Math.random() * 12 + 2.5) * speedMult;
@@ -458,6 +483,7 @@ export function startPopParticleLoop(){
   if(state.popParticleRAF) return; // already running
   let last = performance.now();
   function frame(now){
+    noteFrame();
     const k = frameFactor(now - last);
     last = now;
     updatePopBallAnims(k);
@@ -606,10 +632,7 @@ function popBallFeedback(ballLayer, xPct, yPct, color, amount = 1, particleCount
 
   showFloatingText(ballLayer, xPct, yPct, `+${amount}`, color);
 
-  const popsEl = document.getElementById('popPopsDisplay');
-  popsEl.textContent = state.popScore;
-  popsEl.style.transform = 'scale(1.3)';
-  setTimeout(() => { popsEl.style.transform = 'scale(1)'; }, 120);
+  bumpPopScore();
 }
 
 // Normal single-ball cycle: pop one, spawn the next. Each time this
@@ -644,20 +667,8 @@ function spawnPopBall(){
 // plus the swarm balls this triggers next was the single biggest
 // contributor to Ball Pop's reported lag on lower-powered displays.
 function spawnMegaExplosion(ballLayer, xPct, yPct, color){
-  [0, 90, 180].forEach((delay, i) => {
-    setTimeout(() => {
-      const ring = document.createElement('div');
-      ring.className = 'pop-shockwave mega';
-      ring.style.left = xPct + '%';
-      ring.style.top = yPct + '%';
-      ring.style.borderColor = i === 1 ? '#ffffff' : color;
-      ballLayer.appendChild(ring);
-      requestAnimationFrame(() => {
-        ring.style.transform = 'translate(-50%,-50%) scale(3.4)';
-        ring.style.opacity = '0';
-      });
-      setTimeout(() => ring.remove(), 560);
-    }, delay);
+  (isLowQuality() ? [0] : [0, 90, 180]).forEach((delay, i) => {
+    spawnShockwave(ballLayer, xPct, yPct, i === 1 ? '#ffffff' : color, { mega: true, delay });
   });
 
   const canvas = popCanvasResizer.getCanvas();
@@ -677,10 +688,7 @@ function spawnMegaExplosion(ballLayer, xPct, yPct, color){
 
   sfxMegaExplosion();
 
-  const popsEl = document.getElementById('popPopsDisplay');
-  popsEl.textContent = state.popScore;
-  popsEl.style.transform = 'scale(1.3)';
-  setTimeout(() => { popsEl.style.transform = 'scale(1)'; }, 120);
+  bumpPopScore();
 }
 
 // The special ball: pops into a 4-ball swarm that must all be cleared
@@ -858,18 +866,17 @@ function popBombFeedback(ballLayer, xPct, yPct, penalty = 1){
   showFloatingText(ballLayer, xPct, yPct, `−${penalty}`, POP_BOMB_COLOR);
   shakePlayArea();
 
-  const popsEl = document.getElementById('popPopsDisplay');
-  popsEl.textContent = state.popScore;
-  popsEl.style.transform = 'scale(1.3)';
-  setTimeout(() => { popsEl.style.transform = 'scale(1)'; }, 120);
+  bumpPopScore();
 }
 
+// A Web Animation restarts cleanly on back-to-back bombs by itself. The
+// class-toggle version needed `void offsetWidth` to retrigger, which
+// forces a full synchronous layout at exactly the busiest moment.
 function shakePlayArea(){
-  const playArea = document.getElementById('popPlayArea');
-  playArea.classList.remove('shake');
-  void playArea.offsetWidth; // force reflow so the shake can retrigger on back-to-back bombs
-  playArea.classList.add('shake');
-  setTimeout(() => playArea.classList.remove('shake'), 400);
+  document.getElementById('popPlayArea').animate([
+    { transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(7px)' },
+    { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }
+  ], { duration: 400, easing: 'ease' });
 }
 
 // Cancels every pending/live bomb — called whenever a round ends,
@@ -966,10 +973,7 @@ function popGemFeedback(ballLayer, xPct, yPct, amount = POP_GEM_POINTS){
   spawnPopSparkles(ballLayer, xPct, yPct, POP_GEM_COLOR);
   showFloatingText(ballLayer, xPct, yPct, `+${amount}`, POP_GEM_COLOR);
 
-  const popsEl = document.getElementById('popPopsDisplay');
-  popsEl.textContent = state.popScore;
-  popsEl.style.transform = 'scale(1.3)';
-  setTimeout(() => { popsEl.style.transform = 'scale(1)'; }, 120);
+  bumpPopScore();
 }
 
 function clearAllGems(){

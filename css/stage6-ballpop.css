@@ -220,7 +220,6 @@
     position:absolute; inset:0; z-index:21;
   }
 
-  .pop-play-area.shake{ animation: shakeWrong 0.4s ease; }
 
   .pop-ball{
     position:absolute; width:11%; aspect-ratio:1/1; border-radius:50%;
@@ -343,8 +342,7 @@
   .pop-shockwave{
     position:absolute; width:20%; aspect-ratio:1/1; border-radius:50%;
     border:3px solid var(--ring-color, #fff); transform:translate(-50%,-50%) scale(0.3);
-    opacity:0.9; pointer-events:none; z-index:15;
-    transition: transform 0.45s ease-out, opacity 0.45s ease-out;
+    opacity:0.9; pointer-events:none; z-index:15; /* animated by playPopFx() in JS */
   }
   /* The special ball's mega explosion fires three of these staggered
      (see spawnMegaExplosion) — bigger and thicker than a normal pop's
@@ -362,8 +360,7 @@
     clip-path: polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%);
     filter: drop-shadow(0 0 5px var(--spark-color, #FFD23F));
     transform:translate(-50%,-50%) scale(0) rotate(0deg);
-    opacity:1; pointer-events:none; z-index:16;
-    transition: transform 0.55s cubic-bezier(.2,.8,.3,1), opacity 0.55s ease-in;
+    opacity:1; pointer-events:none; z-index:16; /* animated by playPopFx() in JS */
   }
 
   /* Floating "+1" / "−1" combat-text style feedback */
@@ -371,8 +368,7 @@
     position:absolute; transform:translate(-50%,-50%) scale(1); opacity:1;
     font-family:var(--font-display); font-weight:800; font-size:34px;
     color:#fff; -webkit-text-stroke:1.5px rgba(0,0,0,0.55);
-    pointer-events:none; z-index:25; text-shadow:0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.35);
-    transition: transform 0.6s cubic-bezier(.2,.7,.4,1), opacity 0.6s ease;
+    pointer-events:none; z-index:25; text-shadow:0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.35); /* animated by playPopFx() in JS */
   }
   .pop-float-text.mega{ font-size:40px; white-space:nowrap; }
 

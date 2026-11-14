@@ -6,10 +6,71 @@
     <title>Comparative Adjectives — Interactive Lesson</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Web fonts load WITHOUT blocking the first paint. A normal
+         stylesheet link here holds the whole page blank until Google
+         answers, and on a school network whose filter is slow to (or
+         never does) let fonts.googleapis.com through, that meant a blank
+         board. The text shows straight away in the fallback font and
+         swaps when the web font arrives. Only weights the CSS actually
+         uses are requested (500 never was). -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@400;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@400;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@400;600;700&display=swap" /></noscript>
+    <!-- Every JS module, fetched in parallel up front. Without this the
+         browser only discovers each layer of imports (main -> stages ->
+         shared helpers -> quality) after the previous layer has
+         downloaded: about four network round trips before the app can
+         start. A test keeps this list in step with the files in js/. -->
+    <link rel="modulepreload" href="js/audio.js" />
+    <link rel="modulepreload" href="js/canvasEffects.js" />
+    <link rel="modulepreload" href="js/canvasFloatText.js" />
+    <link rel="modulepreload" href="js/canvasGame.js" />
+    <link rel="modulepreload" href="js/canvasGlow.js" />
+    <link rel="modulepreload" href="js/confirmDialog.js" />
+    <link rel="modulepreload" href="js/content/stage1-aim.js" />
+    <link rel="modulepreload" href="js/content/stage10-billiards.js" />
+    <link rel="modulepreload" href="js/content/stage11-neonarena.js" />
+    <link rel="modulepreload" href="js/content/stage12-fruitninja.js" />
+    <link rel="modulepreload" href="js/content/stage13-hoopshot.js" />
+    <link rel="modulepreload" href="js/content/stage14-whack.js" />
+    <link rel="modulepreload" href="js/content/stage2-rules.js" />
+    <link rel="modulepreload" href="js/content/stage3-controlled.js" />
+    <link rel="modulepreload" href="js/content/stage4-guided.js" />
+    <link rel="modulepreload" href="js/content/stage5-free.js" />
+    <link rel="modulepreload" href="js/content/stage6-ballpop.js" />
+    <link rel="modulepreload" href="js/content/stage7-stardefender.js" />
+    <link rel="modulepreload" href="js/content/stage8-spinwheel.js" />
+    <link rel="modulepreload" href="js/content/stage9-questions.js" />
+    <link rel="modulepreload" href="js/fpsMeter.js" />
+    <link rel="modulepreload" href="js/fullscreenLayout.js" />
+    <link rel="modulepreload" href="js/gameIntro.js" />
+    <link rel="modulepreload" href="js/games.js" />
+    <link rel="modulepreload" href="js/hud.js" />
+    <link rel="modulepreload" href="js/icons.js" />
+    <link rel="modulepreload" href="js/lessons.js" />
+    <link rel="modulepreload" href="js/navigation.js" />
+    <link rel="modulepreload" href="js/particles.js" />
+    <link rel="modulepreload" href="js/quality.js" />
+    <link rel="modulepreload" href="js/stages/stage1-aim.js" />
+    <link rel="modulepreload" href="js/stages/stage10-billiards.js" />
+    <link rel="modulepreload" href="js/stages/stage11-neonarena.js" />
+    <link rel="modulepreload" href="js/stages/stage12-fruitninja.js" />
+    <link rel="modulepreload" href="js/stages/stage13-hoopshot.js" />
+    <link rel="modulepreload" href="js/stages/stage14-whack.js" />
+    <link rel="modulepreload" href="js/stages/stage2-rules.js" />
+    <link rel="modulepreload" href="js/stages/stage3-controlled.js" />
+    <link rel="modulepreload" href="js/stages/stage4-guided.js" />
+    <link rel="modulepreload" href="js/stages/stage5-free.js" />
+    <link rel="modulepreload" href="js/stages/stage6-ballpop.js" />
+    <link rel="modulepreload" href="js/stages/stage7-stardefender.js" />
+    <link rel="modulepreload" href="js/stages/stage8-spinwheel.js" />
+    <link rel="modulepreload" href="js/stages/stage9-questions.js" />
+    <link rel="modulepreload" href="js/state.js" />
+    <link rel="modulepreload" href="js/stepper.js" />
+    <link rel="modulepreload" href="js/teamColorPicker.js" />
+    <link rel="modulepreload" href="js/teamGameFlow.js" />
+    <link rel="modulepreload" href="js/timerRing.js" />
+    <link rel="modulepreload" href="js/utils.js" />
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/lesson-select.css" />
     <link rel="stylesheet" href="css/modals.css" />

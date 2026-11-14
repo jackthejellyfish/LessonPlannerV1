@@ -140,3 +140,35 @@ test('stage 5 slides fit without scrolling on a 1280x720 projector, in every les
     }
   }
 });
+
+// index.html preloads every JS module so the browser fetches them all at
+// once instead of one import layer at a time. The list is hand-kept, so
+// this pins it to the files actually in js/: a new module that isn't
+// listed loads a round trip late, and a deleted one left in the list is
+// a 404 on every page load.
+test('index.html preloads exactly the modules in js/', async ({ page }) => {
+  const fs = require('fs');
+  const path = require('path');
+  const root = path.join(__dirname, '..');
+  const onDisk = [];
+  (function walk(dir) {
+    for (const name of fs.readdirSync(dir)) {
+      const full = path.join(dir, name);
+      if (fs.statSync(full).isDirectory()) walk(full);
+      else if (name.endsWith('.js')) onDisk.push(path.relative(root, full).split(path.sep).join('/'));
+    }
+  })(path.join(root, 'js'));
+  const expected = onDisk.filter((f) => f !== 'js/main.js').sort();
+
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const listed = [...html.matchAll(/rel="modulepreload" href="([^"]+)"/g)].map((m) => m[1]).sort();
+  expect(listed).toEqual(expected);
+
+  // And the page still loads cleanly with them.
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  expect(errors).toEqual([]);
+});

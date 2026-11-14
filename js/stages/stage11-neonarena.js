@@ -1,16 +1,17 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { NEON_QUESTIONS } from '../content/stage11-neonarena.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { drawGlow, createBackdrop } from '../canvasGlow.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, stepParticles, frameFactor } from '../canvasEffects.js';
 import { createTimerHud, setTimerFill } from '../hud.js';
+import { particleCount, noteFrame } from '../quality.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses.
@@ -209,16 +210,13 @@ renderNeonTeamInputs(2);
 wireAddTeamButton('neonTeamInputs', 'neonAddTeamBtn', renderNeonTeamInputs);
 
 document.getElementById('neonStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#neonTeamInputs input')).map(i => i.value.trim() || 'Team');
-  state.neonTeams = names.map((name, i) => ({ name, color: neonRowColors[i], total: 0 }));
+  state.neonTeams = readTeamsFromSetup('neon', neonRowColors);
   state.neonCurrentTeam = 0;
   state.neonTurnsPlayed = 0;
   state.neonQuestionOrder = shuffle(NEON_QUESTIONS.map((_, i) => i));
   state.neonLives = NEON_MAX_LIVES;
 
-  document.getElementById('neonSetup').classList.add('hidden');
-  document.getElementById('neonGame').classList.remove('hidden');
-  document.getElementById('neonGameOverBanner').classList.add('hidden');
+  showGameScreen('neon');
   renderNeonScoreboard();
   renderNeonTurnBanner();
   renderNeonLives();
@@ -228,8 +226,7 @@ function renderNeonScoreboard(){
   renderTeamScoreboard('neonTeamList', state.neonTeams, state.neonCurrentTeam);
 }
 function renderNeonTurnBanner(){
-  document.getElementById('neonTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.neonTeams[state.neonCurrentTeam].name)}</strong>'s turn — question ${state.neonTurnsPlayed + 1} of ${NEON_QUESTIONS.length}`;
+  renderTurnBanner('neon', state.neonTeams[state.neonCurrentTeam], state.neonTurnsPlayed + 1, NEON_QUESTIONS.length);
 }
 function renderNeonLives(){
   document.getElementById('neonLivesDisplay').innerHTML = Array.from({ length: NEON_MAX_LIVES }, (_, i) =>
@@ -260,7 +257,12 @@ async function beginNeonTurn(){
 /* =========================================================
    CANVAS SIZING
 ========================================================= */
-const neonCanvasResizer = createCanvasResizer('neonCanvas', 'neonPlayArea');
+// Opaque canvas (the arena backdrop covers it every frame). Between
+// rounds it shows the arena rather than a cleared canvas, which on an
+// opaque canvas would be black.
+const neonCanvasResizer = createCanvasResizer('neonCanvas', 'neonPlayArea', (canvas) => {
+  if(!state.neonRoundActive) renderNeonBackground(neonCanvasResizer.getContext(), canvas);
+}, { contextAttributes: { alpha: false } });
 function resizeNeonCanvas(){ neonCanvasResizer.resize(); }
 export function ensureNeonLayout(){
   if(state.neonTeams.length > 0) resizeNeonCanvas();
@@ -272,6 +274,7 @@ function neonScale(canvas){ return canvas.width / NEON_REFERENCE_WIDTH; }
    PARTICLES
 ========================================================= */
 function spawnNeonParticles(x, y, color, count = 18, scale = 1){
+  count = particleCount(count); // lite mode: fewer per burst (js/quality.js)
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
     const speed = (Math.random() * 7 + 2) * scale;
@@ -888,7 +891,7 @@ function drawNeonPlayer(ctx, canvas){
 function renderNeonCanvas(){
   const canvas = neonCanvasResizer.getCanvas();
   if(!canvas) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = neonCanvasResizer.getContext();
 
   ctx.save();
   applyShake(ctx, neonShake);
@@ -1041,6 +1044,7 @@ function startNeonRound(){
 
   function tick(now){
     const dt = Math.min(50, now - lastTime);
+    noteFrame();
     lastTime = now;
     const elapsedMs = now - start;
     const remaining = Math.max(0, NEON_ROUND_SECONDS - elapsedMs / 1000);
@@ -1074,7 +1078,7 @@ export function cancelNeonRound(){
     const hint = document.getElementById('neonHint');
     if(hint) hint.classList.add('hidden');
     const canvas = neonCanvasResizer.getCanvas();
-    if(canvas){ const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    if(canvas) renderNeonBackground(neonCanvasResizer.getContext(), canvas);
     const beginBtn = document.getElementById('neonBeginTurnBtn');
     if(beginBtn) beginBtn.disabled = false;
   }

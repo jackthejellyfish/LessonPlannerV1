@@ -131,7 +131,7 @@ async function throttle(page) {
 // stepper), start the game, begin a turn, then clear the warm-up question
 // modal. Same flow tests/team-games.spec.js already uses.
 async function openRound(page, { stepIndex, prefix }) {
-  await page.goto('/index.html');
+  await page.goto('/index.html?lite=0'); // full quality: never measure auto-lite mode
   await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(stepIndex).evaluate((el) => el.click());
   // The setup screen opens on a menu now (New game / How to play).
@@ -165,7 +165,7 @@ test('perf: the idle lesson pages do not animate the whole viewport', async ({ p
   // Stage 1 is a static page with no game loop at all. If frames are being
   // spent here, it's page chrome (the body background drift) — not gameplay.
   await throttle(page);
-  await page.goto('/index.html');
+  await page.goto('/index.html?lite=0'); // full quality: never measure auto-lite mode
   await page.click('.lesson-card >> nth=0');
   await page.waitForTimeout(300);
 

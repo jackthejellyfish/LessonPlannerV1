@@ -76,7 +76,7 @@ async function mainThreadLoad(cdp, ms) {
 const fmt = (m) => `busy=${String(m.busy).padStart(3)}% layouts/s=${String(m.layouts).padStart(3)} styles/s=${String(m.styles).padStart(3)}`;
 
 async function openGame(page, stepIndex, prefix) {
-  await page.goto('/index.html');
+  await page.goto('/index.html?lite=0'); // full quality: never measure auto-lite mode
   await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(stepIndex).evaluate((el) => el.click());
   await page.click(`#${prefix}NewGameBtn`);
@@ -110,7 +110,7 @@ test.describe('at a 4K classroom-panel resolution', () => {
   test('perf survey: lesson page (Stage 1, idle)', async ({ page }) => {
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Performance.enable');
-    await page.goto('/index.html');
+    await page.goto('/index.html?lite=0'); // full quality: never measure auto-lite mode
     await page.click('.lesson-card >> nth=0');
     await page.waitForTimeout(500);
     const idle = await mainThreadLoad(cdp, 3000);

@@ -402,3 +402,25 @@
     font-size:clamp(12px,1.7vh,16px); font-weight:600;
     box-shadow:0 4px 14px rgba(0,0,0,0.35); pointer-events:none;
   }
+
+  /* ---- Frame meter (?fps in the URL, see js/fpsMeter.js) ---- */
+  .fps-meter{
+    position:fixed; left:8px; bottom:8px; z-index:9999; pointer-events:none;
+    font:600 12px/1.2 ui-monospace, Consolas, monospace;
+    background:rgba(0,0,0,0.72); color:#9BFFB0; padding:4px 8px; border-radius:6px;
+  }
+  .fps-meter.slow{ color:#FF9C8A; }
+
+  /* ---- Lite mode (js/quality.js) ----
+     Switched on automatically when a PC can't hold ~45fps in a game.
+     Only DECORATIVE loops stop here; anything that carries meaning
+     (a bomb's stripes, a gem's colour, the timers) is untouched.
+     !important because these override per-stage rules of varying
+     specificity, and lite mode must win over all of them. */
+  body.low-quality .whack-hole.up .whack-monster,
+  body.low-quality .whack-monster::before,
+  body.low-quality .whack-monster::after,
+  body.low-quality .pop-ball::before,
+  body.low-quality .pop-ball::after,
+  body.low-quality .game-over-winner,
+  body.low-quality .stage:not(.hidden){ animation:none !important; }

@@ -1,17 +1,18 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { INV_QUESTIONS } from '../content/stage7-stardefender.js';
 import { createCanvasResizer } from '../canvasGame.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { confirmDialog } from '../confirmDialog.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, stepParticles, frameFactor } from '../canvasEffects.js';
 import { drawGlow, createBackdrop } from '../canvasGlow.js';
 import { createTimerHud, setTimerFill } from '../hud.js';
+import { particleCount, noteFrame } from '../quality.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
 // every other canvas game uses, local module state like Plinko's own
@@ -133,20 +134,17 @@ renderInvTeamInputs(2);
 wireAddTeamButton('invTeamInputs', 'invAddTeamBtn', renderInvTeamInputs);
 
 document.getElementById('invStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#invTeamInputs input')).map(i => i.value.trim() || 'Team');
   // bankedSeconds: each team's own accumulated "sat out" time — see
   // beginInvTurn's play-or-bank choice. Per-team (not a single shared
   // pool), since a team-turn game means one team could bank while
   // another plays.
-  state.invTeams = names.map((name, i) => ({ name, color: invRowColors[i], total: 0, bankedSeconds: 0 }));
+  state.invTeams = readTeamsFromSetup('inv', invRowColors).map(team => ({ ...team, bankedSeconds: 0 }));
   state.invCurrentTeam = 0;
   state.invTurnsPlayed = 0;
   state.invQuestionOrder = shuffle(INV_QUESTIONS.map((_, i) => i));
   state.invLives = INV_MAX_LIVES;
 
-  document.getElementById('invSetup').classList.add('hidden');
-  document.getElementById('invGame').classList.remove('hidden');
-  document.getElementById('invGameOverBanner').classList.add('hidden');
+  showGameScreen('inv');
   renderInvScoreboard();
   renderInvTurnBanner();
   renderInvLives();
@@ -156,8 +154,7 @@ function renderInvScoreboard(){
   renderTeamScoreboard('invTeamList', state.invTeams, state.invCurrentTeam);
 }
 function renderInvTurnBanner(){
-  document.getElementById('invTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.invTeams[state.invCurrentTeam].name)}</strong>'s turn — question ${state.invTurnsPlayed + 1} of ${INV_QUESTIONS.length}`;
+  renderTurnBanner('inv', state.invTeams[state.invCurrentTeam], state.invTurnsPlayed + 1, INV_QUESTIONS.length);
 }
 function renderInvLives(){
   document.getElementById('invLivesDisplay').innerHTML = Array.from({ length: INV_MAX_LIVES }, (_, i) =>
@@ -228,6 +225,7 @@ export function ensureInvLayout(){
    decay — kept as a separate array/canvas since this is a different
    game with its own coordinate space) ---- */
 function spawnInvParticles(x, y, color, count, scale = 1){
+  count = particleCount(count); // lite mode: fewer per burst (js/quality.js)
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
     const speed = (Math.random() * 8 + 2) * scale;
@@ -876,6 +874,7 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
 
   function tick(now){
     const dt = Math.min(50, now - lastTime);
+    noteFrame();
     lastTime = now;
     const elapsedMs = now - start;
     const remaining = Math.max(0, durationSeconds - elapsedMs / 1000);

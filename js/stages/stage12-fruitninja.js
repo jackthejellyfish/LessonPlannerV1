@@ -1,16 +1,17 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { sfxImpact, sfxRisingChime, sfxSlash, sfxCombo } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { FRUIT_QUESTIONS } from '../content/stage12-fruitninja.js';
 import { createCanvasResizer } from '../canvasGame.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, stepParticles, frameFactor } from '../canvasEffects.js';
 import { createBackdrop, drawGlow } from '../canvasGlow.js';
 import { createTimerHud, setTimerFill } from '../hud.js';
+import { particleCount, noteFrame } from '../quality.js';
 
 /* =========================================================
    STAGE 12 — FRUIT NINJA
@@ -140,15 +141,12 @@ renderFruitTeamInputs(2);
 wireAddTeamButton('fruitTeamInputs', 'fruitAddTeamBtn', renderFruitTeamInputs);
 
 document.getElementById('fruitStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#fruitTeamInputs input')).map(i => i.value.trim() || 'Team');
-  state.fruitTeams = names.map((name, i) => ({ name, color: fruitRowColors[i], total: 0 }));
+  state.fruitTeams = readTeamsFromSetup('fruit', fruitRowColors);
   state.fruitCurrentTeam = 0;
   state.fruitTurnsPlayed = 0;
   state.fruitQuestionOrder = shuffle(FRUIT_QUESTIONS.map((_, i) => i));
 
-  document.getElementById('fruitSetup').classList.add('hidden');
-  document.getElementById('fruitGame').classList.remove('hidden');
-  document.getElementById('fruitGameOverBanner').classList.add('hidden');
+  showGameScreen('fruit');
   renderFruitScoreboard();
   renderFruitTurnBanner();
 });
@@ -157,8 +155,7 @@ function renderFruitScoreboard(){
   renderTeamScoreboard('fruitTeamList', state.fruitTeams, state.fruitCurrentTeam);
 }
 function renderFruitTurnBanner(){
-  document.getElementById('fruitTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.fruitTeams[state.fruitCurrentTeam].name)}</strong>'s turn — question ${state.fruitTurnsPlayed + 1} of ${FRUIT_QUESTIONS.length}`;
+  renderTurnBanner('fruit', state.fruitTeams[state.fruitCurrentTeam], state.fruitTurnsPlayed + 1, FRUIT_QUESTIONS.length);
 }
 
 /* =========================================================
@@ -184,7 +181,10 @@ async function beginFruitTurn(){
 /* =========================================================
    CANVAS SIZING
 ========================================================= */
-const fruitCanvasResizer = createCanvasResizer('fruitCanvas', 'fruitPlayArea');
+// Opaque canvas — see the note on neonCanvasResizer.
+const fruitCanvasResizer = createCanvasResizer('fruitCanvas', 'fruitPlayArea', (canvas) => {
+  if(!state.fruitRoundActive) renderFruitBackground(fruitCanvasResizer.getContext(), canvas);
+}, { contextAttributes: { alpha: false } });
 function resizeFruitCanvas(){ fruitCanvasResizer.resize(); }
 export function ensureFruitLayout(){
   if(state.fruitTeams.length > 0) resizeFruitCanvas();
@@ -194,6 +194,7 @@ export function ensureFruitLayout(){
    PARTICLES (same physics formulas used everywhere else here)
 ========================================================= */
 function spawnFruitParticles(x, y, color, count = 16, speedMult = 1){
+  count = particleCount(count); // lite mode: fewer per burst (js/quality.js)
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
     const speed = (Math.random() * 8 + 2) * speedMult;
@@ -542,7 +543,7 @@ function drawFruitShape(ctx, canvas, s){
 function renderFruitCanvas(){
   const canvas = fruitCanvasResizer.getCanvas();
   if(!canvas) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = fruitCanvasResizer.getContext();
 
   // Whole render wrapped in the shared shake helper — same technique
   // (and now the same shared function) Star Defender/Sky Slingshot/
@@ -651,6 +652,7 @@ function startFruitRound(){
 
   function tick(now){
     const dt = Math.min(50, now - lastTime);
+    noteFrame();
     lastTime = now;
     const elapsedMs = now - start;
     const remaining = Math.max(0, FRUIT_ROUND_SECONDS - elapsedMs / 1000);
@@ -693,7 +695,7 @@ export function cancelFruitRound(){
     const hint = document.getElementById('fruitHint');
     if(hint) hint.classList.add('hidden');
     const canvas = fruitCanvasResizer.getCanvas();
-    if(canvas){ const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    if(canvas) renderFruitBackground(fruitCanvasResizer.getContext(), canvas);
     const beginBtn = document.getElementById('fruitBeginTurnBtn');
     if(beginBtn) beginBtn.disabled = false;
   }

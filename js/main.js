@@ -14,21 +14,16 @@ import { applyMuteState } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
 import { getLesson, renderLessonCards } from './lessons.js';
 import { showGameIntroMenu } from './gameIntro.js';
+import { initFpsMeter } from './fpsMeter.js';
 
 import { renderAimHeader, renderAimExamples } from './stages/stage1-aim.js';
 import { renderLearnSlide, renderPrintableRules } from './stages/stage2-rules.js';
 import { cancelMcTimer } from './stages/stage3-controlled.js';
 import { cancelSemiTimer } from './stages/stage4-guided.js';
 import { renderWordBank, renderScaffoldList, resetStopwatch, initStopwatchDisplay } from './stages/stage5-free.js';
-import { cancelPopRound, stopPopParticleLoop, renderPopTeamInputs, resizePopCanvas } from './stages/stage6-ballpop.js';
-import { cancelInvRound, renderInvTeamInputs, ensureInvLayout } from './stages/stage7-stardefender.js';
-import { cancelWheelRound, renderWheelTeamInputs, ensureWheelLayout } from './stages/stage8-spinwheel.js';
+import { stopPopParticleLoop } from './stages/stage6-ballpop.js';
 import './stages/stage9-questions.js';
-import { cancelBilliardsRound, renderBilliardsTeamInputs, ensureBilliardsLayout } from './stages/stage10-billiards.js';
-import { cancelNeonRound, renderNeonTeamInputs, ensureNeonLayout } from './stages/stage11-neonarena.js';
-import { cancelFruitRound, renderFruitTeamInputs, ensureFruitLayout } from './stages/stage12-fruitninja.js';
-import { cancelHoopRound, renderHoopTeamInputs, ensureHoopLayout } from './stages/stage13-hoopshot.js';
-import { cancelWhackRound, renderWhackTeamInputs, ensureWhackLayout } from './stages/stage14-whack.js';
+import { GAMES, gameForStage, cancelAllRounds } from './games.js';
 
 // Every content/stageN-*.js file exports its own applyLesson(id), which
 // mutates its exported arrays/objects in place (see that file's header
@@ -87,34 +82,10 @@ document.getElementById('muteBtn').addEventListener('click', () => {
 // need to re-measure whichever game is actually open; the others are
 // hidden (0 size) and get re-measured correctly whenever the teacher
 // navigates to them.
-/* =========================================================
-   THE GAME REGISTRY
-   The six team-based game stages, in stage order. Everything below
-   that used to be written out once per game — the full-reset DOM
-   cleanup, the per-stage canvas re-measure, the round cancellations —
-   now walks this instead.
 
-   The motivation was concrete: v2 deleted two games and renumbered
-   three, and every one of those copy-pasted blocks was a separate
-   place to miss. Adding or removing a game is now one line here.
-
-   `prefix` is the id prefix every game already shares across its own
-   markup (`popSetup`/`popGame`/`popBeginTurnBtn`/...), the same
-   convention teamColorPicker.js and teamGameFlow.js already rely on.
-========================================================= */
-const GAMES = [
-  { stage: 6,  prefix: 'pop',       ensureLayout: resizePopCanvas,      cancelRound: cancelPopRound,       renderTeamInputs: renderPopTeamInputs },
-  { stage: 7,  prefix: 'inv',       ensureLayout: ensureInvLayout,      cancelRound: cancelInvRound,       renderTeamInputs: renderInvTeamInputs },
-  { stage: 8,  prefix: 'wheel',     ensureLayout: ensureWheelLayout,    cancelRound: cancelWheelRound,     renderTeamInputs: renderWheelTeamInputs },
-  { stage: 10, prefix: 'billiards', ensureLayout: ensureBilliardsLayout, cancelRound: cancelBilliardsRound, renderTeamInputs: renderBilliardsTeamInputs },
-  { stage: 11, prefix: 'neon',      ensureLayout: ensureNeonLayout,     cancelRound: cancelNeonRound,      renderTeamInputs: renderNeonTeamInputs },
-  { stage: 12, prefix: 'fruit',     ensureLayout: ensureFruitLayout,    cancelRound: cancelFruitRound,     renderTeamInputs: renderFruitTeamInputs },
-  { stage: 13, prefix: 'hoop',      ensureLayout: ensureHoopLayout,     cancelRound: cancelHoopRound,      renderTeamInputs: renderHoopTeamInputs },
-  { stage: 14, prefix: 'whack',     ensureLayout: ensureWhackLayout,    cancelRound: cancelWhackRound,     renderTeamInputs: renderWhackTeamInputs }
-];
-
+// The game list lives in js/games.js, shared with navigation.js.
 function resizeCurrentStageCanvas(){
-  const game = GAMES.find(g => g.stage === state.currentStage);
+  const game = gameForStage(state.currentStage);
   if(game) game.ensureLayout();
 }
 
@@ -177,7 +148,7 @@ function performFullReset(lessonId){
   cancelMcTimer();
   cancelSemiTimer();
   stopPopParticleLoop(); // Ball Pop's own continuous loop, not a round
-  GAMES.forEach(g => g.cancelRound());
+  cancelAllRounds();
   resetLessonState(lessonId);
 
   document.querySelector('#stage4 .semi-actions').classList.remove('hidden');
@@ -227,7 +198,7 @@ renderLessonCards(selectLesson);
 
 function showLessonSelect(){
   // Leave any running game cleanly before the picker covers it.
-  GAMES.forEach(g => g.cancelRound());
+  cancelAllRounds();
   document.getElementById('wrap').classList.add('hidden');
   document.getElementById('lessonSelect').classList.remove('hidden');
 }
@@ -249,6 +220,7 @@ document.getElementById('whackFinishBtn').addEventListener('click', showLessonSe
    performFullReset(), this just avoids relying on that being the
    only path that ever populates the page.
 ========================================================= */
+initFpsMeter(); // only when ?fps is in the URL
 renderStepper();
 renderAimHeader();
 renderAimExamples();

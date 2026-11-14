@@ -1,14 +1,15 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { beep } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { BILLIARDS_QUESTIONS, BILLIARDS_BALLS } from '../content/stage10-billiards.js';
 import { createCanvasResizer } from '../canvasGame.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, stepParticles, frameFactor } from '../canvasEffects.js';
+import { particleCount, noteFrame } from '../quality.js';
 
 // Rising "+N" text on every pocketed ball — same shared canvas
 // float-text helper every other canvas game uses.
@@ -137,15 +138,12 @@ renderBilliardsTeamInputs(2);
 wireAddTeamButton('billiardsTeamInputs', 'billiardsAddTeamBtn', renderBilliardsTeamInputs);
 
 document.getElementById('billiardsStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#billiardsTeamInputs input')).map(i => i.value.trim() || 'Team');
-  state.billiardsTeams = names.map((name, i) => ({ name, color: billiardsRowColors[i], total: 0 }));
+  state.billiardsTeams = readTeamsFromSetup('billiards', billiardsRowColors);
   state.billiardsCurrentTeam = 0;
   state.billiardsTurnsPlayed = 0;
   state.billiardsQuestionOrder = shuffle(BILLIARDS_QUESTIONS.map((_, i) => i));
 
-  document.getElementById('billiardsSetup').classList.add('hidden');
-  document.getElementById('billiardsGame').classList.remove('hidden');
-  document.getElementById('billiardsGameOverBanner').classList.add('hidden');
+  showGameScreen('billiards');
   resizeBilliardsCanvas();
   document.getElementById('billiardsQDisplay').textContent = `1/${BILLIARDS_QUESTIONS.length}`;
   renderBilliardsScoreboard();
@@ -158,8 +156,7 @@ function renderBilliardsScoreboard(){
   renderTeamScoreboard('billiardsTeamList', state.billiardsTeams, state.billiardsCurrentTeam);
 }
 function renderBilliardsTurnBanner(){
-  document.getElementById('billiardsTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.billiardsTeams[state.billiardsCurrentTeam].name)}</strong>'s turn — question ${state.billiardsTurnsPlayed + 1} of ${BILLIARDS_QUESTIONS.length}`;
+  renderTurnBanner('billiards', state.billiardsTeams[state.billiardsCurrentTeam], state.billiardsTurnsPlayed + 1, BILLIARDS_QUESTIONS.length);
 }
 
 /* =========================================================
@@ -259,6 +256,7 @@ function loadBilliardsRack(){
     vx: 0, vy: 0, angle: 0, r, value: 0, color: '#ffffff', isCue: true, pocketed: false
   };
   state.billiardsBalls = [cueBall, ...objectBalls];
+  billiardsLastBounds = bounds;
   state.billiardsTurnScore = 0;
   state.billiardsShotFired = false;
   billiardsFloatTexts = [];
@@ -336,6 +334,7 @@ function sfxPocket(isCue){
    PARTICLES
 ========================================================= */
 function spawnBilliardsParticles(x, y, color, count = 14, speedMult = 1){
+  count = particleCount(count); // lite mode: fewer per burst (js/quality.js)
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
     const speed = (Math.random() * 5 + 1.5) * speedMult;
@@ -353,8 +352,54 @@ function updateBilliardsParticles(k){
    CANVAS SIZING
 ========================================================= */
 // A resize clears the canvas buffer, so the next frame must repaint even
-// if nothing on the table is moving (see billiardsDirtyFrames).
-const billiardsCanvasResizer = createCanvasResizer('billiardsCanvas', 'billiardsPlayArea', invalidateBilliards);
+// if nothing on the table is moving (see billiardsDirtyFrames), and the
+// balls have to move with the table (see remapBilliardsToCanvas).
+const billiardsCanvasResizer = createCanvasResizer('billiardsCanvas', 'billiardsPlayArea', (canvas) => {
+  remapBilliardsToCanvas(canvas);
+  invalidateBilliards();
+});
+
+/* ---- Keeping the rack on the table through a resize ----
+   Ball positions, radii and speeds are in canvas PIXELS (the physics,
+   pockets and cushions are all pixel-based). Toggling compact mode,
+   hiding the nav or resizing the window mid-turn changes the canvas
+   size, which used to leave every ball where it was in pixels: off the
+   edge of a smaller table, or bunched in one corner of a bigger one.
+
+   The table always keeps TABLE_ASPECT, so the old and new tables differ
+   only by a uniform scale and an offset. Every ball (and its rest spot,
+   speed and radius) is carried across with that same mapping, so the
+   rack looks identical, just bigger or smaller. Short-lived effects are
+   simply dropped and an in-progress aim drag is cancelled, since both
+   are in the old pixel space. */
+let billiardsLastBounds = null;
+function remapBilliardsToCanvas(canvas){
+  if(!canvas || canvas.width === 0 || canvas.height === 0) return;
+  const next = billiardsTableBounds(canvas);
+  const prev = billiardsLastBounds;
+  billiardsLastBounds = next;
+  if(!prev || !state.billiardsBalls.length) return;
+  const prevW = prev.right - prev.left;
+  if(prevW <= 0) return;
+  const k = (next.right - next.left) / prevW;
+  if(Math.abs(k - 1) < 1e-6 && prev.left === next.left && prev.top === next.top) return;
+  const mapX = (x) => next.left + (x - prev.left) * k;
+  const mapY = (y) => next.top + (y - prev.top) * k;
+  for(const b of state.billiardsBalls){
+    b.x = mapX(b.x); b.y = mapY(b.y);
+    if(b.restX != null){ b.restX = mapX(b.restX); b.restY = mapY(b.restY); }
+    b.vx *= k; b.vy *= k; b.r *= k;
+    if(b.capturing){
+      b.capturing.startX = mapX(b.capturing.startX);
+      b.capturing.startY = mapY(b.capturing.startY);
+      b.capturing.pocket = { x: mapX(b.capturing.pocket.x), y: mapY(b.capturing.pocket.y) };
+    }
+  }
+  state.billiardsParticles = [];
+  billiardsFloatTexts = [];
+  billiardsShockwaves = [];
+  dragging = false;
+}
 export function resizeBilliardsCanvas(){ billiardsCanvasResizer.resize(); }
 export function ensureBilliardsLayout(){
   if(state.billiardsTeams.length > 0) resizeBilliardsCanvas();
@@ -660,6 +705,7 @@ function startBilliardsRound(){
   let lastTime = performance.now();
   function tick(now){
     const dt = Math.min(50, now - lastTime);
+    noteFrame();
     lastTime = now;
     updateBilliardsPhysics(dt);
     if(!billiardsSceneIsStill()) billiardsDirtyFrames = 2;

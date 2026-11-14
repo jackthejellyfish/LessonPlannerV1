@@ -1,12 +1,13 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { WHACK_QUESTIONS } from '../content/stage14-whack.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { createTimerHud, setTimerFill } from '../hud.js';
+import { noteFrame } from '../quality.js';
 
 /* =========================================================
    STAGE 14 — WHACK-A-MONSTER
@@ -81,15 +82,12 @@ renderWhackTeamInputs(2);
 wireAddTeamButton('whackTeamInputs', 'whackAddTeamBtn', renderWhackTeamInputs);
 
 document.getElementById('whackStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#whackTeamInputs input')).map(i => i.value.trim() || 'Team');
-  state.whackTeams = names.map((name, i) => ({ name, color: whackRowColors[i], total: 0 }));
+  state.whackTeams = readTeamsFromSetup('whack', whackRowColors);
   state.whackCurrentTeam = 0;
   state.whackTurnsPlayed = 0;
   state.whackQuestionOrder = shuffle(WHACK_QUESTIONS.map((_, i) => i));
 
-  document.getElementById('whackSetup').classList.add('hidden');
-  document.getElementById('whackGame').classList.remove('hidden');
-  document.getElementById('whackGameOverBanner').classList.add('hidden');
+  showGameScreen('whack');
   buildWhackGrid();
   renderWhackScoreboard();
   renderWhackTurnBanner();
@@ -99,8 +97,7 @@ function renderWhackScoreboard(){
   renderTeamScoreboard('whackTeamList', state.whackTeams, state.whackCurrentTeam);
 }
 function renderWhackTurnBanner(){
-  document.getElementById('whackTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.whackTeams[state.whackCurrentTeam].name)}</strong>'s turn — question ${state.whackTurnsPlayed + 1} of ${WHACK_QUESTIONS.length}`;
+  renderTurnBanner('whack', state.whackTeams[state.whackCurrentTeam], state.whackTurnsPlayed + 1, WHACK_QUESTIONS.length);
 }
 
 /* =========================================================
@@ -280,7 +277,10 @@ function startWhackRound(){
   const timerFill = document.getElementById('whackTimerFill');
   const updateTimerHud = createTimerHud(timeDisplay, timerFill, WHACK_ROUND_SECONDS);
 
+  let lastFrame = start;
   function tick(now){
+    noteFrame();
+    lastFrame = now;
     const elapsed = now - start;
     const remaining = Math.max(0, WHACK_ROUND_SECONDS - elapsed / 1000);
     updateTimerHud(remaining);

@@ -1,14 +1,15 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml, showQuestionModal } from '../utils.js';
+import { shuffle, showQuestionModal } from '../utils.js';
 import { beep } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { WHEEL_QUESTIONS, WHEEL_COLORS } from '../content/stage8-spinwheel.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { createBackdrop, drawGlow } from '../canvasGlow.js';
-import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons } from '../teamGameFlow.js';
+import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
+import { particleCount } from '../quality.js';
 
 /* =========================================================
    STAGE 8 — SPIN THE WHEEL (replaces the old Bamboozle tile game)
@@ -52,17 +53,14 @@ renderWheelTeamInputs(2);
 wireAddTeamButton('wheelTeamInputs', 'wheelAddTeamBtn', renderWheelTeamInputs);
 
 document.getElementById('wheelStartBtn').addEventListener('click', () => {
-  const names = Array.from(document.querySelectorAll('#wheelTeamInputs input')).map(i => i.value.trim() || 'Team');
-  state.wheelTeams = names.map((name, i) => ({ name, color: wheelRowColors[i], total: 0 }));
+  state.wheelTeams = readTeamsFromSetup('wheel', wheelRowColors);
   state.wheelCurrentTeam = 0;
   state.wheelTurnsPlayed = 0;
   state.wheelQuestionOrder = shuffle(WHEEL_QUESTIONS.map((_, i) => i));
   state.wheelUsedSegments = new Array(SEG_COUNT).fill(false);
   currentWheelAngle = 0;
 
-  document.getElementById('wheelSetup').classList.add('hidden');
-  document.getElementById('wheelGame').classList.remove('hidden');
-  document.getElementById('wheelGameOverBanner').classList.add('hidden');
+  showGameScreen('wheel');
   resizeWheelCanvas();
   document.getElementById('wheelQDisplay').textContent = `1/${SEG_COUNT}`;
   document.getElementById('wheelLastSpinDisplay').textContent = '—';
@@ -75,8 +73,7 @@ function renderWheelScoreboard(){
   renderTeamScoreboard('wheelTeamList', state.wheelTeams, state.wheelCurrentTeam);
 }
 function renderWheelTurnBanner(){
-  document.getElementById('wheelTurnBanner').innerHTML =
-    `<strong>${escapeHtml(state.wheelTeams[state.wheelCurrentTeam].name)}</strong>'s turn — spin ${state.wheelTurnsPlayed + 1} of ${SEG_COUNT}`;
+  renderTurnBanner('wheel', state.wheelTeams[state.wheelCurrentTeam], state.wheelTurnsPlayed + 1, SEG_COUNT, 'spin');
 }
 
 /* =========================================================
@@ -93,6 +90,7 @@ function sfxLand(points){
    PARTICLES (confetti burst on landing)
 ========================================================= */
 function spawnWheelConfetti(x, y, count){
+  count = particleCount(count); // lite mode: fewer per burst (js/quality.js)
   for(let i = 0; i < count; i++){
     const angle = Math.random() * Math.PI * 2;
     const speed = Math.random() * 6 + 2;
