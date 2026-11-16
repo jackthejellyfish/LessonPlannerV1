@@ -82,6 +82,18 @@ export const LESSONS = [
     printWorksheetTitle: 'At the Amusement Park — Practice Worksheet',
     printFooter: 'At the Amusement Park — Interactive Lesson',
     mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+  },
+  {
+    id: 'party-fun',
+    title: 'Party Fun: Who Will…?',
+    tagline: 'Plan a party — who will do each job? Ask and answer with will and won’t.',
+    objective: 'By the end of this lesson, you will be able to plan a party and ask and answer questions about it with will, won’t, Who will…? and What will you do…?',
+    pageTitle: 'Party Fun: Who Will…? — Interactive Lesson',
+    printRulesTitle: 'Party Fun: Who Will…? — Rules Reference',
+    printRulesSubtitle: 'Future plans with will: positive, negative, Wh- and Yes/No questions',
+    printWorksheetTitle: 'Party Fun: Who Will…? — Practice Worksheet',
+    printFooter: 'Party Fun: Who Will…? — Interactive Lesson',
+    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
   }
 ];
 
@@ -94,7 +106,8 @@ export function getLesson(id){
 // than inventing a new palette just for this screen. `onSelect(id)` is
 // supplied by main.js, which owns the actual lesson-switch/full-reset
 // flow — this module only knows how to list and render lessons.
-// Six lessons now, and the four --rule accents would make cards 5-6
+// Seven lessons now (the seventh reuses card 1's colour, which sits on
+// the row above it, so no two neighbours match), and the four --rule accents would make cards 5-6
 // repeats of cards 1-2 — so the cycle gets two more entries, both
 // already in the palette (--primary-dark is the button hover colour,
 // --timer the countdown amber), rather than inventing new colours.

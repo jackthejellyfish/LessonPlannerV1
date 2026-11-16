@@ -91,6 +91,20 @@ const LESSON_CONTENT = {
       { prompt: "Ask your partner what they ate at the park.", answer: "What did you eat at the park?" },
       { prompt: "Ask your partner which attraction they visited first.", answer: "Which attraction did you visit first?" }
     ]
+  },
+  'party-fun': {
+    HOOP_QUESTIONS: [
+      { prompt: "Ask your partner what they will do for the party.", answer: "What will you do for the party?" },
+      { prompt: "Ask who will set the table.", answer: "Who will set the table?" },
+      { prompt: "Make it a question: 'You will bring games.'", answer: "Will you bring games?" },
+      { prompt: "Make it a question: 'He will choose the music.'", answer: "Will he choose the music?" },
+      { prompt: "Ask who will serve the pizza.", answer: "Who will serve the pizza?" },
+      { prompt: "Make it a question: 'Rosa will bake biscuits.'", answer: "Will Rosa bake biscuits?" },
+      { prompt: "Ask who will blow up the balloons.", answer: "Who will blow up the balloons?" },
+      { prompt: "Make it a question: 'They will hang up the decorations.'", answer: "Will they hang up the decorations?" },
+      { prompt: "Ask your partner what Tom will do for the party.", answer: "What will Tom do for the party?" },
+      { prompt: "Make it a question: 'She will set up the games.'", answer: "Will she set up the games?" }
+    ]
   }
 };
 

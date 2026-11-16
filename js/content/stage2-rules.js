@@ -177,6 +177,40 @@ const LESSON_CONTENT = {
       coaster: "var(--rule-c)", carousel: "var(--rule-c)", glasses3d: "var(--rule-c)", ghost: "var(--rule-b)",
       'face-excited': "var(--rule-d)", 'face-bored': "var(--rule-d)", 'face-amazed': "var(--rule-d)", 'face-scared': "var(--rule-d)"
     }
+  },
+  'party-fun': {
+    // Five sentence shapes for one structure (will), so every rule uses
+    // the sentence style: subject on the left, the rest of the sentence
+    // as the "suffix". The Wh-question rules show the ANSWER side - the
+    // formula line carries the question, so it isn't printed twice.
+    RULES: [
+      { name: "Positive: will / ’ll", formula: "subject + will + verb · I’ll = I will", color: "var(--rule-a)",
+        examples: [["I","’ll bake biscuits."],["He","’ll draw posters."],["We"," will buy balloons."]] },
+      { name: "Negative: won’t", formula: "subject + won’t + verb (won’t = will not)", color: "var(--rule-c)",
+        examples: [["I"," won’t bake biscuits."],["He"," won’t draw posters."],["They"," won’t order pizza."]] },
+      { name: "What will you do?", formula: "What will you do for the party? → I’ll + verb", color: "var(--rule-b)",
+        examples: [["I","’ll order pizza."],["She","’ll bake biscuits."],["Tom","’ll bring games."]] },
+      { name: "Who will…?", formula: "Who will + verb? → Name + will + verb", color: "var(--rule-d)",
+        examples: [["Rosa"," will set the table."],["Dave"," will play the music."],["Ann"," will hang up the decorations."]] },
+      { name: "Yes / No questions", formula: "Will + subject + verb? → Yes, I will. / No, I won’t.", color: "var(--rule-a)",
+        examples: [["Will you"," bring games? — Yes, I will."],["Will he"," choose music? — No, he won’t."],["Will they"," blow up the balloons? — Yes, they will."]] },
+      { name: "Watch out!", formula: "will + verb: no -s, no to · a short answer ends in will, not ’ll", color: "var(--rule-b)",
+        examples: [["She will"," bake biscuits. (not bakes)"],["He will"," come. (not will to come)"],["Yes,"," I will. (not Yes, I’ll.)"]] }
+    ],
+    COMPARE_DEMOS: [
+      { labelA: "I’ll…", labelB: "Rosa will…", valueA: 75, valueB: 75, iconA: "biscuits", iconB: "balloons",
+        caption: 'I<span class="hl">’ll</span> bake biscuits, and Rosa <span class="hl">will</span> buy the balloons.' },
+      { labelA: "Will you…?", labelB: "Yes, I will!", valueA: 75, valueB: 75, iconA: "pizza", iconB: "tick",
+        caption: '<span class="hl">Will</span> you order the pizza? — Yes, I <span class="hl">will</span>.' },
+      { labelA: "Choose music ✗", labelB: "Set up games ✓", valueA: 75, valueB: 75, iconA: "music", iconB: "dice",
+        caption: '<span class="hl">Will</span> Dave choose the music? — No, he <span class="hl">won’t</span>. He<span class="hl">’ll</span> set up the games.' },
+      { labelA: "Who will…?", labelB: "Sam will!", valueA: 75, valueB: 75, iconA: "poster", iconB: "tick",
+        caption: 'Who <span class="hl">will</span> draw the posters? — Sam <span class="hl">will</span> draw the posters.' }
+    ],
+    COMPARE_ICON_COLORS: {
+      biscuits: "var(--rule-c)", pizza: "var(--rule-c)", music: "var(--rule-c)", poster: "var(--rule-c)",
+      balloons: "var(--rule-a)", tick: "var(--rule-a)", dice: "var(--rule-a)"
+    }
   }
 };
 

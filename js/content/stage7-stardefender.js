@@ -85,6 +85,20 @@ const LESSON_CONTENT = {
       { prompt: "Complete: 'My dad ___ (buy) a souvenir.'", answer: "bought" },
       { prompt: "Complete: 'We ___ (take) lots of photos.'", answer: "took" }
     ]
+  },
+  'party-fun': {
+    INV_QUESTIONS: [
+      { prompt: "Will or won't? 'My friends love me. They ___ always be on my side.'", answer: "will" },
+      { prompt: "Will or won't? 'Sam hasn't got any money. He ___ buy the concert tickets.'", answer: "won't" },
+      { prompt: "Will or won't? 'Julie is very tired today. She ___ take a nap at home.'", answer: "will" },
+      { prompt: "Will or won't? 'Susan is very shy. She ___ dance in front of her classmates.'", answer: "won't" },
+      { prompt: "Will or won't? 'I'm very full. I ___ have dessert.'", answer: "won't" },
+      { prompt: "Will or won't? 'Kelly is my best friend. We ___ travel together this holiday.'", answer: "will" },
+      { prompt: "Will or won't? 'Mia loves baking. She ___ bake biscuits for the party.'", answer: "will" },
+      { prompt: "Will or won't? 'Ben can't draw. He ___ draw the posters.'", answer: "won't" },
+      { prompt: "Will or won't? 'The pizza is here! Dad ___ serve it now.'", answer: "will" },
+      { prompt: "Will or won't? 'Leo hates loud music. He ___ play the music.'", answer: "won't" }
+    ]
   }
 };
 

@@ -122,6 +122,33 @@ function buildAimIcon(type){
       <ellipse cx="76" cy="42" rx="4" ry="5" fill="var(--ink)"/>
     </svg>`;
   }
+  // --- Party Fun lesson icons. Same flat-shape vocabulary.
+  if(type === 'balloons'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M36 40 Q40 54 50 66 M64 38 Q60 54 50 66 M50 34 V66" fill="none" stroke="var(--muted)" stroke-width="2"/>
+      <ellipse cx="34" cy="24" rx="13" ry="16" fill="var(--rule-c)"/>
+      <ellipse cx="66" cy="22" rx="13" ry="16" fill="var(--rule-b)"/>
+      <ellipse cx="50" cy="18" rx="13" ry="16" fill="var(--rule-a)"/>
+    </svg>`;
+  }
+  if(type === 'pizza'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <circle cx="50" cy="36" r="30" fill="var(--rule-d)"/>
+      <circle cx="50" cy="36" r="24" fill="var(--rule-c)"/>
+      <circle cx="40" cy="28" r="5" fill="var(--error)"/>
+      <circle cx="60" cy="30" r="5" fill="var(--error)"/>
+      <circle cx="46" cy="46" r="5" fill="var(--error)"/>
+      <path d="M50 36 L50 6 M50 36 L76 50 M50 36 L24 50" stroke="var(--rule-d)" stroke-width="2.5"/>
+    </svg>`;
+  }
+  if(type === 'music'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M38 52 V14 L76 6 V44" fill="none" stroke="var(--rule-b)" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M38 14 L76 6 V16 L38 24 Z" fill="var(--rule-b)"/>
+      <ellipse cx="30" cy="54" rx="10" ry="8" fill="var(--rule-a)"/>
+      <ellipse cx="68" cy="46" rx="10" ry="8" fill="var(--rule-a)"/>
+    </svg>`;
+  }
   return '';
 }
 

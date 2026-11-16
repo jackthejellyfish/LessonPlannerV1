@@ -25,7 +25,7 @@ quiz the same language.
 - **Hardware target:** weak classroom PCs driving large displays. Frame rate
   matters more than visual polish (see section 5).
 
-### Lessons (6), from `js/lessons.js`
+### Lessons (7), from `js/lessons.js`
 
 | id | Title |
 |---|---|
@@ -35,6 +35,7 @@ quiz the same language.
 | `will-wont` | Will & Won't |
 | `present-perfect` | Present Perfect |
 | `amusement-park` | At the Amusement Park (past simple + -ing/-ed adjectives) |
+| `party-fun` | Party Fun: Who Will…? (will for plans: Wh- and Yes/No questions, short answers) |
 
 ### Stages (14), from `js/stepper.js`
 

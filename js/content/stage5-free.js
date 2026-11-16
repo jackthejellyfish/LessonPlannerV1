@@ -181,6 +181,38 @@ const LESSON_CONTENT = {
       'What <span class="blank">did</span> you do at the amusement park? — I <span class="blank">___</span> <span class="blank">___</span>.',
       'How <span class="blank">was</span> the <span class="blank">___</span>? — It was <span class="blank">___</span>. I was <span class="blank">___</span>.'
     ]
+  },
+  'party-fun': {
+    FREE_TASK: {
+      headline: "Plan a class party together.",
+      steps: [
+        "Make a list of six party jobs.",
+        "Ask “Who will…?” and “What will you do?” Write a name next to each job.",
+        "Tell the class: “Ann will bake biscuits, and I’ll play the music.”"
+      ],
+      example: [
+        ["A", "What will you do for the party?"],
+        ["B", "I’ll bake biscuits. Will you bring games?"],
+        ["A", "No, I won’t. I’ll choose the music."],
+        ["B", "OK! Who will order the pizza?"]
+      ]
+    },
+    // The two short forms, then every party job from both textbook pages
+    // as verb → what you do it to, so "What will you do?" always has an
+    // answer on the board.
+    WORD_BANK: [
+      ["I will","I’ll"], ["will not","won’t"], ["buy","balloons"], ["bake","biscuits"],
+      ["choose","music"], ["order","pizza"], ["draw","posters"], ["bring","games"],
+      ["set","the table"], ["serve","the pizza"], ["blow up","the balloons"], ["play","the music"],
+      ["hang up","the decorations"], ["set up","the games"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'What will you do for the party? — I<span class="blank">’ll</span> <span class="blank">___</span> <span class="blank">___</span>.',
+      'Who <span class="blank">will</span> <span class="blank">___</span>? — <span class="blank">___</span> will <span class="blank">___</span>.',
+      '<span class="blank">Will</span> you <span class="blank">___</span>? — Yes, I <span class="blank">will</span>. / No, I <span class="blank">won’t</span>.',
+      'I<span class="blank">’ll</span> <span class="blank">___</span>, but I <span class="blank">won’t</span> <span class="blank">___</span>.',
+      '<span class="blank">___</span> will <span class="blank">___</span>, and <span class="blank">___</span> will <span class="blank">___</span>.'
+    ]
   }
 };
 

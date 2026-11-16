@@ -85,6 +85,20 @@ const LESSON_CONTENT = {
       { prompt: "What is the past simple of 'win'? (it's irregular!)", answer: "won" },
       { prompt: "What is the past simple of 'take'? (it's irregular!)", answer: "took" }
     ]
+  },
+  'party-fun': {
+    POP_QUESTIONS: [
+      { prompt: "Use will: 'I bake biscuits.' → I ___ biscuits.", answer: "will bake" },
+      { prompt: "Use will: 'She buys balloons.' → She ___ balloons.", answer: "will buy" },
+      { prompt: "Use will: 'Tom orders pizza.' → Tom ___ pizza.", answer: "will order" },
+      { prompt: "Use will: 'They draw posters.' → They ___ posters.", answer: "will draw" },
+      { prompt: "Use will: 'He chooses the music.' → He ___ the music.", answer: "will choose" },
+      { prompt: "Use will: 'We bring games.' → We ___ games.", answer: "will bring" },
+      { prompt: "Use will: 'Rosa sets the table.' → Rosa ___ the table.", answer: "will set" },
+      { prompt: "Use will: 'Dave plays the music.' → Dave ___ the music.", answer: "will play" },
+      { prompt: "Use will: 'Ann hangs up the decorations.' → Ann ___ the decorations.", answer: "will hang up" },
+      { prompt: "Use will: 'You serve the pizza.' → You ___ the pizza.", answer: "will serve" }
+    ]
   }
 };
 

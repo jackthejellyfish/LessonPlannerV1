@@ -85,6 +85,20 @@ const LESSON_CONTENT = {
       { prompt: "Make it past: 'My friends ride the Ferris wheel.'", answer: "My friends rode the Ferris wheel." },
       { prompt: "Make it past: 'You win a prize!'", answer: "You won a prize!" }
     ]
+  },
+  'party-fun': {
+    NEON_QUESTIONS: [
+      { prompt: "Make it negative: 'I'll bake biscuits.'", answer: "I won't bake biscuits." },
+      { prompt: "Make it negative: 'He'll draw posters.'", answer: "He won't draw posters." },
+      { prompt: "Make it negative: 'She'll buy balloons.'", answer: "She won't buy balloons." },
+      { prompt: "Make it negative: 'We'll order pizza.'", answer: "We won't order pizza." },
+      { prompt: "Make it negative: 'They'll choose the music.'", answer: "They won't choose the music." },
+      { prompt: "Make it negative: 'Rosa will set the table.'", answer: "Rosa won't set the table." },
+      { prompt: "Make it negative: 'You'll serve the pizza.'", answer: "You won't serve the pizza." },
+      { prompt: "Make it negative: 'Dave will play the music.'", answer: "Dave won't play the music." },
+      { prompt: "Make it negative: 'I'll hang up the decorations.'", answer: "I won't hang up the decorations." },
+      { prompt: "Make it negative: 'Tom will bring games.'", answer: "Tom won't bring games." }
+    ]
   }
 };
 

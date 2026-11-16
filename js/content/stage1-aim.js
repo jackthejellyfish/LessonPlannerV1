@@ -47,6 +47,13 @@ const LESSON_CONTENT = {
       { icon: 'carousel', sentenceHtml: 'She <span class="hl">rode</span> the merry-go-round. She was <span class="hl">bored</span>.' },
       { icon: 'ghost', sentenceHtml: 'We <span class="hl">entered</span> a haunted house. We were <span class="hl">scared</span>!' }
     ]
+  },
+  'party-fun': {
+    AIM_EXAMPLES: [
+      { icon: 'balloons', sentenceHtml: 'I<span class="hl">’ll</span> buy the balloons for the party.' },
+      { icon: 'pizza', sentenceHtml: 'Who <span class="hl">will</span> order the pizza? Dave <span class="hl">will</span> order the pizza.' },
+      { icon: 'music', sentenceHtml: '<span class="hl">Will</span> Rosa choose the music? No, she <span class="hl">won’t</span>.' }
+    ]
   }
 };
 

@@ -85,6 +85,20 @@ const LESSON_CONTENT = {
       { prompt: "Is this right? 'We were amazed by the film.'", answer: "Yes — that's correct!" },
       { prompt: "Is this right? 'I was scaring in the haunted house.'", answer: "No — 'I was scared in the haunted house.'" }
     ]
+  },
+  'party-fun': {
+    FRUIT_QUESTIONS: [
+      { prompt: "Is this right? 'I will bakes biscuits.'", answer: "No — 'I will bake biscuits.'" },
+      { prompt: "Is this right? 'Who will set the table?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this right? 'She will to buy balloons.'", answer: "No — 'She will buy balloons.'" },
+      { prompt: "Is this right? 'Will you bring games? — Yes, I won't.'", answer: "No — 'Yes, I will.'" },
+      { prompt: "Is this right? 'He'll draw posters.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this right? 'They willn't order pizza.'", answer: "No — 'They won't order pizza.'" },
+      { prompt: "Is this right? 'Will he choose music? — No, he won't.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this right? 'What you will do for the party?'", answer: "No — 'What will you do for the party?'" },
+      { prompt: "Is this right? 'Dave will playing the music.'", answer: "No — 'Dave will play the music.'" },
+      { prompt: "Is this right? 'Will you blow up the balloons? — Yes, I'll.'", answer: "No — 'Yes, I will.' (never I'll at the end)" }
+    ]
   }
 };
 

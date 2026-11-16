@@ -85,6 +85,20 @@ const LESSON_CONTENT = {
       { prompt: "Complete: 'We walked all day. It was ___.' (tire)", answer: "tiring" },
       { prompt: "Complete: 'After the park, they were very ___.' (tire)", answer: "tired" }
     ]
+  },
+  'party-fun': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Short answer, yes: 'Will you bring games?'", answer: "Yes, I will." },
+      { prompt: "Short answer, no: 'Will he choose the music?'", answer: "No, he won't." },
+      { prompt: "Short answer, yes: 'Will she bake biscuits?'", answer: "Yes, she will." },
+      { prompt: "Short answer, no: 'Will they order pizza?'", answer: "No, they won't." },
+      { prompt: "Short answer, yes: 'Will Rosa set the table?'", answer: "Yes, she will." },
+      { prompt: "Short answer, no: 'Will you blow up the balloons?'", answer: "No, I won't." },
+      { prompt: "Short answer, yes: 'Will Dave play the music?'", answer: "Yes, he will." },
+      { prompt: "Short answer, no: 'Will Tom and Ann draw the posters?'", answer: "No, they won't." },
+      { prompt: "Short answer, yes: 'Will your friends set up the games?'", answer: "Yes, they will." },
+      { prompt: "Short answer, no: 'Will Mr Kim serve the pizza?'", answer: "No, he won't." }
+    ]
   }
 };
 

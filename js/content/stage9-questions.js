@@ -207,6 +207,40 @@ const LESSON_CONTENT = {
           {prompt:"Ask four friends 'What did you do at the amusement park?'. What was the most popular attraction? Write at least 3 sentences."},
         ]},
     ]
+  },
+  'party-fun': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Complete each sentence using will or won’t.",
+        questions:[
+          {prompt:"I bake biscuits. → I ___ biscuits.", answer:"will bake"},
+          {prompt:"She comes to the party. → She ___ to the party.", answer:"will come"},
+          {prompt:"Tony watches a film. → Tony ___ a film.", answer:"will watch"},
+          {prompt:"Sam hasn’t got any money. He ___ buy the tickets. (will / won’t)", answer:"won’t"},
+          {prompt:"Will you bring games? — Yes, I ___.", answer:"will"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+        questions:[
+          {chips:["What","will","you","do","for","the","party","?"],answer:"What will you do for the party ?"},
+          {chips:["Who","will","set","the","table","?"],answer:"Who will set the table ?"},
+          {chips:["I'll","order","the","pizza","."],answer:"I'll order the pizza ."},
+          {chips:["Will","he","choose","the","music","?"],answer:"Will he choose the music ?"},
+          {chips:["Rosa","won't","draw","the","posters","."],answer:"Rosa won't draw the posters ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence or question about a party.",
+        questions:[
+          {prompt:'Write a sentence using "I’ll".',                  hint:'I’ll ___ for the party.'},
+          {prompt:'Write a sentence using "won’t".',                 hint:'___ won’t ___ because ___.'},
+          {prompt:'Write a question using "Who will".',              hint:'Who will ___?'},
+          {prompt:'Write a question using "Will you".',              hint:'Will you ___?'},
+          {prompt:'Answer the question "Will you bake biscuits?"',   hint:'Yes, I ___. / No, I ___.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3–5 sentences using will and won’t.",
+        questions:[
+          {prompt:"Plan a party for your class. Who will do each job? Write at least 3 sentences."},
+          {prompt:"What will you do on your next birthday? What won’t you do? Write at least 3 sentences."},
+          {prompt:"Ask four friends 'What will you do for the party?'. Write what each friend will do."},
+        ]},
+    ]
   }
 };
 

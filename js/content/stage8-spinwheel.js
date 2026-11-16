@@ -94,6 +94,20 @@ const LESSON_CONTENT = {
       { prompt: "What did you eat or buy the last time you went out?", answer: "e.g. I ate an ice cream and bought a T-shirt.", points: 25 },
       { prompt: "What is the most popular attraction in your class? Ask!", answer: "e.g. The roller coaster — six people went on it.", points: 30 }
     ]
+  },
+  'party-fun': {
+    WHEEL_QUESTIONS: [
+      { prompt: "What will you do for the party?", answer: "e.g. I’ll bake biscuits.", points: 10 },
+      { prompt: "Name three party jobs. Who will do them?", answer: "e.g. Ann will buy balloons, Tom will order pizza and I’ll draw posters.", points: 100 },
+      { prompt: "Will you bring games to the party?", answer: "e.g. Yes, I will. / No, I won’t.", points: 15 },
+      { prompt: "Which party job won’t you do? Why?", answer: "e.g. I won’t bake biscuits — I can’t cook!", points: 5 },
+      { prompt: "Plan your dream birthday party. What will happen?", answer: "e.g. We’ll play games, eat pizza and dance all night.", points: 200 },
+      { prompt: "Make a question: 'who / play the music'", answer: "Who will play the music?", points: 20 },
+      { prompt: "Say it short: 'I will' and 'will not'.", answer: "I’ll and won’t", points: 1 },
+      { prompt: "Make it negative: 'He will draw the posters.'", answer: "He won’t draw the posters.", points: 50 },
+      { prompt: "Ask a classmate a 'Will you…?' question about the party.", answer: "e.g. Will you hang up the decorations?", points: 25 },
+      { prompt: "Who in your class will choose the music? Ask!", answer: "e.g. Sara will choose the music.", points: 30 }
+    ]
   }
 };
 

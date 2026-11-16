@@ -95,6 +95,20 @@ const LESSON_CONTENT = {
       { prompt: "Which is right? 'The haunted house was scary / scared.'", answer: "scary" },
       { prompt: "Which is right? 'We were amazing / amazed by the film.'", answer: "amazed" }
     ]
+  },
+  'party-fun': {
+    WHACK_QUESTIONS: [
+      { prompt: "Which is right? 'I will bake / bakes biscuits.'", answer: "bake" },
+      { prompt: "Which is right? 'Who will / wills set the table?'", answer: "will" },
+      { prompt: "Which is right? 'She won't / willn't draw posters.'", answer: "won't" },
+      { prompt: "Which is right? 'Will you help? — Yes, I will / Yes, I'll.'", answer: "Yes, I will" },
+      { prompt: "Which is right? 'He will choose / to choose the music.'", answer: "choose" },
+      { prompt: "Which is right? 'What will you / you will do for the party?'", answer: "will you" },
+      { prompt: "Which is right? 'Rosa will set / setting the table.'", answer: "set" },
+      { prompt: "Which is right? 'Will he order pizza? — No, he won't / don't.'", answer: "won't" },
+      { prompt: "Which is right? 'I'm full. I will / won't have dessert.'", answer: "won't" },
+      { prompt: "Which is right? 'We'll / We're will hang up the decorations.'", answer: "We'll" }
+    ]
   }
 };
 

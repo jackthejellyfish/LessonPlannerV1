@@ -94,6 +94,20 @@ const LESSON_CONTENT = {
       { word: "The haunted house was ___.", correct: "scary", options: ["scared", "scaring", "scary"] },
       { word: "The 3D film was great. We were ___!", correct: "amazed", options: ["amazed", "amazing", "amaze"] }
     ]
+  },
+  'party-fun': {
+    MC_QUESTIONS: [
+      { word: "I ___ bake biscuits for the party.", correct: "will", options: ["will", "wills", "will to"] },
+      { word: "Who ___ set the table?", correct: "will", options: ["does will", "will", "wills"] },
+      { word: "He’s on holiday, so he ___ come to the party.", correct: "won’t", options: ["won’t", "will", "doesn’t will"] },
+      { word: "___ you bring games?", correct: "Will", options: ["Are will", "Do", "Will"] },
+      { word: "Will she choose the music? — Yes, she ___.", correct: "will", options: ["will", "’ll", "does"] },
+      { word: "Will they order pizza? — No, they ___.", correct: "won’t", options: ["don’t", "won’t", "aren’t"] },
+      { word: "What will you do for the party? — I’ll ___ posters.", correct: "draw", options: ["draws", "drawing", "draw"] },
+      { word: "Rosa will ___ the pizza.", correct: "serve", options: ["serve", "serves", "to serve"] },
+      { word: "We ___ forget the decorations — we promise!", correct: "won’t", options: ["won’t", "will", "not will"] },
+      { word: "‘I’ll’ means…", correct: "I will", options: ["I am", "I will", "I all"] }
+    ]
   }
 };
 

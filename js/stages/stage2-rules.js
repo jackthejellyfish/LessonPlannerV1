@@ -243,6 +243,62 @@ export function buildCompareIcon(type, valuePct, color){
       ${eyes}${mouth}
     </svg>`;
   }
+  // --- Party Fun lesson icons: a party job on each side. Paired, not
+  // magnitude-based, so `scale` only nudges the size.
+  if(type === 'biscuits'){
+    const r = 9 + 2 * scale;
+    return `<svg viewBox="0 0 80 70" width="80" height="70">
+      <rect x="6" y="40" width="68" height="10" rx="3" fill="var(--muted)"/>
+      ${[18, 40, 62].map(cx => `<circle cx="${cx}" cy="${40 - r}" r="${r}" fill="${color}"/>
+      <circle cx="${cx - 3}" cy="${37 - r}" r="1.8" fill="var(--ink)"/><circle cx="${cx + 3}" cy="${42 - r}" r="1.8" fill="var(--ink)"/>`).join('')}
+      <path d="M26 14 q4 -5 0 -10 M40 14 q4 -5 0 -10 M54 14 q4 -5 0 -10" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'balloons'){
+    const ry = 12 + 3 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M22 34 Q26 50 35 66 M48 32 Q44 50 35 66 M35 28 V66" fill="none" stroke="var(--muted)" stroke-width="2"/>
+      <ellipse cx="21" cy="${34 - ry}" rx="${ry * 0.8}" ry="${ry}" fill="${color}" opacity="0.7"/>
+      <ellipse cx="49" cy="${32 - ry}" rx="${ry * 0.8}" ry="${ry}" fill="${color}" opacity="0.7"/>
+      <ellipse cx="35" cy="${28 - ry * 0.7}" rx="${ry * 0.8}" ry="${ry}" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'pizza'){
+    const r = 22 + 6 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <circle cx="35" cy="36" r="${r}" fill="${color}" opacity="0.55"/>
+      <circle cx="35" cy="36" r="${r - 5}" fill="${color}"/>
+      <circle cx="27" cy="29" r="4" fill="var(--paper)"/>
+      <circle cx="44" cy="31" r="4" fill="var(--paper)"/>
+      <circle cx="32" cy="45" r="4" fill="var(--paper)"/>
+      <path d="M35 36 V${36 - r} M35 36 L${35 + r * 0.87} ${36 + r / 2} M35 36 L${35 - r * 0.87} ${36 + r / 2}" stroke="var(--paper)" stroke-width="2" opacity="0.8"/>
+    </svg>`;
+  }
+  if(type === 'music'){
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M24 ${50 - 4 * scale} V16 L56 9 V${44 - 4 * scale}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linejoin="round"/>
+      <path d="M24 16 L56 9 V18 L24 25 Z" fill="${color}"/>
+      <ellipse cx="17" cy="${52 - 4 * scale}" rx="8.5" ry="7" fill="${color}"/>
+      <ellipse cx="49" cy="${46 - 4 * scale}" rx="8.5" ry="7" fill="${color}"/>
+    </svg>`;
+  }
+  if(type === 'dice'){
+    const s = 26 + 8 * scale;
+    const x = 35 - s / 2, y = 38 - s / 2, p = s / 4;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <rect x="${x}" y="${y}" width="${s}" height="${s}" rx="6" fill="${color}"/>
+      ${[[1, 1], [3, 1], [2, 2], [1, 3], [3, 3]].map(([i, j]) => `<circle cx="${x + i * p}" cy="${y + j * p}" r="3" fill="var(--paper)"/>`).join('')}
+    </svg>`;
+  }
+  if(type === 'poster'){
+    const h = 40 + 10 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <rect x="14" y="${64 - h}" width="42" height="${h}" rx="3" fill="${color}"/>
+      <polygon points="35,${70 - h} 38,${76 - h} 44,${77 - h} 39.5,${81 - h} 41,${87 - h} 35,${84 - h} 29,${87 - h} 30.5,${81 - h} 26,${77 - h} 32,${76 - h}" fill="var(--rule-d)"/>
+      <rect x="20" y="${92 - h}" width="30" height="4" rx="2" fill="var(--paper)"/>
+      <rect x="22" y="${100 - h}" width="26" height="4" rx="2" fill="var(--paper)" opacity="0.7"/>
+    </svg>`;
+  }
   return '';
 }
 

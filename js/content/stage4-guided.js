@@ -88,6 +88,20 @@ const LESSON_CONTENT = {
       { chips: ["The parade", "was", "boring", "for", "my brother"] },
       { chips: ["My sister", "won", "a prize", "at", "the park"] }
     ]
+  },
+  'party-fun': {
+    SEMI_ITEMS: [
+      { chips: ["Rosa", "will", "set", "the table"] },
+      { chips: ["I'll", "buy", "the", "balloons"] },
+      { chips: ["Who", "will", "play", "the music"] },
+      { chips: ["He", "won't", "draw", "the posters"] },
+      { chips: ["Will", "you", "bring", "the games"] },
+      { chips: ["Dave", "will", "order", "the pizza"] },
+      { chips: ["We'll", "hang up", "the", "decorations"] },
+      { chips: ["What", "will", "you", "do", "for the party"] },
+      { chips: ["She", "won't", "choose", "the music"] },
+      { chips: ["They'll", "blow up", "the", "balloons"] }
+    ]
   }
 };
 

@@ -4,6 +4,14 @@ import { sfxCorrect, sfxIncorrect } from '../audio.js';
 import { getCurrentLesson } from '../lessons.js';
 import { QS_SETS } from '../content/stage9-questions.js';
 
+// Gap-fill answers are typed, so a keyboard's straight apostrophe has to
+// match the curly one the content uses (won't / won’t), along with case
+// and stray spaces either side.
+function sameAnswer(typed, answer){
+  const norm = (t) => String(t || '').trim().toLowerCase().replace(/[‘’]/g, "'").replace(/\s+/g, ' ');
+  return norm(typed) === norm(answer);
+}
+
 /* =========================================================
    STAGE 9 — PRACTICE QUESTIONS + WORKSHEET PRINT
    Four sets each progressively freer (gap fill → unscramble →
@@ -128,7 +136,7 @@ function checkSection(){
     clearGradeClasses(card);
     if(set.type==='gap'){
       const inp=card.querySelector('.qs-gap');
-      const correct=(inp?.value||'').trim().toLowerCase()===q.answer.toLowerCase();
+      const correct=sameAnswer(inp?.value, q.answer);
       inp?.classList.add(correct?'correct':'incorrect');
       // Only lock in a CORRECT answer — an incorrect one stays editable
       // so the learner can fix it and check again.
@@ -215,7 +223,7 @@ function checkSingleQuestion(qi){
 
   if(set.type==='gap'){
     const inp=card.querySelector('.qs-gap');
-    const correct=(inp?.value||'').trim().toLowerCase()===q.answer.toLowerCase();
+    const correct=sameAnswer(inp?.value, q.answer);
     inp?.classList.add(correct?'correct':'incorrect');
     if(inp)inp.disabled=correct;
     card.classList.add(correct?'correct':'incorrect');
