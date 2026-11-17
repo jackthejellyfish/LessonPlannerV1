@@ -172,3 +172,72 @@ test('index.html preloads exactly the modules in js/', async ({ page }) => {
   await page.click('.lesson-card >> nth=0');
   expect(errors).toEqual([]);
 });
+
+// Answering a Stage 3 question starts a ~1s pause before the next one.
+// Leaving the stage during that pause used to let it fire anyway, so
+// question 2 and its countdown beeps ran on behind Guided practice.
+test('stage 3 stops completely when you leave it straight after answering', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(2).evaluate((el) => el.click());
+  await page.locator('.mc-option').first().click();
+  await page.click('#controlledNextBtn');
+  await page.waitForTimeout(2000);
+  await expect(page.locator('#mcCounter')).toHaveText(/Question 1 of/);
+  await expect(page.locator('#semiTimerNum')).not.toHaveText('');
+
+  // Coming back picks up where it left off: the answered question moves on.
+  await page.locator('.step').nth(2).evaluate((el) => el.click());
+  await expect(page.locator('#mcCounter')).toHaveText(/Question 2 of/);
+});
+
+test('stage 4 Clear puts the words back without restarting the timer', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(3).evaluate((el) => el.click());
+  await page.waitForTimeout(2300);
+  await page.locator('#chipBank .chip').first().click();
+  await expect(page.locator('#answerStrip .chip')).toHaveCount(1);
+  await page.click('#semiReset');
+  await expect(page.locator('#answerStrip .chip')).toHaveCount(0);
+  const left = Number(await page.textContent('#semiTimerNum'));
+  expect(left).toBeLessThan(30);
+});
+
+test('opening the lesson picker stops a running stage 3 countdown', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(2).evaluate((el) => el.click());
+  await page.click('#changeLessonBtn');
+  await page.click('#confirmOkBtn');
+  const before = await page.textContent('#mcTimerNum');
+  await page.waitForTimeout(1500);
+  expect(await page.textContent('#mcTimerNum')).toBe(before);
+});
+
+test('the stage 9 worksheet keeps typed answers when you leave and come back', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(8).evaluate((el) => el.click());
+  await page.fill('.qs-gap >> nth=0', 'longer');
+  await page.locator('.step').nth(7).evaluate((el) => el.click());
+  await page.locator('.step').nth(8).evaluate((el) => el.click());
+  await expect(page.locator('.qs-gap').first()).toHaveValue('longer');
+});
+
+test('stage 5 countdown pauses when you leave, and Start works again after time is up', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(4).evaluate((el) => el.click());
+  await page.click('#freeNextSlideBtn');
+  await page.fill('#stopwatchMin', '00');
+  await page.fill('#stopwatchSec', '02');
+  await page.click('#stopwatchToggle');
+  await page.waitForTimeout(2600);                 // runs out
+  await expect(page.locator('#stopwatchSec')).toHaveValue('00');
+  await page.click('#stopwatchToggle');            // Start again, no Reset
+  await expect(page.locator('#stopwatchToggle')).toHaveText('Pause');
+
+  await page.locator('.step').nth(3).evaluate((el) => el.click());   // leave
+  await expect(page.locator('#stopwatchToggle')).toHaveText('Start');
+});

@@ -260,6 +260,10 @@ document.getElementById('qsPrintBtn').addEventListener('click',()=>{
   setTimeout(()=>document.getElementById('printableWorksheet').classList.remove('active-print'),500);
 });
 
+// Unscramble answers are stored chip by chip ("Who will set the table ?"),
+// which reads oddly on paper; close the gap before punctuation.
+function tidyChips(text){ return text.replace(/ ([?.!,])/g, '$1'); }
+
 function renderPrintableWorksheet(){
   const lesson=getCurrentLesson();
   const ws=document.getElementById('printableWorksheet');
@@ -279,7 +283,7 @@ function renderPrintableWorksheet(){
     <div class="answer-key">
       <h3>Answer Key (Gap Fill &amp; Unscramble)</h3>
       <ol>${QS_SETS[0].questions.map(q=>`<li>${escapeHtml(q.answer)}</li>`).join('')}
-          ${QS_SETS[1].questions.map(q=>`<li>${escapeHtml(q.answer)}</li>`).join('')}</ol>
+          ${QS_SETS[1].questions.map(q=>`<li>${escapeHtml(tidyChips(q.answer))}</li>`).join('')}</ol>
     </div>
     <p class="print-footer">${lesson.printFooter}</p>`;
 }

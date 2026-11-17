@@ -45,9 +45,26 @@ export function startMcTimer(){
   state.mcTimerRAF = requestAnimationFrame(tick);
 }
 
+// Cancels the countdown AND the short pause after an answer that moves
+// on to the next question. That pause used to survive leaving the stage:
+// answer a question, click Next within ~1s, and question 2 (plus its
+// countdown beeps and time-up sound) started up behind Guided practice,
+// then kept cycling through the rest of the questions in the background.
 export function cancelMcTimer(){
   if(state.mcTimerRAF) cancelAnimationFrame(state.mcTimerRAF);
   state.mcTimerRAF = null;
+  if(state.mcAdvanceTimeout){
+    clearTimeout(state.mcAdvanceTimeout);
+    state.mcAdvanceTimeout = null;
+    state.mcAdvancePending = true;   // picked up by resumeMc() on the way back in
+  }
+}
+
+// Entering Stage 3 again: carry on where the learner left off.
+export function resumeMc(){
+  if(!state.mcStarted){ state.mcStarted = true; renderMcQuestion(); return; }
+  if(state.mcAdvancePending){ state.mcAdvancePending = false; advanceMc(); return; }
+  if(!state.mcAnswered) startMcTimer();
 }
 
 export function renderMcQuestion(){
@@ -134,21 +151,26 @@ function handleMcTimeout(){
 }
 
 function finishMcQuestion(){
-  setTimeout(() => {
-    if(state.mcIndex < MC_QUESTIONS.length - 1){
-      state.mcIndex++;
-      renderMcQuestion();
-    } else {
-      cancelMcTimer();
-      document.getElementById('mcProgressFill').style.width = '100%';
-      document.getElementById('mcTimerArc').style.strokeDashoffset = TIMER_RING_CIRCUMFERENCE;
-      document.getElementById('mcTimerNum').textContent = '';
-      document.getElementById('mcQuestion').textContent = `All done! Final score: ${state.mcScore} points`;
-      document.getElementById('mcOptions').innerHTML = '';
-      document.getElementById('mcFeedback').style.color = 'var(--muted)';
-      document.getElementById('mcFeedback').textContent = 'Click "Next: Guided practice" when you\'re ready.';
-    }
+  state.mcAdvanceTimeout = setTimeout(() => {
+    state.mcAdvanceTimeout = null;
+    advanceMc();
   }, 1100);
+}
+
+function advanceMc(){
+  if(state.mcIndex < MC_QUESTIONS.length - 1){
+    state.mcIndex++;
+    renderMcQuestion();
+  } else {
+    cancelMcTimer();
+    document.getElementById('mcProgressFill').style.width = '100%';
+    document.getElementById('mcTimerArc').style.strokeDashoffset = TIMER_RING_CIRCUMFERENCE;
+    document.getElementById('mcTimerNum').textContent = '';
+    document.getElementById('mcQuestion').textContent = `All done! Final score: ${state.mcScore} points`;
+    document.getElementById('mcOptions').innerHTML = '';
+    document.getElementById('mcFeedback').style.color = 'var(--muted)';
+    document.getElementById('mcFeedback').textContent = 'Click "Next: Guided practice" when you\'re ready.';
+  }
 }
 
 document.getElementById('controlledBackBtn').addEventListener('click', () => goToStage(2));

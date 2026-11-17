@@ -156,12 +156,27 @@ function updateStopwatchDisplay(){
   }
 }
 
+// Leaving Stage 5 pauses the countdown (goToStage calls this), like the
+// Stage 3/4 timers - otherwise its time-up sound went off minutes later
+// in the middle of a game. Start carries on from where it stopped.
+export function pauseStopwatch(){
+  if(!stopwatch.running) return;
+  stopwatch.running = false;
+  stopwatch.remainingMs = Math.max(0, stopwatch.startRemainingMs - (performance.now() - stopwatch.startTs));
+  clearInterval(stopwatch.intervalId);
+  document.getElementById('stopwatchToggle').textContent = 'Start';
+}
+
 document.getElementById('stopwatchToggle').addEventListener('click', () => {
   const btn = document.getElementById('stopwatchToggle');
   if(!stopwatch.running){
     sanitizeStopwatchInputs();
     if(stopwatch.remainingMs <= 0){
-      stopwatch.remainingMs = getConfiguredStopwatchMs();
+      // After a finished countdown the boxes read 00:00, so reading them
+      // gave 0 and Start silently did nothing until Reset was pressed.
+      // Fall back to the last duration the teacher set instead.
+      const typed = getConfiguredStopwatchMs();
+      stopwatch.remainingMs = typed > 0 ? typed : stopwatch.configuredMs;
       stopwatch.configuredMs = stopwatch.remainingMs;
     }
     if(stopwatch.remainingMs <= 0) return; // nothing to count down from
@@ -174,10 +189,7 @@ document.getElementById('stopwatchToggle').addEventListener('click', () => {
     document.getElementById('stopwatchSec').disabled = true;
     btn.textContent = 'Pause';
   } else {
-    stopwatch.running = false;
-    stopwatch.remainingMs = Math.max(0, stopwatch.startRemainingMs - (performance.now() - stopwatch.startTs));
-    clearInterval(stopwatch.intervalId);
-    btn.textContent = 'Start';
+    pauseStopwatch();
   }
 });
 

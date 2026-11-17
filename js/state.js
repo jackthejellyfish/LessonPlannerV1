@@ -21,6 +21,8 @@ function createState(lessonId, muted){
     mcScore: 0,
     mcAnswered: false,
     mcTimerRAF: null,
+    mcAdvanceTimeout: null,  // the pause between an answer and the next question
+    mcAdvancePending: false, // that pause was cut short by leaving the stage
     mcStarted: false,   // becomes true the first time the learner actually reaches stage 3
     semiIndex: 0,
     semiScore: 0,
@@ -29,6 +31,7 @@ function createState(lessonId, muted){
     semiChecked: false,
     semiTimerRAF: null,
     semiStarted: false, // becomes true the first time the learner actually reaches stage 4
+    qsStarted: false,   // Stage 9 worksheet set up for this lesson (keeps typed answers on revisits)
     popTeams: [],
     popCurrentTeam: 0,
     popQuestionOrder: [],  // shuffled indices into POP_QUESTIONS, one consumed per turn

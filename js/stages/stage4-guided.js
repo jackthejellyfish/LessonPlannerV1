@@ -108,9 +108,16 @@ export function renderSemi(){
   });
 }
 
+// Clear puts the words back in the bank and nothing else. It used to
+// reload the whole sentence, which also restarted the 30-second timer -
+// so Clear doubled as a free "more time" button.
 document.getElementById('semiReset').addEventListener('click', () => {
   if(state.semiChecked) return;
-  loadSemiItem();
+  state.semiBank = shuffle(SEMI_ITEMS[state.semiIndex].chips.map((text, i) => ({ text, id: i })));
+  state.semiAnswer = [];
+  document.getElementById('semiFeedback').textContent = '';
+  document.getElementById('semiFeedback').className = 'semi-feedback';
+  renderSemi();
 });
 
 document.getElementById('semiCheck').addEventListener('click', () => {

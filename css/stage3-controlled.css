@@ -1,5 +1,24 @@
   /* ---- Controlled practice (Stage 2) ---- */
-  .score-row{ display:flex; justify-content:center; margin-bottom:clamp(10px,1.8vh,18px); flex-shrink:0; }
+  /* Timer on top, score underneath (Stages 3 and 4). The timer is the
+     thing the class watches, so it is the big element here - roughly
+     twice its old size - and the score pill is slimmer to pay for it:
+     the stack has to fit Guided practice on a 1280x720 board, which an
+     earlier stacked layout overflowed (clipping the top of the ring). */
+  .stage-meta{ display:flex; flex-direction:column; justify-content:center; align-items:center; gap:clamp(6px,1.1vh,12px); margin-bottom:clamp(10px,1.8vh,18px); flex-shrink:0; }
+  .stage-meta .timer-row{ margin-bottom:0; }
+  .stage-meta .timer-circle{ width:clamp(76px, 12vh, 132px); height:clamp(76px, 12vh, 132px); }
+  .stage-meta .timer-circle-num{ font-size:clamp(26px, 4.8vh, 48px); font-weight:800; }
+  /* Last five seconds: the ring is already red (setTimerRing adds
+     .urgent); the number goes red too and the whole timer pulses once a
+     second. Transform-only, so it costs no layout or repaint. */
+  .stage-meta .timer-circle:has(.timer-arc.urgent){ animation: timerUrgent 1s ease-in-out infinite; }
+  .stage-meta .timer-circle:has(.timer-arc.urgent) .timer-circle-num{ color:var(--error); }
+  @keyframes timerUrgent{
+    0%, 100%{ transform:scale(1); }
+    50%{ transform:scale(1.08); }
+  }
+  .score-row{ display:flex; justify-content:center; flex-shrink:0; }
+  .stage-meta .score{ font-size:clamp(18px, 2.8vh, 26px); padding:4px 18px; border-radius:18px; }
   .progress-line{ display:flex; align-items:center; justify-content:space-between; margin-bottom:clamp(12px, 2.4vh, 26px); flex-shrink:0; max-width:820px; margin-left:auto; margin-right:auto; width:100%; }
   .score{
     font-family:var(--font-display); font-weight:800; font-size:clamp(24px, 4.2vh, 36px); color:var(--primary);

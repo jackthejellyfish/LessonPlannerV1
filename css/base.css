@@ -252,8 +252,11 @@
      Left as flex-start everywhere else for the same reason: centering +
      overflow:hidden clips from both ends once content exceeds the box
      — only safe where content height is genuinely predictable. */
+  /* `safe` falls back to top-alignment if the content ever does outgrow
+     the box, so only the bottom can clip - never the top. Guided practice
+     at 1280x720 overflowed by ~12px and lost the top of its timer ring. */
   #stage1 .stage-body, #stage3 .stage-body, #stage4 .stage-body{
-    justify-content:center;
+    justify-content:safe center;
   }
   /* The game setup screens used to be centred here (added 2026-07-16),
      because the old single-column layout — a line of prose, a legend
@@ -311,7 +314,7 @@
      Deliberately small and shape-distinct from the straight
      progress bar below it — a ring that depletes as time runs out,
      the reverse of a typical "loading" fill animation. ---- */
-  .timer-row{ display:flex; justify-content:center; margin-bottom:20px; }
+  .timer-row{ display:flex; justify-content:center; margin-bottom:clamp(8px, 1.8vh, 20px); flex-shrink:0; }
   /* clamp(), not a fixed 70px — a fixed size here stopped shrinking on
      short viewports while everything around it (via vh-based clamps)
      kept scaling down, so the ring started colliding with neighboring

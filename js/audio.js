@@ -99,18 +99,34 @@ function beepFat(freq, duration = 0.15, type = 'triangle', volume = 0.15, when =
 
 // Shared filtered-noise source — the raw material for impacts, whooshes
 // and anything percussive.
+// One decaying-noise buffer per duration, made on first use and reused.
+// Every impact used to fill a fresh buffer sample by sample on the main
+// thread (14,000+ random numbers for a 0.3s burst) in the middle of a
+// game frame. Some durations scale with an `intensity`, so the length is
+// rounded UP to the next 50ms: the cache stays a dozen or so entries, and
+// the gain envelope below still ends the sound at the exact duration.
+const noiseBuffers = new Map();
+function getNoiseBuffer(ctx, rawDuration){
+  const duration = Math.ceil(rawDuration * 20) / 20;
+  let buffer = noiseBuffers.get(duration);
+  if(!buffer){
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * duration));
+    buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i = 0; i < frames; i++){
+      data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
+    }
+    noiseBuffers.set(duration, buffer);
+  }
+  return buffer;
+}
+
 function noiseBurst({ duration, filterType, freqStart, freqEnd, volume, when = 0, q = 1 }){
   if(state.muted) return;
   const ctx = ensureAudio();
   const start = ctx.currentTime + when;
-  const frames = Math.max(1, Math.floor(ctx.sampleRate * duration));
-  const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for(let i = 0; i < frames; i++){
-    data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
-  }
   const noise = ctx.createBufferSource();
-  noise.buffer = buffer;
+  noise.buffer = getNoiseBuffer(ctx, duration);
   const filter = ctx.createBiquadFilter();
   filter.type = filterType;
   filter.Q.value = q;

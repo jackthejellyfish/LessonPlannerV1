@@ -8,7 +8,7 @@
 ========================================================= */
 import { state, resetLessonState } from './state.js';
 import { renderStepper } from './stepper.js';
-import { goToStage } from './navigation.js';
+import { goToStage, stopStageActivity } from './navigation.js';
 import { speakerIconSVG } from './icons.js';
 import { applyMuteState } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
@@ -18,12 +18,11 @@ import { initFpsMeter } from './fpsMeter.js';
 
 import { renderAimHeader, renderAimExamples } from './stages/stage1-aim.js';
 import { renderLearnSlide, renderPrintableRules } from './stages/stage2-rules.js';
-import { cancelMcTimer } from './stages/stage3-controlled.js';
-import { cancelSemiTimer } from './stages/stage4-guided.js';
+import './stages/stage3-controlled.js';
+import './stages/stage4-guided.js';
 import { renderWordBank, renderScaffoldList, resetStopwatch, initStopwatchDisplay } from './stages/stage5-free.js';
-import { stopPopParticleLoop } from './stages/stage6-ballpop.js';
 import './stages/stage9-questions.js';
-import { GAMES, gameForStage, cancelAllRounds } from './games.js';
+import { GAMES, gameForStage } from './games.js';
 
 // Every content/stageN-*.js file exports its own applyLesson(id), which
 // mutates its exported arrays/objects in place (see that file's header
@@ -145,10 +144,7 @@ document.querySelectorAll('.stage-footer').forEach(f => compactFooterObserver.ob
    a lesson passes its id explicitly).
 ========================================================= */
 function performFullReset(lessonId){
-  cancelMcTimer();
-  cancelSemiTimer();
-  stopPopParticleLoop(); // Ball Pop's own continuous loop, not a round
-  cancelAllRounds();
+  stopStageActivity();
   resetLessonState(lessonId);
 
   document.querySelector('#stage4 .semi-actions').classList.remove('hidden');
@@ -197,8 +193,10 @@ function selectLesson(id){
 renderLessonCards(selectLesson);
 
 function showLessonSelect(){
-  // Leave any running game cleanly before the picker covers it.
-  cancelAllRounds();
+  // Leave the current stage cleanly before the picker covers it - this
+  // used to stop only game rounds, so a Stage 3/4 countdown kept beeping
+  // behind the picker.
+  stopStageActivity();
   document.getElementById('wrap').classList.add('hidden');
   document.getElementById('lessonSelect').classList.remove('hidden');
 }

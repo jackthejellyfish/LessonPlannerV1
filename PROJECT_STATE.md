@@ -101,9 +101,13 @@ archive/              original single-file app, and the full history doc
   the new object. Add a new field **once**, in `createState()`. Field names
   are deliberately flat and searchable (`state.whackTeams`, `state.popScore`),
   so keep that style.
-- **Navigation.** `goToStage(n)` cancels **every** game's round, whichever
-  stage is open (`cancelAllRounds()` from `games.js`), then shows the target
-  stage. Game stages (any stage in `GAMES`) go full-viewport and move the
+- **Navigation.** `goToStage(n)` first calls `stopStageActivity()`, which
+  stops **everything** a stage can leave running: the Stage 3/4 countdowns
+  (and Stage 3's pause before its next question), the Stage 5 countdown,
+  Ball Pop's particle loop and every game's round. Restart and the lesson
+  picker call it too. Anything new that runs on a timer or rAF must be
+  stopped from there, or it plays sounds over other stages. Then it shows
+  the target stage. Tapping the step you are already on does nothing. Game stages (any stage in `GAMES`) go full-viewport and move the
   scoreboard into the footer bar.
 - **Game registry.** `js/games.js` is the single list of team games. It is in
   a harmless import cycle with navigation. Every function it references must
@@ -209,9 +213,9 @@ worst frame, and whether lite mode is on.
 
 ## 6. Gotchas that have bitten before
 
-- **`.stage-body` must use `justify-content:flex-start`.** With `center` plus
-  `overflow:hidden`, overflowing content is clipped from both ends, and it
-  happens silently.
+- **`.stage-body` must use `justify-content:flex-start`** (or `safe center`,
+  as Stages 1, 3 and 4 do). Plain `center` plus `overflow:hidden` clips
+  overflowing content from both ends, silently.
 - **Ball Pop:** clear `.pop-ball-layer`, never the whole `#popPlayArea`; the
   play area also holds the canvas. If a ball's CSS width changes, update its
   `radiusFactor` in `renderPopCanvas()` so the glow still matches the hit area.
@@ -228,6 +232,12 @@ worst frame, and whether lite mode is on.
 - **No emoji anywhere** (UI, text or comments). Use monochrome symbols
   (✓ ✗ ← → ↺ ♥ ✕), text, or SVGs from `js/icons.js`.
 - Use `confirmDialog()`, never the browser's `confirm()`.
+- **A delayed "next question" is a timer too.** Stage 3 used a bare
+  `setTimeout` to move on after an answer; leaving the stage inside that
+  ~1s let it fire, and question 2's countdown beeped behind Guided practice.
+  Keep the id and clear it in the stage's cancel function.
+- **Stage 9 is set up once per lesson** (`state.qsStarted`), so students'
+  answers survive moving to another stage and back.
 
 ---
 
@@ -259,6 +269,7 @@ specs flaky.
 - `color-mix()` (team tints) needs a 2023+ browser. Older browsers fall back
   to untinted cards.
 - Ball Pop's swarm placement doesn't avoid live bombs or gems (rare overlap).
-- Stage 9's unscramble state is lost on a page refresh.
+- Stage 9's answers are lost on a page refresh, and when switching between
+  its section tabs (each tab re-renders its section fresh).
 - Ideas not started: a teacher settings panel (edit questions, round
   lengths), more question sets, and tuning after classroom testing.

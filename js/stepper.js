@@ -12,7 +12,7 @@ export function renderStepper(){
     const isActive = num === state.currentStage;
     const isDone = state.completedStages.has(num) && !isActive;
     return `
-      <button class="step ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}" data-stage="${num}">
+      <button class="step ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}" data-stage="${num}"${isActive ? ' aria-current="step"' : ''}>
         <div class="step-line"></div>
         <span class="circle">${isDone ? '✓' : num}</span>
         <span class="step-label">${label}</span>
@@ -21,6 +21,12 @@ export function renderStepper(){
   }).join('');
 
   stepper.querySelectorAll('.step').forEach(btn => {
-    btn.addEventListener('click', () => goToStage(Number(btn.dataset.stage)));
+    // A tap on the step you're already on does nothing. It used to run a
+    // full stage exit, which cancels a game round in progress - easy to do
+    // by accident on a touch board.
+    btn.addEventListener('click', () => {
+      const num = Number(btn.dataset.stage);
+      if(num !== state.currentStage) goToStage(num);
+    });
   });
 }
