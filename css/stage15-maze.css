@@ -1,0 +1,50 @@
+  /* ---- Jelly Maze (Stage 15) ----
+     Reuses .inv-play-area/.inv-canvas from stage7-stardefender.css, like
+     every canvas game. Only the legend swatches, the hint colour and the
+     Begin-turn placement are stage-specific. */
+  .maze-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+  }
+  .maze-legend-swatch.pearl{
+    width:22px; height:22px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #FFFFFF, #E6E0FF 55%, #A99BD9);
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+  }
+  .maze-legend-swatch.exit{
+    padding:3px 7px; border-radius:6px;
+    background:#0B4F6C; color:#7CFFB2;
+    font-family:var(--font-display); font-weight:800; font-size:12px; letter-spacing:0.04em;
+  }
+  /* A little shark: grey body, a fin on top, a tail. */
+  .maze-legend-swatch.shark{
+    width:34px; height:18px; position:relative;
+    background:#7C8DA6; border-radius:50% 60% 60% 50%;
+  }
+  .maze-legend-swatch.shark::before{
+    content:''; position:absolute; left:12px; top:-8px;
+    border-left:5px solid transparent; border-right:5px solid transparent;
+    border-bottom:10px solid #5E7189;
+  }
+  .maze-legend-swatch.shark::after{
+    content:''; position:absolute; left:-8px; top:1px;
+    border-top:8px solid transparent; border-bottom:8px solid transparent;
+    border-left:10px solid #5E7189;
+  }
+
+  #mazePlayArea #mazeBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .inv-play-area:not(.idle) #mazeBeginTurnBtn{ display:none; }
+
+  /* Holding a finger on the board steers Jack: the page must not scroll
+     or zoom underneath it. */
+  #mazeCanvas{ cursor:pointer; touch-action:none; }
+
+  .maze-hint{ color:#BFF4FF; }
+  /* The time bonus: a little gold clock-face badge. */
+  .maze-legend-swatch.clock{
+    width:26px; height:26px; border-radius:50%;
+    background:#FFE066; color:#5A4500;
+    font-family:var(--font-display); font-weight:900; font-size:11px;
+  }

@@ -86,7 +86,7 @@ body.fullscreen-game .stage:not(.hidden) .stage-footer > div{ display:flex; gap:
 /* Reserve room at the top AND bottom of the play column so the stepper/
    footer never overlap interactive game content (tiles, balls near the
    edge). The top figure is a flat clamp(), not a measured var like the
-   footer's --compact-footer-h below — safe here because this stepper's
+   footer's --fs-footer-h below — safe here because this stepper's
    content is content-invariant (always the same 14 steps, one row, no
    wrap: .stepper has no flex-wrap and each .step is flex:1, so it only
    ever shrinks in place) unlike the footer, whose team-count/HUD-field
@@ -94,9 +94,17 @@ body.fullscreen-game .stage:not(.hidden) .stage-footer > div{ display:flex; gap:
    FULL labeled stepper (circle up to 38px + 4px gap + 2-line label
    ~29px + this bar's own padding) now that it's shown at full size
    in-game rather than a shrunk "compact" variant. */
+/* --fs-stepper-h / --fs-footer-h are the bars' MEASURED heights (a
+   ResizeObserver in main.js). The flat clamp() guesses that used to be
+   here were fine on a 1600px dev screen, but on a laptop the footer
+   wraps to two lines and covered the bottom ~45px of every game (the
+   Star Defender ship, the Hoop Shot ball). The stage's own padding is
+   subtracted because both bars are fixed to the viewport edge, while
+   this padding starts inside the stage's padding. The clamps remain as
+   the fallback for the instant before the first measurement. */
 body.fullscreen-game .stage:not(.hidden) .stage-body{
-  padding-top: clamp(80px, 13vh, 104px);
-  padding-bottom: clamp(56px, 8vh, 76px);
+  padding-top: max(0px, calc(var(--fs-stepper-h, 110px) - clamp(10px, 1.8vh, 20px)));
+  padding-bottom: max(0px, calc(var(--fs-footer-h, 80px) - clamp(10px, 1.8vh, 20px)));
 }
 body.fullscreen-game .pop-play-area,
 body.fullscreen-game .inv-play-area{
@@ -213,7 +221,7 @@ body.fullscreen-game.compact-game .stage:not(.hidden) .stage-footer{
   position:absolute; left:0; right:0; bottom:0;
   border-radius:0 0 28px 28px;
 }
-/* --compact-footer-h is kept in sync with the footer's REAL rendered
+/* --fs-footer-h is kept in sync with the footer's REAL rendered
    height by a ResizeObserver in main.js — the footer's content (team
    pills, HUD fields, button labels) varies per game and can wrap
    differently at this box's narrower width, so a single fixed guess
@@ -234,7 +242,7 @@ body.fullscreen-game.compact-game .stage:not(.hidden) .stage-body{
      of the box — the reported "minimized version looks squashed up"
      regression, introduced when the stepper's reservation was added. */
   padding-top: 0;
-  padding-bottom: var(--compact-footer-h, clamp(52px, 10vh, 68px));
+  padding-bottom: var(--fs-footer-h, clamp(52px, 10vh, 68px));
 }
 /* The footer strip is proportionally tighter on a smaller board, so its
    contents shrink a notch too rather than crowding/wrapping. */

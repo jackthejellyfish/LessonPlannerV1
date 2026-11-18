@@ -73,24 +73,153 @@ test('Hoop Shot: angle and power are set directly, then SHOOT fires; three shots
   expect(errors).toEqual([]);
 });
 
-test('Whack-a-Monster: monsters pop up and whacking them scores', async ({ page }) => {
+test('Whack-a-Jelly: jellyfish swim up and tapping them scores; the teacher can pick 1 lane', async ({ page }) => {
+  test.setTimeout(60000);
   const errors = watchErrors(page);
-  await openGame(page, 13, 'whack');
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(13).evaluate((el) => el.click());
+  await page.click('#whackNewGameBtn');
+  await page.click('#whackStartBtn');
+  await page.waitForTimeout(250);
+  // The lane picker shows between turns; choose one lane.
+  await expect(page.locator('#whackLanes')).toBeVisible();
+  await page.click('#whackLanes [data-lanes="1"]');
+  await expect(page.locator('#whackLanes [data-lanes="1"]')).toHaveClass(/active/);
+  await page.click('#whackBeginTurnBtn');
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  await expect(page.locator('#whackLanes')).toBeHidden(); // hidden during the round
 
-  await page.waitForTimeout(1200);
-  expect(await page.locator('.whack-hole.up').count(),
-    'monsters should be popping up').toBeGreaterThan(0);
-
-  // Tap whatever is up, avoiding bombs, for most of the round.
-  for (let i = 0; i < 25; i++) {
-    const m = page.locator('.whack-hole.up:not(.bomb) .whack-monster').first();
-    if (await m.count()) await m.click({ force: true }).catch(() => {});
-    await page.waitForTimeout(260);
+  const box = await page.locator('#whackCanvas').boundingBox();
+  const lanesSeen = new Set();
+  for (let i = 0; i < 14; i++) {
+    await page.waitForTimeout(250);
+    const targets = await page.evaluate(async () => (await import('/js/stages/stage14-whack.js')).debugWhackTargets());
+    targets.forEach((t) => lanesSeen.add(t.lane));
+    if (targets.length) await page.mouse.click(box.x + targets[0].x * box.width, box.y + targets[0].y * box.height);
   }
+  expect([...lanesSeen], 'with one lane, everything comes up lane 0').toEqual([0]);
   expect(Number(await page.locator('#whackScoreDisplay').textContent()),
-    'whacking monsters should score').toBeGreaterThan(0);
+    'bopping jellyfish should score').toBeGreaterThan(0);
 
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 20000 });
   await page.click('#whackNextTeamBtn');
+  await expect(page.locator('#whackLanes')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('Balloon Pop: tapping balloons pops them and scores, and the round reaches the result modal', async ({ page }) => {
+  const errors = watchErrors(page);
+  await openGame(page, 5, 'pop');
+  await page.waitForTimeout(600);
+  const box = await page.locator('#popCanvas').boundingBox();
+  for (let i = 0; i < 4; i++) {
+    const targets = await page.evaluate(async () => (await import('/js/stages/stage6-ballpop.js')).debugBalloonTargets());
+    if (targets.length) await page.mouse.click(box.x + targets[0].x * box.width, box.y + targets[0].y * box.height);
+    await page.waitForTimeout(150);
+  }
+  expect(Number(await page.locator('#popPopsDisplay').textContent())).toBeGreaterThan(0);
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 12000 });
+  await page.click('#popNextTeamBtn');
+  await expect(page.locator('#popBeginTurnBtn')).toBeEnabled();
+  expect(errors).toEqual([]);
+});
+
+/* ---- The games added 2026-11-18: Jelly Maze and Ninja Jump ---- */
+
+test('Jelly Maze: the keyboard steers Jack, a full turn reaches the result modal', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors = watchErrors(page);
+  await openGame(page, 14, 'maze');
+  await expect(page.locator('#mazeHint')).toBeVisible();
+
+  // Swim around for a while: right along the bottom, then up, then hold
+  // on the board (the pointer steering path) towards the exit corner.
+  await page.keyboard.down('ArrowRight');
+  await page.waitForTimeout(1500);
+  await page.keyboard.up('ArrowRight');
+  await page.keyboard.down('w');
+  await page.waitForTimeout(1500);
+  await page.keyboard.up('w');
+  const box = await page.locator('#mazeCanvas').boundingBox();
+  await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.1);
+  await page.mouse.down();
+  await page.waitForTimeout(1500);
+  await page.mouse.up();
+  expect(Number(await page.locator('#mazeScoreDisplay').textContent())).toBeGreaterThanOrEqual(0);
+
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 35000 });
+  await page.click('#mazeNextTeamBtn');
+  await expect(page.locator('#mazeBeginTurnBtn')).toBeEnabled();
+  expect(errors).toEqual([]);
+});
+
+test('Jelly Maze: escaping ends the turn at once, with +10 and a time bonus', async ({ page }) => {
+  const errors = watchErrors(page);
+  await openGame(page, 14, 'maze');
+  await page.waitForTimeout(300);
+  await page.evaluate(async () => (await import('/js/stages/stage15-maze.js')).debugMoveJackToExit());
+  // Escaped with ~19s of a 20s round left: the result screen comes well
+  // before the clock would have run out.
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 4000 });
+  const score = Number(await page.locator('#mazeScoreDisplay').textContent());
+  expect(score, '+10 for the exit plus about a point per second left').toBeGreaterThanOrEqual(10 + 15);
+  expect(errors).toEqual([]);
+});
+
+test('Ninja Jump: running along the floor collects stars, a full turn reaches the result modal', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors = watchErrors(page);
+  await openGame(page, 15, 'jump');
+  await expect(page.locator('#jumpLeftBtn')).toBeVisible(); // touch buttons show during a turn
+
+  // Level 1 has ninja stars sitting on the floor to the right of the
+  // start, so simply running right must score.
+  await page.keyboard.down('d');
+  await page.waitForTimeout(1600);
+  await page.keyboard.up('d');
+  expect(Number(await page.locator('#jumpScoreDisplay').textContent()),
+    'running over the floor stars should score').toBeGreaterThan(0);
+  // Jump and double jump (Space, then Space again in the air).
+  await page.keyboard.down(' ');
+  await page.waitForTimeout(200);
+  await page.keyboard.up(' ');
+  await page.keyboard.press(' ');
+  // The on-screen buttons drive the ninja too.
+  await page.locator('#jumpLeftBtn').dispatchEvent('pointerdown');
+  await page.waitForTimeout(400);
+  await page.locator('#jumpLeftBtn').dispatchEvent('pointerup');
+
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 35000 });
+  await page.click('#jumpNextTeamBtn');
+  await expect(page.locator('#jumpLeftBtn')).toBeHidden(); // gone between turns
+  expect(errors).toEqual([]);
+});
+
+test('Ninja Jump: clearing the level ends the turn at once, with +5 and a time bonus', async ({ page }) => {
+  const errors = watchErrors(page);
+  await openGame(page, 15, 'jump');
+  await page.waitForTimeout(300);
+  await page.evaluate(async () => (await import('/js/stages/stage16-ninjajump.js')).debugCollectAllStars());
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 4000 });
+  const score = Number(await page.locator('#jumpScoreDisplay').textContent());
+  // 8 stars + 5 for the clear + about a point per second left of 20.
+  expect(score).toBeGreaterThanOrEqual(8 + 5 + 15);
+  expect(errors).toEqual([]);
+});
+
+test('Jelly Maze and Ninja Jump stop their game loop when you leave mid-turn', async ({ page }) => {
+  const errors = watchErrors(page);
+  for (const [step, prefix] of [[14, 'maze'], [15, 'jump']]) {
+    await openGame(page, step, prefix);
+    await page.waitForTimeout(500);
+    await page.locator('.step').nth(0).evaluate((el) => el.click());
+    const loop = await page.evaluate(async (prefix) => {
+      const { state } = await import('/js/state.js');
+      return { raf: state[`${prefix}RoundRAF`], active: state[`${prefix}RoundActive`] };
+    }, prefix);
+    expect(loop, `${prefix} loop should be stopped`).toEqual({ raf: null, active: false });
+  }
   expect(errors).toEqual([]);
 });

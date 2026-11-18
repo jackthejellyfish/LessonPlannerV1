@@ -58,7 +58,23 @@ const FRUIT_SHAPE_TYPES = ['circle', 'square', 'triangle'];
 // Lowered alongside the higher spawn rate below: at the old 12%, a
 // screen with twice as much fruit on it also had twice as many bombs,
 // which would have made the game harder rather than easier.
-const FRUIT_BOMB_CHANCE = 0.08;
+//
+// Raised again 2026-11-18 (0.08 -> 0.17) after classroom feedback: with a
+// mouse, students scribbled across the whole screen and scored huge,
+// because bombs were too rare and too cheap to matter. Wild swiping now
+// costs real points, and the mega bomb below punishes it hardest.
+//
+// The blade never freezes (a later round of feedback, same day: a frozen
+// blade felt like the game lagging). The deterrent is points only.
+const FRUIT_BOMB_CHANCE = 0.17;
+const FRUIT_BOMB_PENALTY = 5;
+// The mega bomb: launched twice a round inside a cluster of bait fruit,
+// so a careful player slices around it and a scribbler hits it. Slicing
+// it halves the score (at least FRUIT_MEGA_MIN_PENALTY).
+const FRUIT_MEGA_MIN_PENALTY = 5;
+// Combos still reward one clean swipe through a row of fruit, but the
+// per-fruit bonus stops growing at +3 so a scribble can't snowball.
+const FRUIT_COMBO_MAX_BONUS = 3;
 const FRUIT_GOLDEN_CHANCE = 0.09;
 // A fast continuous swipe naturally crosses several shapes close
 // together in time — this window is what turns that into a recognized
@@ -72,6 +88,7 @@ const FRUIT_COMBO_WINDOW_MS = 220;
 // in hue to stay tellable apart at speed on a dark background.
 function fruitShapeColor(type){
   if(type === 'bomb') return '#2B2B3A';
+  if(type === 'mega') return '#7A1022';
   if(type === 'golden') return '#FFD23F';
   return type === 'circle' ? '#FF9F1C'      // orange
     : type === 'square' ? '#9B5DE5'          // berry
@@ -107,6 +124,8 @@ let fruitComboCount = 0;
 let fruitLastCutAt = 0;
 let fruitFlashUntil = 0;
 let fruitFlashColor = '#FF4444';
+// Round-relative times (ms) at which this round's mega bombs launch.
+let fruitMegaTimes = [];
 const FRUIT_FLASH_DURATION_MS = 220;
 function triggerFruitFlash(color, durationMs = FRUIT_FLASH_DURATION_MS){
   fruitFlashUntil = performance.now() + durationMs;
@@ -122,16 +141,17 @@ renderGameIntro('fruitSetup', {
   steps: [
     'One team answers a question.',
     'Swipe or click-drag across a shape to slice it.',
-    'Slice as many as you can in 15 seconds.'
+    'Slice as many as you can in 15 seconds - but watch out for bombs!'
   ],
   scoring: [
     { swatch: '<span class="fruit-legend-swatch circle"></span>', label: 'Orange', points: '+1' },
     { swatch: '<span class="fruit-legend-swatch square"></span>', label: 'Berry', points: '+1' },
     { swatch: '<span class="fruit-legend-swatch triangle"></span>', label: 'Watermelon', points: '+1' },
     { swatch: '<span class="fruit-legend-swatch golden"></span>', label: 'Golden star', points: '+3', tone: 'bonus' },
-    { swatch: '<span class="fruit-legend-swatch bomb"></span>', label: 'Bomb &mdash; do not slice!', points: '&minus;2', tone: 'bad' }
+    { swatch: '<span class="fruit-legend-swatch bomb"></span>', label: 'Bomb', points: '&minus;5', tone: 'bad' },
+    { swatch: '<span class="fruit-legend-swatch mega"></span>', label: 'MEGA bomb &mdash; halves your score!', points: '&divide;2', tone: 'bad' }
   ],
-  tip: 'One long swipe through several shapes scores a combo &mdash; worth more than slicing them one at a time.'
+  tip: 'Careful swipes beat wild ones! Scribbling hits the bombs. One clean swipe through several fruit scores a combo.'
 });
 
 export function renderFruitTeamInputs(count){
@@ -214,26 +234,43 @@ function updateFruitParticles(k){
    penalty (same "a miss just costs you the point, nothing worse"
    spirit as every other timed mini-game here).
 ========================================================= */
-function spawnFruitShape(){
+function spawnFruitShape(opts = {}){
   const roll = Math.random();
-  const type = roll < FRUIT_BOMB_CHANCE ? 'bomb'
+  const type = opts.type || (roll < FRUIT_BOMB_CHANCE ? 'bomb'
     : roll < FRUIT_BOMB_CHANCE + FRUIT_GOLDEN_CHANCE ? 'golden'
-    : FRUIT_SHAPE_TYPES[Math.floor(Math.random() * FRUIT_SHAPE_TYPES.length)];
+    : FRUIT_SHAPE_TYPES[Math.floor(Math.random() * FRUIT_SHAPE_TYPES.length)]);
   state.fruitShapes.push({
     half: false,
-    x: 12 + Math.random() * 76, y: 108,
-    vx: (Math.random() - 0.5) * 34,
+    x: opts.x ?? (12 + Math.random() * 76), y: 108,
+    vx: opts.vx ?? (Math.random() - 0.5) * 34,
     // Paired with the halved FRUIT_GRAVITY above: at the old -(110+r*40)
     // these would now sail off the top. Lower launch speed + lower
     // gravity = same peak height, much longer time spent near it.
-    vy: -(82 + Math.random() * 26),
+    vy: opts.vy ?? -(82 + Math.random() * 26),
     rotation: Math.random() * Math.PI * 2,
-    rotSpeed: (Math.random() - 0.5) * 3.2,
+    rotSpeed: type === 'mega' ? 0.8 : (Math.random() - 0.5) * 3.2,
     // Bigger shapes are easier to hit — the swipe test is a distance
     // check against this radius, so this directly widens the margin.
-    radiusPct: 5.2 + Math.random() * 2.3,
+    radiusPct: type === 'mega' ? 8.5 : 5.2 + Math.random() * 2.3,
     type, color: fruitShapeColor(type)
   });
+}
+
+// A mega bomb rises through the middle of the screen with a ring of bait
+// fruit travelling alongside it - all launched with the same speed, so
+// they stay grouped the whole way up and down. Slicing the fruit around
+// it is possible with a careful swipe; a scribble hits the bomb.
+function spawnMegaVolley(){
+  const x = 32 + Math.random() * 36;
+  const vx = (Math.random() - 0.5) * 12;
+  const vy = -(92 + Math.random() * 10);
+  spawnFruitShape({ type: 'mega', x, vx, vy });
+  for(const [dx, dvy] of [[-15, 3], [15, 3], [-8, -9], [8, -9]]){
+    spawnFruitShape({
+      type: FRUIT_SHAPE_TYPES[Math.floor(Math.random() * FRUIT_SHAPE_TYPES.length)],
+      x: x + dx, vx, vy: vy + dvy
+    });
+  }
 }
 
 // Splits a whole shape into two halves that fly apart sideways (and
@@ -251,22 +288,35 @@ function spawnFruitShape(){
 function cutFruitShape(shape, canvas){
   const px = (shape.x / 100) * canvas.width, py = (shape.y / 100) * canvas.height;
 
-  if(shape.type === 'bomb'){
-    state.fruitScore = Math.max(0, state.fruitScore - 2);
+  if(shape.type === 'mega'){
+    const lost = Math.min(state.fruitScore, Math.max(FRUIT_MEGA_MIN_PENALTY, Math.ceil(state.fruitScore / 2)));
+    state.fruitScore -= lost;
+    document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
+    spawnFruitParticles(px, py, '#FF4444', 40, 1.8);
+    spawnFruitParticles(px, py, '#FFD23F', 20, 1.4);
+    spawnShockwave(fruitShockwaves, px, py, '#FF4444', { big: true });
+    spawnShockwave(fruitShockwaves, px, py, '#FFD23F', { big: true });
+    spawnFloatText(fruitFloatTexts, px, py, `MEGA BOMB! −${lost}`, '#FF4444', -1.4);
+    triggerFruitFlash('#FF2222', 520);
+    triggerShake(fruitShake, 14);
+    sfxImpact(1.6);
+    fruitComboCount = 0;
+  } else if(shape.type === 'bomb'){
+    const lost = Math.min(state.fruitScore, FRUIT_BOMB_PENALTY);
+    state.fruitScore -= lost;
     document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
     spawnFruitParticles(px, py, '#FF6B5B', 22, 1.3);
     spawnShockwave(fruitShockwaves, px, py, '#FF4444', { big: true });
-    spawnFloatText(fruitFloatTexts, px, py, '−2', '#FF4444');
-    triggerFruitFlash('#FF4444');
+    spawnFloatText(fruitFloatTexts, px, py, `−${FRUIT_BOMB_PENALTY}`, '#FF4444');
     triggerShake(fruitShake, 7);
     sfxImpact(1.1);
-    fruitComboCount = 0; // a bomb is a mistake, not a slice to chain off
+    fruitComboCount = 0; // a bomb breaks any combo in progress
   } else {
     const isGolden = shape.type === 'golden';
     const gained = isGolden ? 3 : 1;
     state.fruitScore += gained;
     document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
-    spawnFruitParticles(px, py, shape.color, isGolden ? 26 : 16, isGolden ? 1.4 : 1);
+    spawnFruitParticles(px, py, shape.color, isGolden ? 22 : 10, isGolden ? 1.4 : 1.1);
     spawnFloatText(fruitFloatTexts, px, py, `+${gained}`, shape.color);
     if(isGolden){
       spawnShockwave(fruitShockwaves, px, py, '#FFD23F', {});
@@ -285,7 +335,7 @@ function cutFruitShape(shape, canvas){
     fruitComboCount = (now - fruitLastCutAt < FRUIT_COMBO_WINDOW_MS) ? fruitComboCount + 1 : 1;
     fruitLastCutAt = now;
     if(fruitComboCount >= 2){
-      const bonus = fruitComboCount - 1;
+      const bonus = Math.min(FRUIT_COMBO_MAX_BONUS, fruitComboCount - 1);
       state.fruitScore += bonus;
       document.getElementById('fruitScoreDisplay').textContent = String(state.fruitScore);
       const label = fruitComboCount === 2 ? 'DOUBLE!' : fruitComboCount === 3 ? 'TRIPLE!' : `COMBO x${fruitComboCount}!`;
@@ -319,7 +369,8 @@ function distToSegment(px, py, ax, ay, bx, by){
 }
 
 function testFruitCutSegment(p1, p2, canvas){
-  for(const shape of state.fruitShapes){
+  // Copy: cutting pushes halves onto (and filters) the live array.
+  for(const shape of state.fruitShapes.slice()){
     if(shape.half) continue;
     if(distToSegment(shape.x, shape.y, p1.x, p1.y, p2.x, p2.y) < shape.radiusPct){
       cutFruitShape(shape, canvas);
@@ -425,9 +476,16 @@ function drawFruitShape(ctx, canvas, s){
   // its AREA — at 2.1x the denser screen measured 36fps, at 1.45x it
   // sits back inside budget with no visible difference to the halo.
   // Bombs keep a larger, redder glow: that one needs to be spotted.
+  // Only bombs and the golden star glow now. A glow's cost is its AREA,
+  // and a halo behind every one of 10-15 airborne fruit was the single
+  // biggest per-frame cost in this game (measured 2026-11-18: 43fps at
+  // 1440p with the CPU slowed 6x, the slowest game in the app). Bright
+  // fruit on a dark backdrop read fine without one; the halo is kept
+  // where it carries meaning - "danger" or "bonus".
   if(!s.half){
-    if(s.type === 'bomb') drawGlow(ctx, x, y, r * 2.0, '#FF4444', 0.5, 1.8);
-    else drawGlow(ctx, x, y, r * 1.45, s.color, 0.45, 1.8);
+    if(s.type === 'mega') drawGlow(ctx, x, y, r * 1.5, '#FF2A2A', 0.55 + 0.25 * Math.sin(performance.now() / 110), 1.8);
+    else if(s.type === 'bomb') drawGlow(ctx, x, y, r * 1.4, '#FF4444', 0.5, 1.8);
+    else if(s.type === 'golden') drawGlow(ctx, x, y, r * 1.5, '#FFD23F', 0.5, 1.8);
   }
   ctx.save();
   ctx.globalAlpha = s.half ? Math.max(0, s.alpha) : 1;
@@ -446,7 +504,7 @@ function drawFruitShape(ctx, canvas, s){
   // keeps the per-frame cost of the busiest moment down.
   ctx.fillStyle = s.color;
   ctx.beginPath();
-  if(s.type === 'bomb' && !s.half){
+  if((s.type === 'bomb' || s.type === 'mega') && !s.half){
     // 8-point spiky burst — same silhouette language as Ball Pop's bomb
     // ball (clip-path polygon), redrawn as a canvas path since this
     // game has no per-entity DOM nodes.
@@ -466,7 +524,7 @@ function drawFruitShape(ctx, canvas, s){
       const px = Math.sin(a) * rad, py = -Math.cos(a) * rad;
       if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
-  } else if(s.type === 'circle' || s.type === 'golden'){
+  } else if(s.type === 'circle' || s.type === 'golden' || s.type === 'bomb' || s.type === 'mega'){
     ctx.arc(0, 0, r, 0, Math.PI * 2);
   } else if(s.type === 'square'){
     // Rounded, slightly squashed — a berry, not a box.
@@ -482,26 +540,28 @@ function drawFruitShape(ctx, canvas, s){
   ctx.closePath();
   ctx.fill();
 
+  // Details are plain arcs and short curves, not rotated ellipses, and
+  // as few separate fills as possible: measured 2026-11-18, the old
+  // ellipse-based details cost about 6fps on their own at 1440p with the
+  // CPU slowed 6x. Same look, from a classroom distance.
   if(!s.half){
     if(s.type === 'circle'){
       // Orange: a leaf on the stalk and a soft highlight.
       ctx.fillStyle = '#4CAF6D';
       ctx.beginPath();
-      ctx.ellipse(r * 0.34, -r * 0.92, r * 0.34, r * 0.16, -0.5, 0, Math.PI * 2);
+      ctx.moveTo(0, -r * 0.82);
+      ctx.quadraticCurveTo(r * 0.3, -r * 1.22, r * 0.7, -r * 1.0);
+      ctx.quadraticCurveTo(r * 0.36, -r * 0.7, 0, -r * 0.82);
       ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.38)';
       ctx.beginPath();
-      ctx.ellipse(-r * 0.33, -r * 0.34, r * 0.3, r * 0.19, -0.7, 0, Math.PI * 2);
+      ctx.arc(-r * 0.36, -r * 0.36, r * 0.22, 0, Math.PI * 2);
       ctx.fill();
     } else if(s.type === 'square'){
-      // Berry: a lighter top face and a glint.
-      ctx.fillStyle = 'rgba(255,255,255,0.22)';
-      ctx.beginPath();
-      ctx.ellipse(0, -r * 0.4, r * 0.72, r * 0.34, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Berry: a glint.
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.beginPath();
-      ctx.ellipse(-r * 0.36, -r * 0.44, r * 0.19, r * 0.12, -0.6, 0, Math.PI * 2);
+      ctx.arc(-r * 0.4, -r * 0.42, r * 0.17, 0, Math.PI * 2);
       ctx.fill();
     } else if(s.type === 'triangle'){
       // Watermelon slice: a green rind along the long edge, a pale pith
@@ -517,11 +577,11 @@ function drawFruitShape(ctx, canvas, s){
       ctx.fillStyle = 'rgba(255,255,255,0.55)';
       ctx.fillRect(-r * 0.72, r * 0.2, r * 1.44, r * 0.08);
       ctx.fillStyle = '#3A2018';
-      for(const sx of [-0.28, 0.28]){
-        ctx.beginPath();
-        ctx.ellipse(r * sx, -r * 0.05, r * 0.09, r * 0.14, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.beginPath(); // both seeds in one fill
+      ctx.arc(-r * 0.28, -r * 0.05, r * 0.1, 0, Math.PI * 2);
+      ctx.moveTo(r * 0.38, -r * 0.05);
+      ctx.arc(r * 0.28, -r * 0.05, r * 0.1, 0, Math.PI * 2);
+      ctx.fill();
     } else if(s.type === 'golden'){
       // A bright core so the star reads as lit from within.
       ctx.fillStyle = 'rgba(255,255,255,0.75)';
@@ -535,7 +595,64 @@ function drawFruitShape(ctx, canvas, s){
       ctx.beginPath();
       ctx.arc(0, -r * 0.9, r * (0.16 + 0.05 * Math.sin(performance.now() / 90)), 0, Math.PI * 2);
       ctx.fill();
+    } else if(s.type === 'mega'){
+      // A white warning ring and a big "!" - it has to be unmistakable
+      // in a crowd of fruit, from the back of the room.
+      ctx.rotate(-s.rotation); // keep the "!" upright
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = r * 0.09;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(-r * 0.07, -r * 0.33, r * 0.14, r * 0.38);
+      ctx.beginPath();
+      ctx.arc(0, r * 0.2, r * 0.08, 0, Math.PI * 2);
+      ctx.fill();
     }
+  }
+  ctx.restore();
+}
+
+// The blade trail. It used to be two strokes plus a save/restore PER
+// SEGMENT, each with its own fading alpha - 40+ strokes a frame during a
+// fast swipe, which is exactly when frames matter. Now the segments are
+// grouped into three age bands and each band is ONE path, stroked twice
+// (wide faint glow, then narrow bright core): six strokes at most.
+const FRUIT_TRAIL_BANDS = [
+  { minAlpha: 0.66, alpha: 1,    width: 1 },
+  { minAlpha: 0.33, alpha: 0.6,  width: 0.7 },
+  { minAlpha: 0,    alpha: 0.28, width: 0.45 }
+];
+function drawFruitTrail(ctx, canvas){
+  const trail = state.fruitSwipeTrail;
+  if(trail.length < 2) return;
+  const now = performance.now();
+  const w = canvas.width / 100, h = canvas.height / 100;
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for(const band of FRUIT_TRAIL_BANDS){
+    ctx.beginPath();
+    let any = false;
+    for(let i = 1; i < trail.length; i++){
+      const b = trail[i];
+      const alpha = 1 - (now - b.createdAt) / FRUIT_TRAIL_MAX_AGE_MS;
+      if(alpha <= band.minAlpha || (band !== FRUIT_TRAIL_BANDS[0] && alpha > band.minAlpha + 0.34)) continue;
+      const a = trail[i - 1];
+      ctx.moveTo(a.x * w, a.y * h);
+      ctx.lineTo(b.x * w, b.y * h);
+      any = true;
+    }
+    if(!any) continue;
+    ctx.globalAlpha = band.alpha * 0.35;
+    ctx.strokeStyle = '#7CFFEA';
+    ctx.lineWidth = 14 * band.width;
+    ctx.stroke();
+    ctx.globalAlpha = band.alpha;
+    ctx.strokeStyle = '#E7FFF5';
+    ctx.lineWidth = 6 * band.width;
+    ctx.stroke();
   }
   ctx.restore();
 }
@@ -569,40 +686,19 @@ function renderFruitCanvas(){
 
   for(const s of state.fruitShapes) drawFruitShape(ctx, canvas, s);
 
-  const now = performance.now();
-  const trail = state.fruitSwipeTrail;
-  for(let i = 1; i < trail.length; i++){
-    const a = trail[i - 1], b = trail[i];
-    const alpha = Math.max(0, 1 - (now - b.createdAt) / FRUIT_TRAIL_MAX_AGE_MS);
-    if(alpha <= 0) continue;
-    // Two strokes — a wide faint one under a narrow bright one — give
-    // the blade its glow without shadowBlur re-blurring the whole trail
-    // every frame.
-    const ax = (a.x / 100) * canvas.width, ay = (a.y / 100) * canvas.height;
-    const bx = (b.x / 100) * canvas.width, by = (b.y / 100) * canvas.height;
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.globalAlpha = alpha * 0.35;
-    ctx.strokeStyle = '#7CFFEA';
-    ctx.lineWidth = Math.max(2, 14 * alpha);
-    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = '#E7FFF5';
-    ctx.lineWidth = Math.max(1, 6 * alpha);
-    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
-    ctx.restore();
-  }
+  drawFruitTrail(ctx, canvas);
 
-  // One save/restore for the whole batch, and no per-particle shadow —
-  // a juice burst can put dozens of these on screen at once, which is
-  // exactly when the frame budget matters most.
+  // One save/restore for the whole batch, no per-particle shadow, and
+  // squares rather than arcs: at 2-7px nobody can tell, and a rect fill
+  // is far cheaper than building and filling a circle path. A juice
+  // burst can put dozens of these on screen at once, which is exactly
+  // when the frame budget matters most.
   ctx.save();
   for(const p of state.fruitParticles){
+    const sz = Math.max(0.5, p.size) * 1.6;
     ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(p.x - sz / 2, p.y - sz / 2, sz, sz);
   }
   ctx.restore();
 
@@ -631,6 +727,9 @@ function startFruitRound(){
   fruitComboCount = 0;
   fruitLastCutAt = 0;
   fruitFlashUntil = 0;
+  // Two mega bombs a round: one early-ish, one late. Never in the first
+  // 3s (let them warm up) or the last 3s (no time to see it coming).
+  fruitMegaTimes = [3000 + Math.random() * 2500, 8500 + Math.random() * 3000];
   fruitDragging = false;
   fruitLastPoint = null;
 
@@ -667,12 +766,16 @@ function startFruitRound(){
       for(let i = 0; i < volley; i++) spawnFruitShape();
       nextSpawnAt = elapsedMs + (420 + Math.random() * 320);
     }
+    if(fruitMegaTimes.length && elapsedMs >= fruitMegaTimes[0]){
+      fruitMegaTimes.shift();
+      spawnMegaVolley();
+    }
 
     updateFruitShapes(dt / 1000);
     updateFruitTrail();
     const k = frameFactor(dt);
     updateFruitParticles(k);
-    fruitFloatTexts = updateFloatTexts(fruitFloatTexts, k);
+    fruitFloatTexts = updateFloatTexts(fruitFloatTexts, k, 0.02); // shorter-lived than the default: a swipe makes lots of these
     fruitShockwaves = updateShockwaves(fruitShockwaves);
     renderFruitCanvas();
 

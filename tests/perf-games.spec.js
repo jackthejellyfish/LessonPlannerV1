@@ -95,13 +95,15 @@ async function beginTurn(page, prefix) {
 }
 
 const GAMES = [
-  { name: 'Ball Pop',      step: 5,  prefix: 'pop' },
+  { name: 'Balloon Pop',   step: 5,  prefix: 'pop' },
   { name: 'Star Defender', step: 6,  prefix: 'inv' },
   { name: 'Billiards',     step: 9,  prefix: 'billiards' },
   { name: 'Neon Arena',    step: 10, prefix: 'neon' },
   { name: 'Fruit Ninja',   step: 11, prefix: 'fruit' },
   { name: 'Hoop Shot',     step: 12, prefix: 'hoop' },
-  { name: 'Whack',         step: 13, prefix: 'whack' },
+  { name: 'Whack-a-Jelly', step: 13, prefix: 'whack' },
+  { name: 'Jelly Maze',    step: 14, prefix: 'maze' },
+  { name: 'Ninja Jump',    step: 15, prefix: 'jump' },
 ];
 
 test.describe('at a 4K classroom-panel resolution', () => {

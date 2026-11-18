@@ -46,11 +46,14 @@ import { applyLesson as applyStage11Content } from './content/stage11-neonarena.
 import { applyLesson as applyStage12Content } from './content/stage12-fruitninja.js';
 import { applyLesson as applyStage13Content } from './content/stage13-hoopshot.js';
 import { applyLesson as applyStage14Content } from './content/stage14-whack.js';
+import { applyLesson as applyStage15Content } from './content/stage15-maze.js';
+import { applyLesson as applyStage16Content } from './content/stage16-ninjajump.js';
 
 const CONTENT_APPLIERS = [
   applyStage1Content, applyStage2Content, applyStage3Content, applyStage4Content, applyStage5Content,
   applyStage6Content, applyStage7Content, applyStage8Content, applyStage9Content, applyStage10Content,
-  applyStage11Content, applyStage12Content, applyStage13Content, applyStage14Content
+  applyStage11Content, applyStage12Content, applyStage13Content, applyStage14Content,
+  applyStage15Content, applyStage16Content
 ];
 
 function applyLessonContent(id){
@@ -113,23 +116,44 @@ document.getElementById('hideNavBtn').addEventListener('click', () => {
 // (team count, HUD field count, button label lengths all wrap
 // differently at this box's narrower width) and can't be reliably
 // guessed with one fixed CSS value. A ResizeObserver keeps
-// --compact-footer-h in sync with each stage's footer's ACTUAL
+// --fs-footer-h in sync with each stage's footer's ACTUAL
 // rendered height instead, re-running the current game's canvas resize
 // whenever it changes so the canvas always sizes against the real
 // available space, not an approximation (see the CSS var's definition
 // in fullscreen-game.css for the bug this fixes — confirmed via
 // measurement, not just guessed at).
-const compactFooterObserver = new ResizeObserver((entries) => {
-  if(!document.body.classList.contains('compact-game')) return;
-  for(const entry of entries){
-    const footer = entry.target;
-    if(footer.offsetParent === null) continue; // a hidden stage's footer — ignore
+//
+// Since 2026-11-18 this covers NORMAL fullscreen too, not just compact
+// mode. There the footer is position:fixed and the play area reserved a
+// flat clamp(56px,8vh,76px) for it, but on a laptop-sized screen (or
+// with 4 teams) the footer wraps to two lines and grows to ~120px. The
+// extra 40-60px covered the bottom of the game - the Star Defender ship
+// and the Hoop Shot ball were hidden entirely. tests/layout-fit.spec.js.
+// The step bar at the top is measured the same way (its labels can wrap).
+//
+// Hidden check: offsetParent is ALWAYS null for a position:fixed element,
+// so it can't tell a hidden stage's footer from a fixed visible one.
+// getClientRects() is empty only for display:none (a hidden stage).
+function syncChromeHeights(){
+  if(!document.body.classList.contains('fullscreen-game')) return;
+  const stage = document.getElementById(`stage${state.currentStage}`);
+  const footer = stage && stage.querySelector('.stage-footer');
+  if(footer && footer.getClientRects().length){
     const h = Math.ceil(footer.getBoundingClientRect().height) + 6;
-    document.body.style.setProperty('--compact-footer-h', `${h}px`);
+    document.body.style.setProperty('--fs-footer-h', `${h}px`);
   }
+  const stepper = document.getElementById('stepper');
+  if(stepper && stepper.getClientRects().length){
+    const h = Math.ceil(stepper.getBoundingClientRect().height) + 6;
+    document.body.style.setProperty('--fs-stepper-h', `${h}px`);
+  }
+}
+const chromeObserver = new ResizeObserver(() => {
+  syncChromeHeights();
   resizeCurrentStageCanvas();
 });
-document.querySelectorAll('.stage-footer').forEach(f => compactFooterObserver.observe(f));
+document.querySelectorAll('.stage-footer').forEach(f => chromeObserver.observe(f));
+chromeObserver.observe(document.getElementById('stepper'));
 
 /* =========================================================
    FULL RESET
@@ -208,7 +232,7 @@ document.getElementById('changeLessonBtn').addEventListener('click', async () =>
 
 // The last stage's "Finish" — the end of the lesson, so no warning about
 // discarding scores; the game is over by the time anyone presses it.
-document.getElementById('whackFinishBtn').addEventListener('click', showLessonSelect);
+document.getElementById('jumpFinishBtn').addEventListener('click', showLessonSelect);
 
 /* =========================================================
    INIT

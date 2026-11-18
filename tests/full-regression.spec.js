@@ -8,12 +8,12 @@ const { test, expect } = require('@playwright/test');
 // clicked via locator.evaluate(el => el.click()) to bypass Playwright's
 // visibility gate rather than treating that as a bug.
 //
-// .wrap (stepper + all 14 stages) stays hidden behind the lesson-select
+// .wrap (stepper + all 16 stages) stays hidden behind the lesson-select
 // screen (js/lessons.js) until a lesson card is picked — every test clicks
 // the first card right after goto() purely to get past that gate; which
 // lesson is picked doesn't matter for these structural assertions.
 
-test('all 14 stages are reachable with zero console/page errors', async ({ page }) => {
+test('all 16 stages are reachable with zero console/page errors', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`PAGEERROR: ${e.message}`));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`); });
@@ -22,9 +22,9 @@ test('all 14 stages are reachable with zero console/page errors', async ({ page 
   await page.click('.lesson-card >> nth=0');
 
   const steps = page.locator('.step');
-  await expect(steps).toHaveCount(14);
+  await expect(steps).toHaveCount(16);
 
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 16; i++) {
     await steps.nth(i).evaluate((el) => el.click());
     await page.waitForTimeout(150);
   }
@@ -69,7 +69,7 @@ test('stage 2 advances one rule at a time', async ({ page }) => {
   await expect(page.locator('#stage3')).not.toHaveClass(/hidden/);
 });
 
-test('stage 6 Ball Pop starts a round without errors', async ({ page }) => {
+test('stage 6 Balloon Pop starts a round without errors', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
@@ -97,8 +97,8 @@ test('the last stage has a Finish button that returns to the lesson picker', asy
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
   const steps = page.locator('.step');
-  await steps.nth(13).evaluate((el) => el.click());
-  await page.locator('#whackFinishBtn').evaluate((el) => el.click());
+  await steps.nth(15).evaluate((el) => el.click());
+  await page.locator('#jumpFinishBtn').evaluate((el) => el.click());
   await expect(page.locator('#lessonSelect')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wrap')).toHaveClass(/hidden/);
 });
@@ -119,7 +119,7 @@ test('stage 5 shows the task first, then the timer with the useful language', as
   await expect(page.locator('#stopwatch')).toBeVisible();
   await expect(page.locator('#scaffoldList .frame')).toHaveCount(5);
   await expect(page.locator('#wordBank .wordbank-chip').first()).toBeVisible();
-  await expect(page.locator('#freeNextSlideBtn')).toHaveText('Next: Ball Pop →');
+  await expect(page.locator('#freeNextSlideBtn')).toHaveText('Next: Balloon Pop →');
 
   await page.click('#freeNextSlideBtn');
   await expect(page.locator('#stage6')).toBeVisible();

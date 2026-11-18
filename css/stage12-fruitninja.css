@@ -53,6 +53,15 @@
     background:#FF6B5B; box-shadow:0 0 6px rgba(255,68,68,0.9);
   }
 
+  /* Mega bomb: bigger, dark red, a white "!" - matches the canvas. */
+  .fruit-legend-swatch.mega{
+    width:34px; height:34px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #C0283C, #7A1022 60%, #3A0710);
+    box-shadow:0 0 12px rgba(255,42,42,0.8);
+    color:#fff; font-weight:900; font-size:20px; line-height:1;
+  }
+  .fruit-legend-swatch.mega::after{ content:'!'; }
+
   #fruitPlayArea #fruitBeginTurnBtn{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);

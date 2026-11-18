@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Comparative Adjectives — Interactive Lesson</title>
+    <title>Teacher Jack’s Lesson Planner</title>
+    <link rel="icon" type="image/svg+xml" href="img/jellyfish.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Web fonts load WITHOUT blocking the first paint. A normal
@@ -33,6 +34,8 @@
     <link rel="modulepreload" href="js/content/stage12-fruitninja.js" />
     <link rel="modulepreload" href="js/content/stage13-hoopshot.js" />
     <link rel="modulepreload" href="js/content/stage14-whack.js" />
+    <link rel="modulepreload" href="js/content/stage15-maze.js" />
+    <link rel="modulepreload" href="js/content/stage16-ninjajump.js" />
     <link rel="modulepreload" href="js/content/stage2-rules.js" />
     <link rel="modulepreload" href="js/content/stage3-controlled.js" />
     <link rel="modulepreload" href="js/content/stage4-guided.js" />
@@ -57,6 +60,8 @@
     <link rel="modulepreload" href="js/stages/stage12-fruitninja.js" />
     <link rel="modulepreload" href="js/stages/stage13-hoopshot.js" />
     <link rel="modulepreload" href="js/stages/stage14-whack.js" />
+    <link rel="modulepreload" href="js/stages/stage15-maze.js" />
+    <link rel="modulepreload" href="js/stages/stage16-ninjajump.js" />
     <link rel="modulepreload" href="js/stages/stage2-rules.js" />
     <link rel="modulepreload" href="js/stages/stage3-controlled.js" />
     <link rel="modulepreload" href="js/stages/stage4-guided.js" />
@@ -89,6 +94,8 @@
     <link rel="stylesheet" href="css/stage12-fruitninja.css" />
     <link rel="stylesheet" href="css/stage13-hoopshot.css" />
     <link rel="stylesheet" href="css/stage14-whack.css" />
+    <link rel="stylesheet" href="css/stage15-maze.css" />
+    <link rel="stylesheet" href="css/stage16-ninjajump.css" />
     <link rel="stylesheet" href="css/fullscreen-game.css" />
     <link rel="stylesheet" href="css/print.css" />
   </head>
@@ -132,9 +139,11 @@
          starts that lesson at Stage 1. See js/lessons.js. -->
     <div class="lesson-select" id="lessonSelect">
       <div class="lesson-select-inner">
-        <p class="lesson-select-eyebrow">ESL Interactive Lesson</p>
-        <h1>Choose a lesson</h1>
-        <p class="lesson-select-sub">Select which grammar point to teach in this session.</p>
+        <div class="brand">
+          <img class="brand-mark" src="img/jellyfish.svg" alt="" width="64" height="64" />
+          <h1 class="brand-name">Teacher Jack’s Lesson Planner</h1>
+        </div>
+        <p class="lesson-select-sub">Choose a lesson to teach today.</p>
         <div class="lesson-cards" id="lessonCards"></div>
       </div>
     </div>
@@ -392,15 +401,15 @@
           <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="freeNextBtn">
-              Next: Ball Pop →
+              Next: Balloon Pop →
             </button>
           </div>
         </div>
       </section>
 
-      <!-- STAGE 6: BALL POP CHALLENGE -->
+      <!-- STAGE 6: BALLOON POP -->
       <section class="stage hidden" id="stage6">
-        <h2>Ball Pop</h2>
+        <h2>Balloon Pop</h2>
         <div class="stage-body">
           <div id="popSetup"></div>
 
@@ -436,7 +445,7 @@
                     ><span class="pop-hud-num" id="popTimeDisplay">--</span>
                   </div>
                   <div>
-                    <span class="pop-hud-label">Pops</span
+                    <span class="pop-hud-label">Score</span
                     ><span class="pop-hud-num" id="popPopsDisplay">0</span>
                   </div>
                 </div>
@@ -446,11 +455,10 @@
               </div>
 
               <div id="popPlayArea" class="pop-play-area idle">
-                <canvas
-                  id="popParticleCanvas"
-                  class="pop-particle-canvas"
-                ></canvas>
-                <div id="popBallLayer" class="pop-ball-layer"></div>
+                <canvas id="popCanvas" class="pop-canvas"></canvas>
+                <p class="game-hint pop-hint hidden" id="popHint">
+                  Tap the balloons to pop them! Not the black bombs!
+                </p>
                 <button
                   class="btn btn-primary"
                   id="popBeginTurnBtn"
@@ -1051,7 +1059,7 @@
 
       <!-- STAGE 14: WHACK-A-MONSTER -->
       <section class="stage hidden" id="stage14">
-        <h2>Whack-a-Monster</h2>
+        <h2>Whack-a-Jelly</h2>
         <div class="stage-body">
           <div id="whackSetup"></div>
 
@@ -1079,7 +1087,7 @@
                     ><span class="pop-hud-num" id="whackTimeDisplay">--</span>
                   </div>
                   <div>
-                    <span class="pop-hud-label">Whacked</span
+                    <span class="pop-hud-label">Bopped</span
                     ><span class="pop-hud-num" id="whackScoreDisplay">0</span>
                   </div>
                 </div>
@@ -1089,8 +1097,17 @@
               </div>
 
               <div id="whackPlayArea" class="whack-play-area idle">
-                <div id="whackGrid" class="whack-grid"></div>
-                <p class="game-hint hidden" id="whackHint">Tap the monsters before they duck back down!</p>
+                <canvas id="whackCanvas" class="whack-canvas"></canvas>
+                <p class="game-hint whack-hint hidden" id="whackHint">Tap the jellyfish! Not the spiky pufferfish!</p>
+                <!-- The teacher's lane picker, shown between turns only. -->
+                <div class="whack-lanes" id="whackLanes" role="group" aria-label="How many lanes">
+                  <span class="whack-lanes-label">Lanes</span>
+                  <button type="button" data-lanes="1">1</button>
+                  <button type="button" data-lanes="2">2</button>
+                  <button type="button" data-lanes="3">3</button>
+                  <button type="button" data-lanes="4">4</button>
+                  <button type="button" data-lanes="5">5</button>
+                </div>
                 <button class="btn btn-primary" id="whackBeginTurnBtn" type="button">
                   Begin turn
                 </button>
@@ -1110,7 +1127,130 @@
           <button class="btn btn-ghost" id="whackBackBtn">← Back</button>
           <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
-            <button class="btn btn-primary" id="whackFinishBtn" type="button">Finish: choose a lesson ✓</button>
+            <button class="btn btn-primary" id="whackNextStageBtn" type="button">Next: Jelly Maze →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 15: JELLY MAZE -->
+      <section class="stage hidden" id="stage15">
+        <h2>Jelly Maze</h2>
+        <div class="stage-body">
+          <div id="mazeSetup"></div>
+
+          <div id="mazeGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="mazeTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="mazeTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button class="pop-sidebar-reset" id="mazeResetScoresBtn" type="button">Reset scores</button>
+                  <button class="pop-sidebar-reset" id="mazeChangeTeamsBtn" type="button">Change teams</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="mazeTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Score</span
+                    ><span class="pop-hud-num" id="mazeScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="mazeTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="mazePlayArea" class="inv-play-area idle">
+                <canvas id="mazeCanvas" class="inv-canvas"></canvas>
+                <p class="game-hint maze-hint hidden" id="mazeHint">Move: WASD or arrow keys &middot; or hold on the board where you want Jack to swim</p>
+                <button class="btn btn-primary" id="mazeBeginTurnBtn" type="button">Begin turn</button>
+                <div class="game-over-banner hidden" id="mazeGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="mazeGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary hidden" id="mazePlayAgainBtn" type="button">Play again</button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="mazeBackBtn">← Back</button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="mazeNextStageBtn" type="button">Next: Ninja Jump →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 16: NINJA JUMP -->
+      <section class="stage hidden" id="stage16">
+        <h2>Ninja Jump</h2>
+        <div class="stage-body">
+          <div id="jumpSetup"></div>
+
+          <div id="jumpGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="jumpTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="jumpTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button class="pop-sidebar-reset" id="jumpResetScoresBtn" type="button">Reset scores</button>
+                  <button class="pop-sidebar-reset" id="jumpChangeTeamsBtn" type="button">Change teams</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="jumpTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Score</span
+                    ><span class="pop-hud-num" id="jumpScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="jumpTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="jumpPlayArea" class="inv-play-area idle">
+                <canvas id="jumpCanvas" class="inv-canvas"></canvas>
+                <p class="game-hint jump-hint hidden" id="jumpHint">Run: A / D or arrows &middot; Jump: SPACE (press again in the air to double jump)</p>
+                <div class="jump-touch" aria-hidden="true">
+                  <div class="jump-touch-move">
+                    <button class="jump-touch-btn" id="jumpLeftBtn" type="button" tabindex="-1">&#9664;</button>
+                    <button class="jump-touch-btn" id="jumpRightBtn" type="button" tabindex="-1">&#9654;</button>
+                  </div>
+                  <button class="jump-touch-btn jump-touch-jump" id="jumpJumpBtn" type="button" tabindex="-1">JUMP</button>
+                </div>
+                <button class="btn btn-primary" id="jumpBeginTurnBtn" type="button">Begin turn</button>
+                <div class="game-over-banner hidden" id="jumpGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="jumpGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary hidden" id="jumpPlayAgainBtn" type="button">Play again</button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="jumpBackBtn">← Back</button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="jumpFinishBtn" type="button">Finish: choose a lesson ✓</button>
           </div>
         </div>
       </section>

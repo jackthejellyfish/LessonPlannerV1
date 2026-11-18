@@ -15,7 +15,7 @@
   .sentence-strip.incorrect{ border-style:solid; border-color:var(--error); background:var(--error-bg); animation: shakeWrong 0.45s ease; }
   .chip{
     background:var(--surface); border:2px solid var(--line); border-radius:10px;
-    padding:clamp(9px,1.5vh,13px) 21px; font-size:clamp(16px,2.4vh,21px); font-weight:600; color:var(--ink);
+    padding:clamp(9px,1.6vh,15px) 22px; font-size:clamp(18px,3.1vh,30px); font-weight:700; color:var(--ink);
     transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s ease, border-color 0.22s ease;
   }
   .chip.answer-chip{ background:var(--primary); border-color:var(--primary); color:white; }

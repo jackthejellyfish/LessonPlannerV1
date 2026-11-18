@@ -143,6 +143,12 @@
     display:flex; align-items:flex-start; justify-content:safe center; flex-shrink:0;
     gap:0; margin: 0 auto clamp(10px, 2vh, 24px); max-width:1400px; width:100%;
     padding-right: clamp(56px, 7vw, 70px);
+    /* overflow-x:auto forces overflow-y to auto as well, so the bar clips
+       anything that pokes out of it - the hovered circle grows 10% and
+       casts a shadow, and its top edge was being sliced off (classroom
+       feedback 2026-11-18). A few px of padding gives it room; the
+       negative margin keeps the bar where it was. */
+    padding-top:6px; padding-bottom:4px; margin-top:-6px;
     overflow-x:auto;
   }
   .step{
@@ -420,10 +426,5 @@
      (a bomb's stripes, a gem's colour, the timers) is untouched.
      !important because these override per-stage rules of varying
      specificity, and lite mode must win over all of them. */
-  body.low-quality .whack-hole.up .whack-monster,
-  body.low-quality .whack-monster::before,
-  body.low-quality .whack-monster::after,
-  body.low-quality .pop-ball::before,
-  body.low-quality .pop-ball::after,
   body.low-quality .game-over-winner,
   body.low-quality .stage:not(.hidden){ animation:none !important; }

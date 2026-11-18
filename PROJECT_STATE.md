@@ -1,7 +1,7 @@
-# Classroom Lesson App — Project State
+# Teacher Jack’s Lesson Planner — Project State
 
 > Handover summary: what the app is, how it's built, the rules that keep it
-> fast and stable, and how to change it. Current as of **v3.2 (2026-11-14)**.
+> fast and stable, and how to change it. Current as of **v3.4 (2026-11-18)**.
 > The full design history (why things are the way they are, per-game deep
 > dives, superseded decisions) is in
 > [archive/PROJECT_STATE-history.md](archive/PROJECT_STATE-history.md). It is
@@ -13,8 +13,12 @@
 
 An interactive ESL lesson, run by a teacher on a classroom screen (projector
 or large board). Students don't use their own devices. The teacher picks a
-lesson, then steps through 14 stages: teaching first, then team games that
+lesson, then steps through 16 stages: teaching first, then team games that
 quiz the same language.
+
+- **Branding:** "Teacher Jack’s Lesson Planner", with Jack the jellyfish
+  (`img/jellyfish.svg`, also the favicon) on the lesson picker. Every
+  lesson's tab title and print footer end in the brand name (`js/lessons.js`).
 
 - **Live site:** `classroom-games-omega.vercel.app`. Pushing to `main` on
   GitHub (`jackthejellyfish/LessonPlannerV1`) auto-deploys on Vercel in about
@@ -37,7 +41,7 @@ quiz the same language.
 | `amusement-park` | At the Amusement Park (past simple + -ing/-ed adjectives) |
 | `party-fun` | Party Fun: Who Will…? (will for plans: Wh- and Yes/No questions, short answers) |
 
-### Stages (14), from `js/stepper.js`
+### Stages (16), from `js/stepper.js`
 
 | # | Stage | Kind |
 |---|---|---|
@@ -46,15 +50,17 @@ quiz the same language.
 | 3 | Controlled | Multiple choice |
 | 4 | Guided | Word-order sentence building |
 | 5 | Free practice | Two slides: **1** the task, **2** your turn (timer, starters, word bank) |
-| 6 | Ball Pop | Team game, DOM balls plus a canvas effects layer |
+| 6 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |
 | 7 | Star Defender | Team game, canvas shooter |
 | 8 | Spin the Wheel | Team game |
 | 9 | Practice questions | 4 sets: gap fill, unscramble, sentence, free writing |
 | 10 | Billiards | Team game, canvas physics |
 | 11 | Neon Arena | Team game, canvas |
-| 12 | Fruit Ninja | Team game, canvas |
+| 12 | Fruit Ninja | Team game, canvas (bombs cost 5; a mega bomb halves the score; the blade never freezes) |
 | 13 | Hoop Shot | Team game, canvas (fixed hoop, −/+ aim dock, SHOOT) |
-| 14 | Whack! | Team game, DOM; ends with **Finish: choose a lesson** |
+| 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish swim up 1-5 lanes (teacher picks between turns) |
+| 15 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
+| 16 | Ninja Jump | Team game, canvas platformer, 20s, one level per lap of turns, clearing it ends the turn; moving platforms, triple-jump power-up; ends with **Finish: choose a lesson** |
 
 Every team game follows the same loop: a setup screen (rules plus teams and
 colours) → a team answers a question → the team plays a short timed turn →
@@ -87,6 +93,7 @@ js/fpsMeter.js        on-screen meter, only when the URL has ?fps
 js/timerRing.js, audio.js, particles.js, confirmDialog.js, icons.js, utils.js
 js/stages/stageN-*.js game and stage logic
 js/content/stageN-*.js lesson content (plain data, keyed by lesson id)
+img/jellyfish.svg     Jack the jellyfish: favicon and lesson-picker logo
 tests/                Playwright specs (section 7)
 LESSON_TEMPLATE.md    the form a teacher fills in to request a new lesson
 archive/              original single-file app, and the full history doc
@@ -104,7 +111,7 @@ archive/              original single-file app, and the full history doc
 - **Navigation.** `goToStage(n)` first calls `stopStageActivity()`, which
   stops **everything** a stage can leave running: the Stage 3/4 countdowns
   (and Stage 3's pause before its next question), the Stage 5 countdown,
-  Ball Pop's particle loop and every game's round. Restart and the lesson
+  and every game's round. Restart and the lesson
   picker call it too. Anything new that runs on a timer or rAF must be
   stopped from there, or it plays sounds over other stages. Then it shows
   the target stage. Tapping the step you are already on does nothing. Game stages (any stage in `GAMES`) go full-viewport and move the
@@ -114,7 +121,7 @@ archive/              original single-file app, and the full history doc
   be an `export function` declaration, never `export const fn = () => …`,
   otherwise the array can capture `undefined`.
 - **Id prefix convention.** Each game uses one prefix (`pop`, `inv`, `wheel`,
-  `billiards`, `neon`, `fruit`, `hoop`, `whack`) for all its ids:
+  `billiards`, `neon`, `fruit`, `hoop`, `whack`, `maze`, `jump`) for all its ids:
   `popSetup`, `popGame`, `popTurnBanner`, `popTeamInputs`, and so on. The
   shared helpers (`readTeamsFromSetup`, `showGameScreen`, `renderTurnBanner`)
   depend on this.
@@ -129,6 +136,13 @@ archive/              original single-file app, and the full history doc
   use opaque canvases (`alpha:false`): get their context **only** through
   `resizer.getContext()`, and paint the backdrop instead of calling
   `clearRect` (an opaque canvas clears to black).
+- **Fullscreen bar heights are measured, not guessed.** In a game the step
+  bar is fixed to the top and the footer (team pills, timer, Back/Next) to
+  the bottom. A ResizeObserver in `main.js` writes their real heights to
+  `--fs-stepper-h` / `--fs-footer-h`, and `.stage-body` pads by those. The
+  old fixed guess broke on laptops (125% scaling gives about 1536x730): the
+  footer wrapped to two lines and hid the Star Defender ship and the Hoop
+  Shot ball. `tests/layout-fit.spec.js` checks every game at 3 laptop sizes.
 - **Compact mode** (`body.compact-game`): shrinks a fullscreen game to a
   centred card so younger students can reach the edges. Any game that holds
   pixel positions has to re-map them on resize. Billiards does this in
@@ -184,8 +198,8 @@ main-thread numbers (busy %, layouts/s, style recalcs/s).
    `js/hud.js`: they drain with `scaleX`, and the text is written only when the
    second changes. Never set a `.timer-bar-fill`'s width.
 3. **Don't redraw a canvas that hasn't changed.** Billiards and Hoop Shot
-   render on demand (`invalidateBilliards()` / `invalidateHoop()`). Ball Pop's
-   loop parks when no round is running.
+   render on demand (`invalidateBilliards()` / `invalidateHoop()`). Every
+   other game draws one still frame between turns and runs no loop.
 4. **Never leave a `requestAnimationFrame` loop running in the background.**
    Every loop has a cancel function, and `goToStage()` calls all of them.
 5. **Make every step frame-rate independent:** `k = frameFactor(dt)`, and use
@@ -195,11 +209,18 @@ main-thread numbers (busy %, layouts/s, style recalcs/s).
    the Billiards table layer).
 7. **Don't "fix" a paint cost by promoting a huge layer.** It measured worse.
    Static is best.
-8. **For one-off DOM effects, use the Web Animations API on pooled
-   elements** (see Ball Pop's `playPopFx`). That avoids rAF style-flush
-   tricks, `setTimeout` cleanup and forced reflows.
+8. **For one-off DOM effects, use the Web Animations API** (the score
+   "bump" in Balloon Pop). That avoids rAF style-flush tricks, `setTimeout`
+   cleanup and forced reflows.
 9. **CSS animations override inline styles.** Never put a `transform`
-   animation on an element whose transform JS sets (Ball Pop's balls).
+   animation on an element whose transform JS sets.
+10. **On canvas, strokes, clips and many small detail fills cost more than
+   they look.** Measured 2026-11-18 at 1440p, CPU slowed 6x: a `clip()` per
+   balloon cost ~7fps, round-capped curved tentacles ~3fps, Fruit Ninja's
+   rotated-ellipse fruit details ~6fps, a glow behind every fruit ~10fps.
+   Pre-rendering shapes to sprites and blitting them rotated was SLOWER
+   here (52 to 36fps), so don't reach for that first. Fewer, simpler fills
+   and one batched stroke per frame are what worked.
 
 **Lite mode** (`js/quality.js`): after 3 consecutive seconds under 45fps the
 session switches to lite mode. Particles are halved, glows are dropped,
@@ -216,9 +237,10 @@ worst frame, and whether lite mode is on.
 - **`.stage-body` must use `justify-content:flex-start`** (or `safe center`,
   as Stages 1, 3 and 4 do). Plain `center` plus `overflow:hidden` clips
   overflowing content from both ends, silently.
-- **Ball Pop:** clear `.pop-ball-layer`, never the whole `#popPlayArea`; the
-  play area also holds the canvas. If a ball's CSS width changes, update its
-  `radiusFactor` in `renderPopCanvas()` so the glow still matches the hit area.
+- **Balloon Pop** (rebuilt 2026-11-18 from the DOM "Ball Pop") simulates in
+  world units where the play area is 100 tall, so balloons stay round on
+  any screen shape; hit-testing converts the tap the same way. The file
+  and `pop` prefix kept their old names (`stage6-ballpop.js`).
 - **Same-click race.** If a click handler attaches a new click listener to an
   ancestor, the *same* click can trigger it. Attach it with `setTimeout(fn, 0)`.
 - **`renderGameIntro()`** runs at the top of each stage module, before that
@@ -227,6 +249,40 @@ worst frame, and whether lite mode is on.
   something CSS needs to show later.
 - **Don't reuse `.learn-dots` outside Stage 2.** The tests count them.
 - **Fruit Ninja:** tune `FRUIT_GRAVITY` and the launch speed together.
+  Anti-scribble rules (2026-11-18, students scribbled with the mouse for
+  huge scores): bombs are 17% of throws and cost 5; two mega bombs a round
+  launch inside a cluster of bait fruit and halve the score. The blade
+  NEVER freezes: a freeze (and an overheat gauge) were tried the same day
+  and the class read a frozen blade as the game lagging. Measured with a
+  scripted scribble against careful single swipes: scribble 67-117 points
+  originally, 41-51 now; careful play 85-100.
+- **Ninja Jump physics** moves by the average of the old and new vertical
+  speed each frame, so jump height is identical at 20fps and 60fps. The
+  levels are built on those heights (single jump 4.4 tiles, double 7.3,
+  triple 10.2, spring 9.9, running jump clears about 5.9 tiles), so don't
+  swap it back to a plain `v * dt`. A spring ALWAYS launches 9.9 tiles
+  (`springBoost`): it used to follow the hold-jump rule, so a child who just
+  walked onto one got ~5 tiles and Spring Valley's ledges were unreachable.
+  Moving platforms pause at each end of their trip, level with the ledge
+  they serve: without the pause they were level for an instant and stepping
+  off meant falling. The level rules are written above `LEVELS`.
+- **Whack-a-Jelly lanes** are `state.whackColumns` (1-5, default 4), set
+  from the picker on the play area between turns. With 1-2 lanes each lane
+  has a high and a low slot so the board stays busy.
+- **The question is always the centre of attention** (feedback
+  2026-11-18). Every game's question modal (`.modal-question` in
+  `css/modals.css`) fills most of the screen over a dark backdrop, with the
+  text sized off both height and width; Stage 3's question and Stage 9's
+  prompts are the biggest text on their screens. Keep it that way when
+  adding a stage. Prompt wording is "Which is correct?" / "Is this
+  correct?", not "...right?".
+- **Test-only hooks.** A few game modules export `debug...` functions
+  (`debugMoveJackToExit`, `debugCollectAllStars`, `debugJumpInternals`,
+  `debugBalloonTargets`, `debugWhackTargets`) so tests can reach a game
+  state without playing it by hand. Nothing in the app calls them.
+- **Hover lifts need room.** A button that lifts or scales on hover inside
+  an `overflow:hidden`/`auto` box gets its top sliced off. The step bar and
+  the Stage 9 tabs have a few px of padding for this.
 - **Billiards** uses a deliberately spread layout, not a real rack. A tight
   rack absorbs the cue ball's energy and nothing gets pocketed.
 - **No emoji anywhere** (UI, text or comments). Use monochrome symbols
@@ -251,6 +307,7 @@ npm test                                         # serial (workers: 1); serves o
 | Spec | Covers |
 |---|---|
 | `full-regression` | every stage with zero console errors; modulepreload list matches `js/`; Stage 5 fit |
+| `layout-fit` | every game's play area clears the step bar and footer at 1280x720, 1366x768, 1536x730, and in compact mode |
 | `lessons` | every lesson through every stage |
 | `team-games`, `new-games` | real played turns through the result modal |
 | `quality` | lite mode off by default, forced on, auto-triggers; `?fps` meter; Billiards survives compact mode |
@@ -268,7 +325,6 @@ specs flaky.
   after a deploy.
 - `color-mix()` (team tints) needs a 2023+ browser. Older browsers fall back
   to untinted cards.
-- Ball Pop's swarm placement doesn't avoid live bombs or gems (rare overlap).
 - Stage 9's answers are lost on a page refresh, and when switching between
   its section tabs (each tab re-renders its section fresh).
 - Ideas not started: a teacher settings panel (edit questions, round

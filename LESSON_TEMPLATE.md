@@ -58,7 +58,7 @@ illustrated examples and Stage 2's demo cards):
 
 How should a question be worded? (e.g. "What is the comparative of X?" or
 "You've got X. What should you do?") One example is usually enough — Claude
-will vary phrasing/subject across the 9 game stages for variety the way the
+will vary phrasing/subject across the game stages for variety the way the
 Health lesson does.
 
 ## 6. Anything else worth knowing
@@ -74,7 +74,7 @@ whatever would help get it right without back-and-forth.
 Reads `js/lessons.js` for the current lesson registry, adds a new entry there
 (title/tagline/objective/print titles/question template), then adds a
 matching dataset to every `js/content/stage*.js` file's `applyLesson()`
-switch — game-stage question banks (`{prompt,answer}`, 9 files) get auto-
+switch — game-stage question banks (`{prompt,answer}`, one file per game) get auto-
 generated with varied phrasing/subjects from the vocab list; Stage 4/9/5 get
 hand-written sentences/frames; Stage 2 gets rule cards (reusing the existing
 `[base, suffix]` shape if it fits the grammar type above) and, if the

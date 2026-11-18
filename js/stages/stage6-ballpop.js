@@ -1,30 +1,62 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, showQuestionModal } from '../utils.js';
-import { ensureAudio, beep, sfxIncorrect, sfxTimeUp, audioOut } from '../audio.js';
+import { beep, sfxIncorrect, sfxTimeUp, sfxImpact, sfxRisingChime, sfxBalloonPop } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { POP_QUESTIONS } from '../content/stage6-ballpop.js';
 import { createCanvasResizer } from '../canvasGame.js';
-import { drawGlow } from '../canvasGlow.js';
-import { stepParticles, frameFactor } from '../canvasEffects.js';
+import { createBackdrop, drawGlow } from '../canvasGlow.js';
+import { createShakeState, triggerShake, applyShake, frameFactor } from '../canvasEffects.js';
+import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { createTimerHud, setTimerFill } from '../hud.js';
-import { particleCount, noteFrame, isLowQuality } from '../quality.js';
+import { particleCount, noteFrame } from '../quality.js';
 
 /* =========================================================
-   STAGE 6 — BALL POP CHALLENGE
-   Teams take turns: answer a question, then pop as many balls
-   as possible in 10 seconds. Only one ball lives on screen at
-   a time — popping it scores a point, bursts particles, and
-   immediately spawns a new one elsewhere. The round itself is
-   a plain requestAnimationFrame loop (like the timers in
-   Controlled/Guided practice), not a Promise, specifically so
-   goToStage() can cancel it cleanly if the teacher navigates
-   away mid-round.
+   STAGE 6 — BALLOON POP
+   Rebuilt 2026-11-18 from "Ball Pop" (one DOM ball at a time) into a
+   balloon release on a canvas, per classroom feedback asking for balloon
+   physics and popping sounds. A team answers a question, then has 10
+   seconds to pop as many balloons as they can.
+
+   The physics, in "world units" where the play area is 100 tall and
+   100 * aspect wide (so balloons stay round on any screen):
+   - buoyancy and air drag: each balloon accelerates upward to its own
+     gentle top speed, so they rise at slightly different rates;
+   - a breeze: every balloon sways on its own slow sine, and leans the
+     way it is drifting;
+   - balloons are soft and bump each other apart instead of overlapping;
+   - each string is a little damped spring, so it swings and trails
+     behind when the balloon changes direction;
+   - a pop shoves nearby balloons away (a bomb shoves hard), the
+     balloon bursts into rubber shreds that tumble under gravity, and
+     its string drops.
+
+   Performance: the sky is drawn once per canvas size and blitted. Each
+   balloon is a handful of flat fills (no gradients, no blur, no glow
+   except the rare bonus balloons) and every string is in ONE stroke.
+   Between turns nothing animates at all.
 ========================================================= */
-export const POP_BALL_COLORS = ["#FF6B6B", "#4C5FD5", "#3DB88D", "#F2B705", "#B266FF"];
 export const POP_ROUND_SECONDS = 10;
+
+const BALLOON_COLORS = ['#FF5A5F', '#3D7BFF', '#2EC27E', '#FFC93C', '#FF6FB5', '#FF9142'];
+const GOLD = '#FFC21A';
+const RAINBOW = ['#FF5A5F', '#FFC93C', '#2EC27E', '#3D7BFF', '#8B5CF6'];
+const MULTI_COLOR = '#8B5CF6';
+const BOMB_COLOR = '#2B2B3A';
+
+const LIFT = 22;              // upward acceleration, world units / s^2
+const DRAG = 1.35;            // so top rise speed is about LIFT / DRAG = 16 / s
+const SWAY_ACCEL = 9;
+const SIDE_DRAG = 1.6;
+const STRING_LEN = 13;
+const PUSH_RADIUS = 26;       // how far a pop's shove reaches
+const MAX_ON_SCREEN = 9;
+
+const GEM_COUNT = 3, GEM_POINTS = 3;
+const MULTIPLIER_MS = 4000;
+const BOMB_PENALTY = 1;
 
 // Colors chosen per team row in the setup screen (index-aligned with the
 // input rows) — persists across "+ Add team" re-renders and survives
@@ -36,27 +68,26 @@ let popRowColors = [];
 // creates - see js/gameIntro.js for why each stage calls this itself.
 renderGameIntro('popSetup', {
   prefix: 'pop',
-  title: 'Ball Pop',
+  title: 'Balloon Pop',
   steps: [
     'One team answers a question.',
-    'Tap every ball you can before the time runs out.',
+    'Balloons float up from the bottom. Tap them to pop them!',
     'You get 10 seconds. Highest score wins.'
   ],
   scoring: [
-    { swatch: '<span class="pop-legend-swatch normal"></span>', label: 'Normal ball', points: '+1' },
-    { swatch: '<span class="pop-legend-swatch gem"></span>', label: 'Gem', points: '+3', tone: 'bonus' },
-    { swatch: '<span class="pop-legend-swatch special"></span>', label: 'Special ball', points: 'splits into 4', tone: 'bonus' },
-    { swatch: '<span class="pop-legend-swatch multi"></span>', label: 'Multiplier', points: 'double for 4s', tone: 'bonus' },
-    { swatch: '<span class="pop-legend-swatch bomb"></span>', label: 'Bomb &mdash; do not tap!', points: '&minus;1', tone: 'bad' }
+    { swatch: '<span class="pop-legend-swatch balloon"></span>', label: 'Balloon', points: '+1' },
+    { swatch: '<span class="pop-legend-swatch gold"></span>', label: 'Gold star balloon', points: '+3', tone: 'bonus' },
+    { swatch: '<span class="pop-legend-swatch rainbow"></span>', label: 'Rainbow balloon', points: 'bursts into 4', tone: 'bonus' },
+    { swatch: '<span class="pop-legend-swatch multi">&times;2</span>', label: 'Purple &times;2 balloon', points: 'double for 4s', tone: 'bonus' },
+    { swatch: '<span class="pop-legend-swatch bomb"></span>', label: 'Black bomb balloon &mdash; don&rsquo;t pop it!', points: '&minus;1', tone: 'bad' }
   ],
-  tip: 'Go for the gems and the multiplier first &mdash; they are worth far more than racing through the normal balls.'
+  tip: 'The gold balloons are small and fast &mdash; grab them before they float away!'
 });
 
 export function renderPopTeamInputs(count){
   renderTeamSetupRows('popTeamInputs', 'popAddTeamBtn', count, popRowColors, renderPopTeamInputs);
 }
 renderPopTeamInputs(2);
-
 wireAddTeamButton('popTeamInputs', 'popAddTeamBtn', renderPopTeamInputs);
 
 document.getElementById('popStartBtn').addEventListener('click', () => {
@@ -66,1074 +97,626 @@ document.getElementById('popStartBtn').addEventListener('click', () => {
   state.popQuestionOrder = shuffle(POP_QUESTIONS.map((_, i) => i));
 
   showGameScreen('pop');
-  resizePopCanvas();
-  startPopParticleLoop();
   renderPopScoreboard();
   renderPopTurnBanner();
+  seedIdleBalloons();
+  resizePopCanvas();
 });
 
 function renderPopScoreboard(){
   renderTeamScoreboard('popTeamList', state.popTeams, state.popCurrentTeam);
 }
-
 function renderPopTurnBanner(){
   renderTurnBanner('pop', state.popTeams[state.popCurrentTeam], state.popTurnsPlayed + 1, POP_QUESTIONS.length);
 }
 
 function askPopQuestion(){
-  const qIndex = state.popQuestionOrder[state.popTurnsPlayed];
-  const q = POP_QUESTIONS[qIndex];
+  const q = POP_QUESTIONS[state.popQuestionOrder[state.popTurnsPlayed]];
   return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
 }
 
 document.getElementById('popBeginTurnBtn').addEventListener('click', beginPopTurn);
-
 async function beginPopTurn(){
   document.getElementById('popBeginTurnBtn').disabled = true;
   await askPopQuestion();
   startPopRound();
 }
 
-// A quick rising-pitch blip for each pop — pitch climbs slightly with
-// streak length so a fast run of pops sounds like it's "climbing".
-function sfxPop(streak){
-  if(state.muted) return;
-  const ctx = ensureAudio();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'triangle';
-  const base = 500 + Math.min(streak, 10) * 25;
-  osc.frequency.setValueAtTime(base, ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(base * 1.8, ctx.currentTime + 0.08);
-  gain.gain.value = 0.18;
-  osc.connect(gain).connect(audioOut());
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.12);
-}
-
-// A boom (filtered noise burst, same technique as Plinko's exploding
-// ball) layered under a bright rising fanfare — for the special ball's
-// mega explosion specifically, distinct from every other pop sound.
-function sfxMegaExplosion(){
-  if(state.muted) return;
-  const ctx = ensureAudio();
-  const duration = 0.35;
-  const bufferSize = Math.floor(ctx.sampleRate * duration);
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for(let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-  const noise = ctx.createBufferSource();
-  noise.buffer = buffer;
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass'; filter.frequency.value = 1800;
-  const gain = ctx.createGain(); gain.gain.value = 0.32;
-  noise.connect(filter).connect(gain).connect(audioOut());
-  noise.start();
-  [660, 880, 1100, 1320].forEach((f, i) => beep(f, 0.2, 'triangle', 0.22, i * 0.07));
-}
-
-// A quick sparkly ascending arpeggio for gem pickups — distinct from
-// the single-note pop, since a gem is worth 3x and should feel like it.
-function sfxGem(){
-  if(state.muted) return;
-  [880, 1108, 1318, 1568].forEach((f, i) => beep(f, 0.14, 'triangle', 0.16, i * 0.06));
-}
-
-// A rising "power surge" sweep, distinct from every other ball's sound —
-// this one announces a whole WINDOW of doubled scoring starting, not a
-// single point award, so it's given more weight than a normal pop/gem chime.
+/* =========================================================
+   SOUND (the pop itself is sfxBalloonPop in js/audio.js)
+========================================================= */
 function sfxMultiplier(){
-  if(state.muted) return;
-  [520, 660, 830, 1046, 1318].forEach((f, i) => beep(f, 0.1, 'sawtooth', 0.14, i * 0.045));
-}
-
-/* ---- One-shot DOM effects (rings, sparkles, "+1" text) ----
-   Each used to be: create a div, wait a requestAnimationFrame so the
-   browser would register its starting style, set the end style so a
-   CSS transition ran, then remove it on a setTimeout. The rAF dance
-   forces a style flush per effect, and the timers pile up during a
-   burst. Now each effect is one Web Animations call: the start and end
-   states are in the keyframes, the compositor runs it (transform and
-   opacity only), and the element is recycled when it finishes instead
-   of being thrown away — a fast run of pops reuses the same few nodes. */
-const popFxPool = [];
-const POP_FX_POOL_MAX = 40;
-
-function acquirePopFx(container, className, xPct, yPct){
-  const el = popFxPool.pop() || document.createElement('div');
-  el.className = className;
-  el.style.left = xPct + '%';
-  el.style.top = yPct + '%';
-  container.appendChild(el);
-  return el;
-}
-
-function playPopFx(el, keyframes, options){
-  const anim = el.animate(keyframes, { fill: 'both', ...options }); // 'both': the first frame also holds during a delay
-  anim.onfinish = () => {
-    anim.cancel();
-    el.remove();
-    el.removeAttribute('style');
-    el.textContent = '';
-    if(popFxPool.length < POP_FX_POOL_MAX) popFxPool.push(el);
-  };
-}
-
-// Expanding ring fired from the click point — colored to match the
-// outcome (ball color for a correct pop, red for a bad-ball miss).
-function spawnShockwave(container, xPct, yPct, color, { mega = false, delay = 0 } = {}){
-  const ring = acquirePopFx(container, mega ? 'pop-shockwave mega' : 'pop-shockwave', xPct, yPct);
-  ring.style.borderColor = color;
-  playPopFx(ring, [
-    { transform: 'translate(-50%,-50%) scale(0.3)', opacity: 0.9 },
-    { transform: `translate(-50%,-50%) scale(${mega ? 3.4 : 2.6})`, opacity: 0 }
-  ], { duration: 450, easing: 'ease-out', delay });
-}
-
-// The score number's little "bump" whenever it changes.
-function bumpPopScore(){
-  const popsEl = document.getElementById('popPopsDisplay');
-  popsEl.textContent = state.popScore;
-  popsEl.animate([
-    { transform: 'scale(1)' }, { transform: 'scale(1.3)', offset: 0.4 }, { transform: 'scale(1)' }
-  ], { duration: 260, easing: 'ease-out' });
-}
-
-// A gem's signature effect — small sparkle glyphs flying outward from
-// the pop point and fading, layered on top of the usual shockwave/
-// particles/text every ball type shares. Added 2026-07-16 so a gem pop
-// has its own distinct "personality" instead of just being a bigger
-// version of a normal pop.
-function spawnPopSparkles(container, xPct, yPct, color, count = 6){
-  if(isLowQuality()) return; // decoration on top of the shockwave/particles/text
-  for(let i = 0; i < count; i++){
-    const sparkle = acquirePopFx(container, 'pop-sparkle', xPct, yPct);
-    sparkle.style.setProperty('--spark-color', color);
-
-    const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.6 - 0.3);
-    const dist = 28 + Math.random() * 24;
-    const dx = Math.cos(angle) * dist, dy = Math.sin(angle) * dist;
-    playPopFx(sparkle, [
-      { transform: 'translate(-50%,-50%) scale(0) rotate(0deg)', opacity: 1 },
-      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1) rotate(${120 + Math.random() * 180}deg)`, opacity: 0 }
-    ], { duration: 550, easing: 'cubic-bezier(.2,.8,.3,1)' });
-  }
-}
-
-// Floating "+1" / "−1" combat-text, rising and fading at the click point.
-function showFloatingText(container, xPct, yPct, text, color, extraClass = ''){
-  const el = acquirePopFx(container, 'pop-float-text' + (extraClass ? ' ' + extraClass : ''), xPct, yPct);
-  el.textContent = text;
-  el.style.color = color;
-  playPopFx(el, [
-    { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
-    { transform: 'translate(-50%,-160%) scale(1.3)', opacity: 0 }
-  ], { duration: 600, easing: 'cubic-bezier(.2,.7,.4,1)' });
+  [520, 660, 830, 1046, 1318].forEach((f, i) => beep(f, 0.1, 'sawtooth', 0.12, i * 0.045));
 }
 
 /* =========================================================
-   PARTICLE SYSTEM (canvas-based)
-   Ported from the reference "Tap Game": instead of animating
-   individual DOM elements with CSS transitions, particles are
-   plain data objects with real physics (gravity, drag, decay)
-   updated every frame and painted onto a <canvas> with glow.
-   This is a genuinely different technique from the CSS-based
-   .particle bursts used elsewhere on this page — canvas suits
-   "lots of small moving things" far better, since drawing 40
-   circles costs one clear+loop, not 40 separate DOM nodes each
-   carrying their own animation.
+   CANVAS (opaque: the sky covers it every frame)
 ========================================================= */
-// Half resolution on top of the shared cap: this canvas draws ONLY
-// glow rings and particles behind real DOM ball buttons, so there is no
-// crisp edge for the upscale to soften.
-// A resize wipes the canvas buffer. While the loop is running the next
-// frame repaints it anyway; while it's parked (see startPopParticleLoop)
-// nothing would, so repaint the one still frame here.
-const popCanvasResizer = createCanvasResizer('popParticleCanvas', 'popPlayArea', () => {
-  if(!state.popParticleRAF) renderPopCanvas();
-}, { renderScale: 0.42 });
+const popCanvasResizer = createCanvasResizer('popCanvas', 'popPlayArea', () => {
+  if(!state.popRoundActive) renderPopCanvas();
+}, { contextAttributes: { alpha: false } });
 export function resizePopCanvas(){ popCanvasResizer.resize(); }
 
-// Cache the 2D context per canvas element instead of calling
-// getContext('2d') every single animation frame — getContext on the
-// same element always returns the same context instance, so the only
-// reason to look it up again is if the canvas element itself changed.
-let popCtxCache = null;
-let popCtxCanvasEl = null;
-function getPopCtx(canvas){
-  if(canvas !== popCtxCanvasEl){
-    popCtxCanvasEl = canvas;
-    popCtxCache = canvas.getContext('2d');
+// World units -> canvas pixels.
+function unit(canvas){ return canvas.height / 100; }
+function worldWidth(canvas){ return canvas.height > 0 ? 100 * canvas.width / canvas.height : 160; }
+
+// A bright cartoon sky: gradient, a soft sun, a few flat clouds and two
+// rolling hills. Static, so it's drawn once per canvas size.
+const renderSky = createBackdrop((ctx, w, h) => {
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#5EB8FF');
+  g.addColorStop(0.65, '#A8DBFF');
+  g.addColorStop(1, '#E4F5FF');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  const u = h / 100;
+  const sun = ctx.createRadialGradient(w * 0.86, h * 0.16, 0, w * 0.86, h * 0.16, u * 22);
+  sun.addColorStop(0, 'rgba(255,248,214,1)');
+  sun.addColorStop(0.35, 'rgba(255,240,180,0.85)');
+  sun.addColorStop(1, 'rgba(255,240,180,0)');
+  ctx.fillStyle = sun;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  for(const [cx, cy, s] of [[0.14, 0.2, 1], [0.48, 0.12, 0.8], [0.66, 0.34, 0.65], [0.28, 0.46, 0.55]]){
+    const x = w * cx, y = h * cy, r = u * 6 * s;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.arc(x + r * 1.1, y + r * 0.25, r * 0.8, 0, Math.PI * 2);
+    ctx.arc(x - r * 1.05, y + r * 0.3, r * 0.7, 0, Math.PI * 2);
+    ctx.arc(x + r * 0.2, y + r * 0.5, r * 0.85, 0, Math.PI * 2);
+    ctx.fill();
   }
-  return popCtxCache;
+  ctx.fillStyle = '#7FD08A';
+  ctx.beginPath();
+  ctx.moveTo(0, h);
+  ctx.lineTo(0, h * 0.9);
+  ctx.quadraticCurveTo(w * 0.25, h * 0.8, w * 0.55, h * 0.92);
+  ctx.quadraticCurveTo(w * 0.8, h * 0.84, w, h * 0.9);
+  ctx.lineTo(w, h);
+  ctx.fill();
+  ctx.fillStyle = '#5FBF6E';
+  ctx.beginPath();
+  ctx.moveTo(0, h);
+  ctx.lineTo(0, h * 0.95);
+  ctx.quadraticCurveTo(w * 0.4, h * 0.88, w * 0.7, h * 0.97);
+  ctx.quadraticCurveTo(w * 0.88, h * 0.93, w, h * 0.96);
+  ctx.lineTo(w, h);
+  ctx.fill();
+});
+
+/* =========================================================
+   BALLOONS
+========================================================= */
+let balloons = [];
+let shreds = [];      // rubber bits and dropped strings
+let bursts = [];      // the white "pop" star at each pop
+let popFloatTexts = [];
+let popShake = createShakeState();
+let schedule = [];    // { at (ms into round), type } for the special balloons
+let nextNormalAt = 0;
+
+function makeBalloon(type, x, y, opts = {}){
+  const b = {
+    type, x, y,
+    vx: opts.vx ?? (Math.random() - 0.5) * 4,
+    vy: opts.vy ?? -(6 + Math.random() * 6),
+    r: opts.r ?? (type === 'gold' ? 4.4 : type === 'mini' ? 4.2 : type === 'rainbow' ? 7.6 : type === 'bomb' ? 6.4 : 6 + Math.random() * 1.3),
+    // Gold rises fast (catch it!), bombs dawdle in the crowd.
+    lift: LIFT * (type === 'gold' ? 1.7 : type === 'bomb' ? 0.75 : 0.82 + Math.random() * 0.36),
+    color: type === 'gold' ? GOLD : type === 'multi' ? MULTI_COLOR : type === 'bomb' ? BOMB_COLOR
+      : type === 'rainbow' ? '#FFFFFF' : BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)],
+    phase: Math.random() * Math.PI * 2,
+    swayRate: 0.9 + Math.random() * 0.8,
+    tilt: 0,
+    born: performance.now()
+  };
+  // The string's free end, as a damped spring hanging under the knot.
+  b.tailX = b.x; b.tailY = b.y + b.r * 1.2 + STRING_LEN;
+  b.tailVx = 0; b.tailVy = 0;
+  balloons.push(b);
+  return b;
 }
 
-// Above this many live particles (a bomb/mega burst can spawn up to
-// 150 at once), stop paying the shadowBlur cost per-particle — a real
-// per-shape blur convolution for every one of 150 tiny circles every
-// frame is what made bomb/mega moments feel laggy. A handful of normal
-// pop particles still get their glow; a big burst trades a bit of glow
-// for staying smooth.
-const POP_PARTICLE_GLOW_LIMIT = 60;
+function spawnFromBottom(type, W){
+  const r = 7;
+  return makeBalloon(type, r + 2 + Math.random() * (W - 2 * r - 4), 100 + r + 4);
+}
 
-// Safety net against a stacked-event cascade (e.g. a mega explosion
-// landing while a couple of swarm-ball pops are still fading) piling up
-// hundreds of simultaneously-alive particles — trims the OLDEST ones
-// (already the most faded/least noticeable) rather than the newest.
-const POP_PARTICLE_HARD_CAP = 200;
+// A few balloons drifting in the sky when the game is waiting, so the
+// play area shows what the game is before the first turn.
+function seedIdleBalloons(){
+  balloons = []; shreds = []; bursts = []; popFloatTexts = [];
+  const W = worldWidth(popCanvasResizer.getCanvas() || { width: 160, height: 100 });
+  for(let i = 0; i < 6; i++){
+    makeBalloon('normal', W * (0.12 + 0.15 * i) + (Math.random() - 0.5) * 6, 30 + Math.random() * 45);
+  }
+}
 
-function spawnPopParticles(xPx, yPx, count = 40, speedMult = 1, sizeMult = 1){
-  count = particleCount(count); // lite mode: fewer per burst (js/quality.js)
-  for(let i = 0; i < count; i++){
-    const angle = Math.random() * Math.PI * 2;
-    const speed = (Math.random() * 12 + 2.5) * speedMult;
-    const hue = Math.floor(Math.random() * 360);
-    state.popParticles.push({
-      x: xPx, y: yPx,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 1.5 * speedMult,
-      alpha: 1,
-      decay: Math.random() * 0.016 + 0.01,
-      size: (Math.random() * 10 + 3) * sizeMult,
-      color: `hsl(${hue}, 100%, ${58 + Math.floor(Math.random() * 18)}%)`
+function stepBalloons(dt, now, W){
+  const t = now / 1000;
+  for(const b of balloons){
+    // Buoyancy and drag (exact for any frame time, so a slow PC rises
+    // at the same speed), then the breeze.
+    b.vy += -b.lift * dt;
+    b.vy *= Math.exp(-DRAG * dt);
+    b.vx += Math.sin(t * b.swayRate + b.phase) * SWAY_ACCEL * dt;
+    b.vx *= Math.exp(-SIDE_DRAG * dt);
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    // Soft walls at the sides.
+    if(b.x < b.r){ b.x = b.r; b.vx = Math.abs(b.vx) * 0.5; }
+    else if(b.x > W - b.r){ b.x = W - b.r; b.vx = -Math.abs(b.vx) * 0.5; }
+    // Lean the way it's drifting.
+    b.tilt += (Math.max(-0.45, Math.min(0.45, b.vx * 0.035)) - b.tilt) * Math.min(1, dt * 6);
+  }
+
+  // Balloons are soft: overlapping pairs push apart.
+  for(let i = 0; i < balloons.length; i++){
+    const a = balloons[i];
+    for(let j = i + 1; j < balloons.length; j++){
+      const c = balloons[j];
+      const dx = c.x - a.x, dy = (c.y - a.y) * 0.9;
+      const min = (a.r + c.r) * 0.95;
+      const d2 = dx * dx + dy * dy;
+      if(d2 >= min * min || d2 === 0) continue;
+      const d = Math.sqrt(d2), push = (min - d) * 6;
+      const nx = dx / d, ny = dy / d;
+      a.vx -= nx * push * dt * 10; a.vy -= ny * push * dt * 10;
+      c.vx += nx * push * dt * 10; c.vy += ny * push * dt * 10;
+    }
+  }
+
+  // Strings: each free end springs toward its rest spot under the knot.
+  const k = 60, damp = Math.exp(-6 * dt);
+  for(const b of balloons){
+    const knotY = knotOf(b).y;
+    const tx = b.x - b.tilt * STRING_LEN * 0.6, ty = knotY + STRING_LEN;
+    b.tailVx = (b.tailVx + (tx - b.tailX) * k * dt) * damp;
+    b.tailVy = (b.tailVy + (ty - b.tailY) * k * dt) * damp;
+    b.tailX += b.tailVx * dt;
+    b.tailY += b.tailVy * dt;
+  }
+
+  // Floated away off the top.
+  balloons = balloons.filter(b => !(b.tailY < -4 && b.y + b.r * 1.2 < -2));
+}
+
+// Where the string ties on: under the balloon, swung round by its lean.
+function knotOf(b){
+  const d = b.r * 1.38;
+  return { x: b.x - Math.sin(b.tilt) * d, y: b.y + Math.cos(b.tilt) * d };
+}
+
+function shove(x, y, strength){
+  for(const b of balloons){
+    const dx = b.x - x, dy = b.y - y;
+    const d = Math.hypot(dx, dy);
+    if(d > PUSH_RADIUS || d < 0.01) continue;
+    const f = strength * (1 - d / PUSH_RADIUS);
+    b.vx += (dx / d) * f;
+    b.vy += (dy / d) * f;
+  }
+}
+
+/* ---- Popping ---- */
+function spawnShreds(b){
+  const n = particleCount(b.type === 'bomb' ? 14 : 9);
+  const colors = b.type === 'rainbow' ? RAINBOW : [b.color];
+  for(let i = 0; i < n; i++){
+    const a = Math.random() * Math.PI * 2;
+    const sp = 22 + Math.random() * 30;
+    shreds.push({
+      kind: 'rubber', x: b.x + Math.cos(a) * b.r * 0.6, y: b.y + Math.sin(a) * b.r * 0.6,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 8,
+      rot: Math.random() * 6, spin: (Math.random() - 0.5) * 18,
+      size: b.r * (0.22 + Math.random() * 0.22), color: colors[i % colors.length], life: 1
     });
   }
-  if(state.popParticles.length > POP_PARTICLE_HARD_CAP){
-    state.popParticles.splice(0, state.popParticles.length - POP_PARTICLE_HARD_CAP);
+  if(b.type !== 'bomb'){
+    const kn = knotOf(b);
+    shreds.push({ kind: 'string', x: kn.x, y: kn.y, tx: b.tailX, ty: b.tailY,
+      vx: b.vx * 0.3, vy: 0, life: 1 });
   }
 }
 
-// How quickly each ball eases toward full size/opacity per frame —
-// same technique as the reference game's `ballScale += (1-ballScale)*spd`.
-// Higher = snappier settle; lower = slower, more floaty growth.
-const POP_BALL_EASE_SPEED = 0.18;
-
-// Chance, each time a normal ball is about to spawn, that a special
-// golden ball appears instead — capped at once per round regardless of
-// how many times the dice gets rolled (see popSpecialUsedThisRound).
-const POP_SPECIAL_CHANCE = 0.18;
-const POP_SPECIAL_COLOR = "#FFD23F";
-
-// Bombs spawn independently of the normal ball cycle — 1 or 2 per
-// round, at random moments, each ticking down for 3 seconds before
-// vanishing on its own if nobody pops it.
-const POP_BOMB_FUSE_MS = 3000;
-const POP_BOMB_COLOR = "#E4574B";
-const POP_BOMB_MIN_GAP_MS = 1400; // minimum time between two bombs spawning in the same round
-
-// Gems: tiny, high-value, fast-expiring bonus balls — exactly 3 per
-// round, each worth 3 points, gone after 2 seconds if not popped.
-const POP_GEM_COUNT = 3;
-const POP_GEM_FUSE_MS = 2000;
-const POP_GEM_POINTS = 3;
-const POP_GEM_COLOR = "#B266FF";
-const POP_GEM_MIN_GAP_MS = 1600;
-
-// Multiplier ball (new, 2026-07-16): same independent-schedule
-// architecture as bombs/gems, but only ONE per round — popping it
-// doubles EVERY point value (including a bomb's −1) for the next
-// POP_MULTIPLIER_DURATION_MS, so it's a single high-stakes moment
-// rather than a routine pickup. "Every score doubles, no exceptions"
-// was chosen over "only normal pops double" for a simple, memorable
-// rule a room full of students can track by ear ("double points!").
-const POP_MULTI_COUNT = 1;
-const POP_MULTI_FUSE_MS = 2600;
-const POP_MULTI_COLOR = "#A855F7";
-const POP_MULTIPLIER_DURATION_MS = 4000;
-
-function popMultiplierActive(){
-  return performance.now() < state.popMultiplierUntil;
+function addPopScore(n){
+  state.popScore = Math.max(0, state.popScore + n);
+  const el = document.getElementById('popPopsDisplay');
+  el.textContent = String(state.popScore);
+  el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3)', offset: 0.4 }, { transform: 'scale(1)' }],
+    { duration: 260, easing: 'ease-out' });
 }
 
-// `k` = 60fps-frames elapsed (frameFactor), so a ball grows in at the
-// same real-time speed on a 30fps classroom PC as on a 120Hz panel.
-function updatePopBallAnims(k){
-  const ease = 1 - Math.pow(1 - POP_BALL_EASE_SPEED, k);
-  for(const anim of state.popBallAnims){
-    // A ball that has finished growing in is left alone. This used to
-    // rewrite every live ball's transform and opacity on every frame for
-    // as long as it was on screen — a style invalidation per ball per
-    // frame for a value that had stopped changing.
-    if(anim.settled) continue;
-    anim.scale += (1 - anim.scale) * ease;
-    anim.alpha += (1 - anim.alpha) * ease;
-    if(anim.scale > 0.995 && anim.alpha > 0.995){
-      anim.scale = 1;
-      anim.alpha = 1;
-      anim.settled = true;
-    }
-    anim.el.style.transform = `translate(-50%,-50%) scale(${anim.scale})`;
-    anim.el.style.opacity = anim.alpha;
-  }
-}
+function multiplier(){ return performance.now() < state.popMultiplierUntil ? 2 : 1; }
 
-function updatePopParticles(k){
-  // gravity 0.2/frame, horizontal drag 0.983, gentle shrink 0.974
-  stepParticles(state.popParticles, k, { gravity: 0.2, dragX: 0.983, shrink: 0.974 });
-}
-
-
-function renderPopCanvas(){
+function popBalloon(b){
+  balloons = balloons.filter(x => x !== b);
   const canvas = popCanvasResizer.getCanvas();
-  if(!canvas) return;
-  const ctx = getPopCtx(canvas);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const u = unit(canvas);
+  const px = b.x * u, py = b.y * u;
+  spawnShreds(b);
+  bursts.push({ x: b.x, y: b.y, r: b.r, t0: performance.now(), color: b.type === 'bomb' ? '#FFB347' : '#FFFFFF' });
 
-  // No animated bokeh any more. Eight drifting glows were redrawn here
-  // every frame (a quarter-resolution pass plus a full-canvas upscale),
-  // which kept this the slowest game in the app; moving them to a CSS
-  // layer just moved the cost to the compositor (measured: worse, an
-  // oversized layer re-composited every frame). The play area's own
-  // static gradient background (.pop-play-area) carries the colour, and
-  // this canvas now draws only what is genuinely dynamic: ball rings
-  // and particles.
+  if(b.type === 'bomb'){
+    const lost = Math.min(state.popScore, BOMB_PENALTY * multiplier());
+    addPopScore(-lost);
+    spawnFloatText(popFloatTexts, px, py, lost ? `BOOM! −${lost}` : 'BOOM!', '#E4574B', -1.2);
+    shove(b.x, b.y, 60);
+    triggerShake(popShake, 9);
+    sfxImpact(1.1);
+    sfxIncorrect();
+    return;
+  }
 
-  // Above POP_PARTICLE_GLOW_LIMIT live particles, a bomb/mega moment is
-  // already under load — drop shadowBlur everywhere this frame (both
-  // the ring glow below AND the particle glow further down), not just
-  // on particles. shadowBlur is the single most expensive thing this
-  // canvas draws every frame; computed once here, ahead of the ring
-  // loop, instead of only gating the particle loop the way this used to.
-  const particleGlowOn = state.popParticles.length <= POP_PARTICLE_GLOW_LIMIT;
-
-  // Pulsing glow ring behind every live ball — same idea as the
-  // reference game's canvas-drawn glow (shadowBlur + a sine pulse),
-  // rather than a CSS drop-shadow animation. Works for any number of
-  // balls at once, which is what the 4-ball swarm needs. Bombs and
-  // gems pulse noticeably faster than normal balls — speed itself
-  // signals "this one's on a clock".
-  for(const anim of state.popBallAnims){
-    if(anim.alpha <= 0.01) continue;
-    const xPx = (anim.xPct / 100) * canvas.width;
-    const yPx = (anim.yPct / 100) * canvas.height;
-
-    // Each factor matches that ball type's real CSS width (radius =
-    // half of it) — deliberately derived from the actual size rather
-    // than guessed, since a mismatch here is exactly what caused the
-    // gem's ring-too-big misclick bug earlier.
-    let radiusFactor = 0.055;               // normal ball: 11% wide
-    if(anim.special) radiusFactor = 0.045;   // special ball: 9% wide
-    if(anim.swarm) radiusFactor = 0.04;      // swarm ball: 8% wide
-    if(anim.gem) radiusFactor = 0.025;       // gem: 5% wide
-    if(anim.bomb) radiusFactor = 0.03;       // bomb: 6% wide
-    if(anim.multi) radiusFactor = 0.035;     // multiplier ball: 7% wide
-    const radius = canvas.width * radiusFactor * anim.scale;
-    const ringPadding = (anim.gem || anim.special || anim.swarm || anim.multi) ? 1.5 : 5;
-
-    const pulsePeriod = (anim.bomb || anim.gem) ? 120 : 220;
-    const glowPulse = 0.7 + 0.3 * Math.sin(Date.now() / pulsePeriod);
-
-    // The glow used to be ctx.shadowBlur on the ring stroke. shadowBlur
-    // makes the renderer rasterize and blur a copy of the shape every
-    // frame, per ball — with the backdrop blobs fixed (above), this was
-    // what was left of Ball Pop's frame budget. A pre-rasterized glow
-    // sprite blitted behind a plain, unblurred stroke is visually the
-    // same bloom for a fraction of the cost.
-    const ringRadius = radius + ringPadding;
-    if(particleGlowOn){
-      const spread = anim.special ? 20 : (anim.gem || anim.swarm || anim.multi ? 16 : 26);
-      drawGlow(ctx, xPx, yPx, ringRadius + spread, anim.color, anim.alpha * glowPulse * 0.5, 1.6);
+  const m = multiplier();
+  sfxBalloonPop(b.r / 6.5);
+  shove(b.x, b.y, 24);
+  if(b.type === 'gold'){
+    addPopScore(GEM_POINTS * m);
+    spawnFloatText(popFloatTexts, px, py, `+${GEM_POINTS * m}`, '#D99A00', -1.1);
+    sfxRisingChime([880, 1108, 1318, 1568]);
+  } else if(b.type === 'multi'){
+    state.popMultiplierUntil = performance.now() + MULTIPLIER_MS;
+    spawnFloatText(popFloatTexts, px, py, 'DOUBLE POINTS!', MULTI_COLOR, -1.0);
+    sfxMultiplier();
+    flashPlayArea('multi-flash', 400);
+  } else if(b.type === 'rainbow'){
+    addPopScore(1 * m);
+    spawnFloatText(popFloatTexts, px, py, 'SURPRISE!', '#FF6FB5', -1.0);
+    sfxRisingChime([660, 880, 1100, 1320]);
+    flashPlayArea('mega-flash', 380);
+    triggerShake(popShake, 5);
+    // Four mini balloons burst out of it and drift up.
+    for(let i = 0; i < 4; i++){
+      const a = -Math.PI / 2 + (i - 1.5) * 0.7;
+      makeBalloon('mini', b.x, b.y, { vx: Math.cos(a) * 26, vy: Math.sin(a) * 18 - 4 })
+        .color = RAINBOW[i % RAINBOW.length];
     }
+  } else {
+    addPopScore(1 * m);
+    spawnFloatText(popFloatTexts, px, py, `+${m}`, m > 1 ? MULTI_COLOR : b.color, -1.0);
+  }
+}
+
+function flashPlayArea(cls, ms){
+  const area = document.getElementById('popPlayArea');
+  area.classList.add(cls);
+  setTimeout(() => area.classList.remove(cls), ms);
+}
+
+/* ---- Input: tap / click anywhere on a balloon ---- */
+function onPopPointerDown(e){
+  if(!state.popRoundActive) return;
+  e.preventDefault();
+  const canvas = popCanvasResizer.getCanvas();
+  const rect = canvas.getBoundingClientRect();
+  const wx = (e.clientX - rect.left) * 100 / rect.height;
+  const wy = (e.clientY - rect.top) * 100 / rect.height;
+  // Topmost first (drawn last), and a forgiving hit area.
+  for(let i = balloons.length - 1; i >= 0; i--){
+    const b = balloons[i];
+    const dx = (wx - b.x) / (b.r * 1.15), dy = (wy - b.y) / (b.r * 1.3);
+    if(dx * dx + dy * dy <= 1){ popBalloon(b); return; }
+  }
+}
+// For the automated tests only: where the ordinary balloons are, as
+// fractions of the play area, so a test can tap real balloons.
+export function debugBalloonTargets(){
+  const canvas = popCanvasResizer.getCanvas();
+  const W = worldWidth(canvas);
+  return balloons.filter(b => b.type === 'normal' && b.y > 8 && b.y < 92)
+    .map(b => ({ x: b.x / W, y: b.y / 100 }));
+}
+
+const popCanvasEl = popCanvasResizer.getCanvas();
+popCanvasEl.addEventListener('pointerdown', onPopPointerDown);
+
+/* =========================================================
+   DRAWING
+========================================================= */
+// A darker version of a balloon colour, for its shaded side. Cached:
+// there are only a handful of colours.
+const shadeCache = new Map();
+function shadeOf(hex){
+  let c = shadeCache.get(hex);
+  if(!c){
+    const n = parseInt(hex.slice(1), 16);
+    const k = 0.72;
+    c = `rgb(${Math.round((n >> 16) * k)},${Math.round(((n >> 8) & 255) * k)},${Math.round((n & 255) * k)})`;
+    shadeCache.set(hex, c);
+  }
+  return c;
+}
+
+// Body: a rounded top narrowing to the knot, centred on (0,0).
+function balloonPath(ctx, r){
+  const ry = r * 1.15;
+  ctx.beginPath();
+  ctx.moveTo(0, -ry);
+  ctx.bezierCurveTo(r * 1.32, -ry, r * 1.12, ry * 0.55, 0, ry);
+  ctx.bezierCurveTo(-r * 1.12, ry * 0.55, -r * 1.32, -ry, 0, -ry);
+  ctx.closePath();
+}
+
+function drawStarPath(ctx, r, points = 5, inner = 0.45){
+  ctx.beginPath();
+  for(let i = 0; i < points * 2; i++){
+    const rad = i % 2 === 0 ? r : r * inner;
+    const a = (Math.PI / points) * i;
+    const x = Math.sin(a) * rad, y = -Math.cos(a) * rad;
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function drawBalloon(ctx, b, u, now){
+  const r = b.r * u, x = b.x * u, y = b.y * u;
+  // A gentle grow-in for the first moments of a balloon's life.
+  const grow = Math.min(1, (now - b.born) / 220);
+  if(b.type === 'gold' || b.type === 'multi' || b.type === 'rainbow'){
+    drawGlow(ctx, x, y, r * 2, b.type === 'gold' ? GOLD : b.type === 'multi' ? MULTI_COLOR : '#FFFFFF', 0.5, 1.6);
+  }
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(b.tilt);
+  if(grow < 1) ctx.scale(grow, grow);
+  if(b.type === 'rainbow'){
+    // The one balloon that needs a clip (its stripes); there's only ever
+    // one of it, and only briefly.
+    balloonPath(ctx, r);
     ctx.save();
-    ctx.globalAlpha = anim.alpha * glowPulse;
-    ctx.strokeStyle = anim.color;
-    ctx.lineWidth = (anim.gem || anim.special || anim.swarm || anim.multi) ? 2 : 3;
-    ctx.beginPath();
-    ctx.arc(xPx, yPx, ringRadius, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.clip();
+    const band = (r * 2.6) / RAINBOW.length;
+    RAINBOW.forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(-r * 1.3 + i * band, -r * 1.3, band + 1, r * 2.8);
+    });
+    ctx.restore();
+  } else {
+    // Shading with no clip and no gradient (a clip per balloon measured
+    // ~7fps at 1440p with the CPU slowed 6x): the whole outline in a
+    // darker shade, then the balloon's colour over a slightly smaller
+    // copy nudged up and left. What's left showing is a shaded rim on
+    // the lower right, as if lit from the top left.
+    ctx.fillStyle = shadeOf(b.color);
+    balloonPath(ctx, r);
+    ctx.fill();
+    ctx.fillStyle = b.color;
+    ctx.save();
+    ctx.translate(-r * 0.1, -r * 0.1);
+    ctx.scale(0.88, 0.9);
+    balloonPath(ctx, r);
+    ctx.fill();
     ctx.restore();
   }
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.beginPath();
+  ctx.arc(-r * 0.38, -r * 0.48, r * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath();
+  ctx.arc(-r * 0.6, -r * 0.12, r * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+  // The knot.
+  ctx.fillStyle = b.type === 'rainbow' ? '#8B5CF6' : b.color;
+  const ky = r * 1.15;
+  ctx.beginPath();
+  ctx.moveTo(0, ky - r * 0.05);
+  ctx.lineTo(r * 0.17, ky + r * 0.2);
+  ctx.lineTo(-r * 0.17, ky + r * 0.2);
+  ctx.closePath();
+  ctx.fill();
 
-  // One save/restore for the whole particle batch instead of one pair
-  // per particle — with up to 200 particles alive at once, that's up to
-  // 200 fewer save/restore calls per frame. shadowBlur is explicitly
-  // reset to 0 when glow is off (rather than relying on restore(), which
-  // no longer runs per-iteration) so it can't leak from a previous frame.
-  // Particles are drawn as plain solid discs — no per-particle glow of
-  // any kind. They previously had shadowBlur, and a cached-sprite halo
-  // was tried as the replacement; measurement showed that with up to
-  // 200 particles alive during a pop burst, even a cheap blit per
-  // particle is 200 extra alpha-blended draws in the one frame that can
-  // least afford them. At this size, on this background, the halo was
-  // barely perceptible anyway — the glow that actually reads is the
-  // ring behind each BALL (above), which is a handful of draws, not
-  // hundreds. 'lighter' recovers the bloom for free: overlapping
-  // particles add together, which is what a burst should do.
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  for(const p of state.popParticles){
-    ctx.globalAlpha = Math.max(0, p.alpha);
-    ctx.fillStyle = p.color;
+  // Markings, kept upright-ish with the balloon's lean.
+  if(b.type === 'gold'){
+    ctx.fillStyle = '#FFFFFF';
+    drawStarPath(ctx, r * 0.5);
+    ctx.fill();
+  } else if(b.type === 'multi'){
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `900 ${Math.round(r * 0.9)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('×2', 0, r * 0.05);
+  } else if(b.type === 'bomb'){
+    // A red warning "!" and a fizzing fuse instead of a string.
+    ctx.fillStyle = '#FF5A4E';
+    ctx.fillRect(-r * 0.11, -r * 0.55, r * 0.22, r * 0.62);
     ctx.beginPath();
-    ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
+    ctx.arc(0, r * 0.32, r * 0.12, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
 }
 
-// The loop PARKS itself once there is nothing left to animate — no
-// round running, no balls, no particles still fading. It used to run
-// for as long as Stage 6 was open, including the long stretches a class
-// spends between turns, in the question modal, or on the game-over
-// screen: a full canvas redraw every frame to drift eight background
-// blobs nobody was looking at. Parked, the last frame simply stays on
-// screen. startPopRound() restarts it.
-export function startPopParticleLoop(){
-  if(state.popParticleRAF) return; // already running
-  let last = performance.now();
-  function frame(now){
-    noteFrame();
-    const k = frameFactor(now - last);
-    last = now;
-    updatePopBallAnims(k);
-    updatePopParticles(k);
-    renderPopCanvas();
-    if(!state.popRoundActive && state.popParticles.length === 0 && state.popBallAnims.length === 0){
-      state.popParticleRAF = null;
-      return;
-    }
-    state.popParticleRAF = requestAnimationFrame(frame);
-  }
-  state.popParticleRAF = requestAnimationFrame(frame);
-}
-
-export function stopPopParticleLoop(){
-  if(state.popParticleRAF) cancelAnimationFrame(state.popParticleRAF);
-  state.popParticleRAF = null;
-  state.popParticles = [];
-  state.popBallAnims = [];
-  clearAllBombs();
-  clearAllGems();
+function renderPopCanvas(){
   const canvas = popCanvasResizer.getCanvas();
-  if(canvas){
-    getPopCtx(canvas).clearRect(0, 0, canvas.width, canvas.height);
+  if(!canvas || canvas.width === 0) return;
+  const ctx = popCanvasResizer.getContext();
+  const u = unit(canvas);
+  const now = performance.now();
+
+  ctx.save();
+  applyShake(ctx, popShake);
+  renderSky(ctx, canvas);
+
+  // Every string in one stroke: knot to the springy free end, with a
+  // slight curve that follows the lean.
+  ctx.strokeStyle = 'rgba(70,74,90,0.55)';
+  ctx.lineWidth = Math.max(1, u * 0.28);
+  ctx.beginPath();
+  for(const b of balloons){
+    if(b.type === 'bomb') continue;
+    const kn = knotOf(b);
+    ctx.moveTo(kn.x * u, kn.y * u);
+    ctx.quadraticCurveTo(((kn.x + b.tailX) / 2 + Math.sin(now / 300 + b.phase) * 1.2) * u, ((kn.y + b.tailY) / 2) * u, b.tailX * u, b.tailY * u);
   }
-}
-
-// Builds one ball element + registers its animation entry. Doesn't wire
-// up a click handler itself — callers do that, since normal balls,
-// the special ball, and the 4-ball swarm each need different behavior
-// when clicked.
-// Picks a random spot inside the play area that isn't too close to
-// anything already on screen (other balls, the special ball, or a
-// live bomb) — plain rejection sampling: try a few random spots, keep
-// the first one that clears the minimum distance from everything in
-// popBallAnims, or just fall back to the last attempt if unlucky.
-function getNonCollidingPosition(minDistancePct = 18){
-  for(let attempt = 0; attempt < 20; attempt++){
-    const xPct = 10 + Math.random() * 80;
-    const yPct = 12 + Math.random() * 76;
-    const collides = state.popBallAnims.some(a => {
-      const dx = a.xPct - xPct;
-      const dy = (a.yPct - yPct) * (4 / 3); // rough correction for the 4:3 play area
-      return Math.sqrt(dx * dx + dy * dy) < minDistancePct;
-    });
-    if(!collides) return { xPct, yPct };
+  for(const s of shreds){
+    if(s.kind !== 'string') continue;
+    ctx.moveTo(s.x * u, s.y * u);
+    ctx.lineTo(s.tx * u, s.ty * u);
   }
-  return { xPct: 10 + Math.random() * 80, yPct: 12 + Math.random() * 76 };
-}
-
-// Darkens (negative percent) or lightens (positive) a hex color —
-// used to give the ball a subtle shaded edge instead of a bright
-// balloon-style highlight.
-function shadeColor(hex, percent){
-  const num = parseInt(hex.replace('#', ''), 16);
-  const amt = Math.round(2.55 * percent);
-  const r = Math.max(0, Math.min(255, (num >> 16) + amt));
-  const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
-  const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
-  return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`;
-}
-
-function createPopBall({ special = false, swarm = false, xPct = null, yPct = null } = {}){
-  const ballLayer = document.getElementById('popBallLayer');
-
-  const ball = document.createElement('button');
-  ball.className = 'pop-ball' + (special ? ' special' : '') + (swarm ? ' swarm' : '');
-  ball.type = 'button';
-
-  // A specific position is passed in when spawning several balls at
-  // once (see getSwarmPositions) so they can't land on top of each
-  // other — otherwise, find a spot that doesn't collide with anything
-  // currently on screen (including any live bomb).
-  const pos = (xPct !== null && yPct !== null) ? { xPct, yPct } : getNonCollidingPosition();
-  const finalX = pos.xPct;
-  const finalY = pos.yPct;
-  ball.style.left = finalX + '%';
-  ball.style.top = finalY + '%';
-
-  const color = special
-    ? POP_SPECIAL_COLOR
-    : POP_BALL_COLORS[Math.floor(Math.random() * POP_BALL_COLORS.length)];
-
-  // A glossy bubble: a bright specular highlight layered over the body
-  // gradient, with a lighter rim light opposite it. Three stacked
-  // gradients rather than one, which reads as a real 3D ball instead of
-  // a flat disc — these are DOM elements, and isolation testing
-  // confirmed the DOM layer costs this game essentially nothing (the
-  // frame budget goes on canvas fill-rate, see js/canvasGlow.js), so
-  // the extra paint detail here is free. Static gradients only: no
-  // blur, no filter, nothing animated, which is what keeps it free.
-  //
-  // Special balls skip this — their star gradient lives entirely in
-  // CSS (.pop-ball.special), so setting an inline background here
-  // would just override it.
-  if(!special){
-    // The highlight is deliberately SMALL. A first pass used a 26%-radius
-    // white hotspot, which on a 140px ball covered half its face and
-    // left every ball reading as a white blob with a coloured rim
-    // rather than as a coloured ball. A tight 13% glint is what reads
-    // as gloss; the rim light below does the rest of the 3D work.
-    ball.style.background = [
-      `radial-gradient(circle at 33% 27%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 5%, rgba(255,255,255,0) 13%)`,
-      `radial-gradient(circle at 74% 80%, ${shadeColor(color, 18)} 0%, rgba(255,255,255,0) 30%)`,
-      `radial-gradient(circle at 38% 32%, ${shadeColor(color, 6)} 0%, ${color} 55%, ${shadeColor(color, -28)} 100%)`
-    ].join(', ');
-    ball.style.boxShadow = 'inset 0 -6px 12px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.35), 0 4px 14px rgba(0,0,0,0.25)';
+  ctx.stroke();
+  // Bomb fuses: short and dark, with a flickering spark.
+  for(const b of balloons){
+    if(b.type !== 'bomb') continue;
+    const kn = knotOf(b);
+    const kx = kn.x * u, ky = kn.y * u;
+    ctx.strokeStyle = '#5A4A3A';
+    ctx.lineWidth = Math.max(1.5, u * 0.5);
+    ctx.beginPath();
+    ctx.moveTo(kx, ky);
+    ctx.quadraticCurveTo(kx + u * 2, ky + u * 2, kx + u * 1, ky + u * 4);
+    ctx.stroke();
+    ctx.fillStyle = Math.floor(now / 70) % 2 ? '#FFD23F' : '#FF7A3D';
+    ctx.beginPath();
+    ctx.arc(kx + u * 1, ky + u * 4, u * (0.8 + Math.random() * 0.5), 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  if(special){
-    ball.setAttribute('aria-label', 'Special ball — pops into four more balls!');
-  } else {
-    ball.setAttribute('aria-label', 'Pop the ball');
+  for(const b of balloons) drawBalloon(ctx, b, u, now);
+
+  // Rubber shreds: small tumbling triangles.
+  for(const s of shreds){
+    if(s.kind !== 'rubber') continue;
+    ctx.globalAlpha = Math.max(0, s.life);
+    ctx.fillStyle = s.color;
+    const c = Math.cos(s.rot), sn = Math.sin(s.rot), z = s.size * u;
+    const x = s.x * u, y = s.y * u;
+    ctx.beginPath();
+    ctx.moveTo(x + c * z, y + sn * z);
+    ctx.lineTo(x - c * z * 0.6 - sn * z * 0.7, y - sn * z * 0.6 + c * z * 0.7);
+    ctx.lineTo(x - c * z * 0.4 + sn * z * 0.8, y - sn * z * 0.4 - c * z * 0.8);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // The "pop": a jagged star that flashes out and fades in ~0.2s.
+  for(const p of bursts){
+    const t = (now - p.t0) / 200;
+    if(t >= 1) continue;
+    ctx.save();
+    ctx.globalAlpha = 1 - t;
+    ctx.translate(p.x * u, p.y * u);
+    ctx.fillStyle = p.color;
+    drawStarPath(ctx, p.r * u * (0.8 + t * 0.9), 8, 0.5);
+    ctx.fill();
+    ctx.restore();
   }
 
-  // Start fully shrunk/transparent — the shared per-frame loop eases
-  // these toward 1, rather than a fixed-duration CSS animation.
-  ball.style.transform = 'translate(-50%,-50%) scale(0)';
-  ball.style.opacity = '0';
-
-  const anim = { el: ball, xPct: finalX, yPct: finalY, color, scale: 0, alpha: 0, special, swarm };
-  state.popBallAnims.push(anim);
-  ballLayer.appendChild(ball);
-
-  return { ball, anim, ballLayer, xPct: finalX, yPct: finalY, color };
+  drawFloatTexts(ctx, popFloatTexts, Math.max(16, canvas.height * 0.06));
+  ctx.restore();
 }
 
-function removePopBall(ball, anim){
-  state.popBallAnims = state.popBallAnims.filter(a => a !== anim);
-  ball.remove();
-}
-
-// The shared "you popped something" feedback — shockwave, particles,
-// floating text, score bump. Used by every ball type. `amount` (default
-// 1) is the actual points just awarded — shown directly instead of a
-// hardcoded "+1" so a doubled pop (see popMultiplierActive) reads "+2".
-// `particleCount` (default 40, the normal-ball burst size) lets a swarm
-// pop request a smaller burst — see spawnPopSwarm's click handler.
-function popBallFeedback(ballLayer, xPct, yPct, color, amount = 1, particleCount = 40){
-  spawnShockwave(ballLayer, xPct, yPct, color);
-
-  const canvas = popCanvasResizer.getCanvas();
-  const pxX = (xPct / 100) * canvas.width;
-  const pxY = (yPct / 100) * canvas.height;
-  spawnPopParticles(pxX, pxY, particleCount);
-
-  showFloatingText(ballLayer, xPct, yPct, `+${amount}`, color);
-
-  bumpPopScore();
-}
-
-// Normal single-ball cycle: pop one, spawn the next. Each time this
-// runs, there's a chance to spawn the special ball instead — unless
-// it's already been used this round.
-function spawnPopBall(){
-  if(!state.popSpecialUsedThisRound && Math.random() < POP_SPECIAL_CHANCE){
-    spawnSpecialPopBall();
-    return;
-  }
-
-  const { ball, anim, ballLayer, xPct, yPct, color } = createPopBall();
-
-  ball.addEventListener('click', () => {
-    if(!state.popRoundActive) return;
-    const amount = popMultiplierActive() ? 2 : 1;
-    state.popScore += amount;
-    sfxPop(state.popScore);
-    popBallFeedback(ballLayer, xPct, yPct, color, amount);
-    removePopBall(ball, anim);
-    spawnPopBall();
-  });
-}
-
-// A much bigger, multi-ring burst for popping the special ball — reads
-// as a genuine "mega" event, not just a slightly larger normal pop.
-// Three staggered shockwave rings (the middle one flashes white),
-// ~1.75x the particles at higher speed/size, "BONUS!" instead of "+1",
-// and a brief warm flash across the whole play area border. Particle
-// count trimmed from an original 150 (was ~4x a normal burst) — the
-// rings/flash/text already carry the "mega" read, and 150 particles
-// plus the swarm balls this triggers next was the single biggest
-// contributor to Ball Pop's reported lag on lower-powered displays.
-function spawnMegaExplosion(ballLayer, xPct, yPct, color){
-  (isLowQuality() ? [0] : [0, 90, 180]).forEach((delay, i) => {
-    spawnShockwave(ballLayer, xPct, yPct, i === 1 ? '#ffffff' : color, { mega: true, delay });
-  });
-
-  const canvas = popCanvasResizer.getCanvas();
-  const pxX = (xPct / 100) * canvas.width;
-  const pxY = (yPct / 100) * canvas.height;
-  spawnPopParticles(pxX, pxY, 70, 1.8, 1.4);
-
-  showFloatingText(ballLayer, xPct, yPct, 'BONUS!', color, 'mega');
-
-  const playArea = document.getElementById('popPlayArea');
-  playArea.classList.add('mega-flash');
-  setTimeout(() => playArea.classList.remove('mega-flash'), 380);
-  // The biggest single moment in this game had no physical shake at
-  // all, unlike a bomb pop (see popBombFeedback's shakePlayArea() call)
-  // — same reflow-retrigger shake, reused rather than duplicated.
-  shakePlayArea();
-
-  sfxMegaExplosion();
-
-  bumpPopScore();
-}
-
-// The special ball: pops into a 4-ball swarm that must all be cleared
-// before normal single-ball spawning resumes. Limited to once per
-// round via popSpecialUsedThisRound, set the moment it's clicked.
-function spawnSpecialPopBall(){
-  const { ball, anim, ballLayer, xPct, yPct, color } = createPopBall({ special: true });
-
-  ball.addEventListener('click', () => {
-    if(!state.popRoundActive) return;
-    state.popSpecialUsedThisRound = true;
-    state.popScore += popMultiplierActive() ? 2 : 1;
-    spawnMegaExplosion(ballLayer, xPct, yPct, color);
-    removePopBall(ball, anim);
-    spawnPopSwarm(4);
-  });
-}
-
-// Spawns `count` normal balls simultaneously. All of them must be
-// popped before the game returns to the usual one-at-a-time spawning.
-// Splits the play area into a grid with at least `count` cells, shuffles
-// which cell each ball gets, then picks a random point safely inside
-// that cell (with margin). This is what stops the 4-ball swarm from
-// ever spawning two balls on top of each other — each one is
-// guaranteed its own region rather than a fully random, collision-prone
-// position.
-function getSwarmPositions(count){
-  const cols = Math.ceil(Math.sqrt(count));
-  const rows = Math.ceil(count / cols);
-  const cellW = 100 / cols;
-  const cellH = 100 / rows;
-
-  const cells = [];
-  for(let r = 0; r < rows; r++){
-    for(let c = 0; c < cols; c++){
-      cells.push({ r, c });
+function stepEffects(dt, k){
+  const now = performance.now();
+  for(const s of shreds){
+    if(s.kind === 'rubber'){
+      s.vy += 90 * dt;
+      s.vx *= Math.exp(-1.5 * dt);
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      s.rot += s.spin * dt;
+      s.life -= dt * 1.4;
+    } else {
+      s.vy += 120 * dt;
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      s.tx += s.vx * dt; s.ty += s.vy * dt * 1.08;
+      s.life -= dt * 1.2;
     }
   }
-  const shuffledCells = shuffle(cells);
-
-  const positions = [];
-  for(let i = 0; i < count; i++){
-    const cell = shuffledCells[i];
-    const marginX = cellW * 0.22;
-    const marginY = cellH * 0.22;
-    const rawX = cell.c * cellW + marginX + Math.random() * (cellW - 2 * marginX);
-    const rawY = cell.r * cellH + marginY + Math.random() * (cellH - 2 * marginY);
-    positions.push({
-      xPct: Math.max(10, Math.min(90, rawX)),
-      yPct: Math.max(12, Math.min(88, rawY))
-    });
-  }
-  return positions;
-}
-
-function spawnPopSwarm(count){
-  state.popSwarmRemaining = count;
-  const positions = getSwarmPositions(count);
-  for(let i = 0; i < count; i++){
-    const { ball, anim, ballLayer, xPct, yPct, color } = createPopBall({
-      swarm: true,
-      xPct: positions[i].xPct,
-      yPct: positions[i].yPct
-    });
-    ball.addEventListener('click', () => {
-      if(!state.popRoundActive) return;
-      const amount = popMultiplierActive() ? 2 : 1;
-      state.popScore += amount;
-      sfxPop(state.popScore);
-      // Smaller burst than a normal pop (16 vs the default 40) — up to
-      // 4 of these can fire in quick succession right after the mega
-      // explosion's own 70-particle burst, so keeping each one light
-      // matters more here than for a single standalone pop.
-      popBallFeedback(ballLayer, xPct, yPct, color, amount, 16);
-      removePopBall(ball, anim);
-      state.popSwarmRemaining--;
-      if(state.popSwarmRemaining <= 0) spawnPopBall();
-    });
-  }
+  shreds = shreds.filter(s => s.life > 0);
+  bursts = bursts.filter(p => now - p.t0 < 200);
+  popFloatTexts = updateFloatTexts(popFloatTexts, k);
 }
 
 /* =========================================================
-   BOMBS
-   Spawn independently of the normal ball cycle — 1 or 2 per
-   round, at random moments, alongside whatever ball is already
-   on screen. Each ticks down for 3 seconds and disappears on
-   its own if left alone; popping one costs a point. Scheduled
-   via setTimeout, so — like every other timer on this page —
-   anything pending or live MUST be cleared on round end/exit,
-   or it'll keep ticking in the background after the round is over.
+   ROUND LIFECYCLE
 ========================================================= */
-function scheduleBombsForRound(){
-  const count = 3 + Math.floor(Math.random() * 3); // 3-5 bombs per round — smaller now, so more of them still feels fair
+function buildSchedule(){
   const roundMs = POP_ROUND_SECONDS * 1000;
-  const usedDelays = [];
-
-  for(let i = 0; i < count; i++){
-    let delay;
-    let attempts = 0;
-    do {
-      // Keep clear of the very start/end of the round, and space
-      // multiple bombs apart so they don't both land at once.
-      delay = 1200 + Math.random() * (roundMs - 1200 - POP_BOMB_FUSE_MS - 800);
-      attempts++;
-    } while(usedDelays.some(d => Math.abs(d - delay) < POP_BOMB_MIN_GAP_MS) && attempts < 10);
-    usedDelays.push(delay);
-
-    const timeoutId = setTimeout(spawnPopBomb, delay);
-    state.popBombTimeouts.push(timeoutId);
-  }
-}
-
-function spawnPopBomb(){
-  if(!state.popRoundActive) return;
-  const ballLayer = document.getElementById('popBallLayer');
-  const pos = getNonCollidingPosition(13); // smaller now, but still enough clearance to read as a separate object
-
-  const bomb = document.createElement('button');
-  bomb.className = 'pop-ball bomb';
-  bomb.type = 'button';
-  bomb.setAttribute('aria-label', "Bomb — don't pop this one!");
-  bomb.style.left = pos.xPct + '%';
-  bomb.style.top = pos.yPct + '%';
-  bomb.style.transform = 'translate(-50%,-50%) scale(0)';
-  bomb.style.opacity = '0';
-
-  const anim = { el: bomb, xPct: pos.xPct, yPct: pos.yPct, color: POP_BOMB_COLOR, scale: 0, alpha: 0, bomb: true };
-  state.popBallAnims.push(anim);
-  ballLayer.appendChild(bomb);
-
-  let secondsLeft = Math.ceil(POP_BOMB_FUSE_MS / 1000);
-  bomb.textContent = String(secondsLeft);
-
-  const fuseInterval = setInterval(() => {
-    secondsLeft--;
-    if(secondsLeft > 0) bomb.textContent = String(secondsLeft);
-  }, 1000);
-
-  const expireTimeout = setTimeout(() => {
-    clearInterval(fuseInterval);
-    removeBomb(bomb, anim);
-  }, POP_BOMB_FUSE_MS);
-
-  bomb.addEventListener('click', () => {
-    if(!state.popRoundActive) return;
-    clearInterval(fuseInterval);
-    clearTimeout(expireTimeout);
-    const penalty = popMultiplierActive() ? 2 : 1;
-    state.popScore = Math.max(0, state.popScore - penalty);
-    sfxIncorrect();
-    popBombFeedback(ballLayer, pos.xPct, pos.yPct, penalty);
-    removeBomb(bomb, anim);
-  });
-
-  state.popActiveBombs.push({ bomb, anim, fuseInterval, expireTimeout });
-}
-
-function removeBomb(bomb, anim){
-  state.popBallAnims = state.popBallAnims.filter(a => a !== anim);
-  state.popActiveBombs = state.popActiveBombs.filter(b => b.bomb !== bomb);
-  bomb.remove();
-}
-
-// Distinct from popBallFeedback — a bomb pop is a miss, so it gets a
-// red burst, a "−N", and a shake instead of the usual celebration.
-// `penalty` doubles to 2 during the multiplier window, same as every
-// other scoring event — the multiplier amplifies everything, not just
-// the good stuff.
-function popBombFeedback(ballLayer, xPct, yPct, penalty = 1){
-  spawnShockwave(ballLayer, xPct, yPct, POP_BOMB_COLOR);
-  const canvas = popCanvasResizer.getCanvas();
-  const pxX = (xPct / 100) * canvas.width;
-  const pxY = (yPct / 100) * canvas.height;
-  spawnPopParticles(pxX, pxY);
-  showFloatingText(ballLayer, xPct, yPct, `−${penalty}`, POP_BOMB_COLOR);
-  shakePlayArea();
-
-  bumpPopScore();
-}
-
-// A Web Animation restarts cleanly on back-to-back bombs by itself. The
-// class-toggle version needed `void offsetWidth` to retrigger, which
-// forces a full synchronous layout at exactly the busiest moment.
-function shakePlayArea(){
-  document.getElementById('popPlayArea').animate([
-    { transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(7px)' },
-    { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }
-  ], { duration: 400, easing: 'ease' });
-}
-
-// Cancels every pending/live bomb — called whenever a round ends,
-// gets interrupted, or the stage is left, so nothing keeps ticking
-// (or, worse, spawning) once the round is actually over.
-function clearAllBombs(){
-  state.popBombTimeouts.forEach(id => clearTimeout(id));
-  state.popBombTimeouts = [];
-  state.popActiveBombs.forEach(b => {
-    clearInterval(b.fuseInterval);
-    clearTimeout(b.expireTimeout);
-    b.bomb.remove();
-    state.popBallAnims = state.popBallAnims.filter(a => a !== b.anim);
-  });
-  state.popActiveBombs = [];
-}
-
-/* =========================================================
-   GEMS
-   Same architecture as bombs — spawn on their own schedule,
-   independent of the normal ball cycle, each with its own expiry
-   timer — but a gem is a reward, not a hazard: worth 3 points,
-   fully vanishes with no penalty if left unclicked. Exactly 3
-   spawn per round, each with a 2-second fuse.
-========================================================= */
-function scheduleGemsForRound(){
-  const roundMs = POP_ROUND_SECONDS * 1000;
-  const usedDelays = [];
-
-  for(let i = 0; i < POP_GEM_COUNT; i++){
-    let delay;
-    let attempts = 0;
-    do {
-      delay = 900 + Math.random() * (roundMs - 900 - POP_GEM_FUSE_MS - 500);
-      attempts++;
-    } while(usedDelays.some(d => Math.abs(d - delay) < POP_GEM_MIN_GAP_MS) && attempts < 10);
-    usedDelays.push(delay);
-
-    const timeoutId = setTimeout(spawnPopGem, delay);
-    state.popGemTimeouts.push(timeoutId);
-  }
-}
-
-function spawnPopGem(){
-  if(!state.popRoundActive) return;
-  const ballLayer = document.getElementById('popBallLayer');
-  const pos = getNonCollidingPosition(14); // smaller footprint, so a tighter clearance is fine
-
-  const gem = document.createElement('button');
-  gem.className = 'pop-ball gem';
-  gem.type = 'button';
-  gem.setAttribute('aria-label', 'Bonus gem — worth 3 points!');
-  gem.style.left = pos.xPct + '%';
-  gem.style.top = pos.yPct + '%';
-  gem.style.transform = 'translate(-50%,-50%) scale(0)';
-  gem.style.opacity = '0';
-
-  const anim = { el: gem, xPct: pos.xPct, yPct: pos.yPct, color: POP_GEM_COLOR, scale: 0, alpha: 0, gem: true };
-  state.popBallAnims.push(anim);
-  ballLayer.appendChild(gem);
-
-  const expireTimeout = setTimeout(() => removeGem(gem, anim), POP_GEM_FUSE_MS);
-
-  gem.addEventListener('click', () => {
-    if(!state.popRoundActive) return;
-    clearTimeout(expireTimeout);
-    const amount = POP_GEM_POINTS * (popMultiplierActive() ? 2 : 1);
-    state.popScore += amount;
-    sfxGem();
-    popGemFeedback(ballLayer, pos.xPct, pos.yPct, amount);
-    removeGem(gem, anim);
-  });
-
-  state.popActiveGems.push({ gem, anim, expireTimeout });
-}
-
-function removeGem(gem, anim){
-  state.popBallAnims = state.popBallAnims.filter(a => a !== anim);
-  state.popActiveGems = state.popActiveGems.filter(g => g.gem !== gem);
-  gem.remove();
-}
-
-// A brighter, richer celebration than a normal pop — three colors of
-// particle burst plus the actual amount awarded (normally "+3", "+6"
-// during a multiplier window) instead of "+1", since this one's worth
-// more than a normal pop to begin with.
-function popGemFeedback(ballLayer, xPct, yPct, amount = POP_GEM_POINTS){
-  spawnShockwave(ballLayer, xPct, yPct, POP_GEM_COLOR);
-  const canvas = popCanvasResizer.getCanvas();
-  const pxX = (xPct / 100) * canvas.width;
-  const pxY = (yPct / 100) * canvas.height;
-  spawnPopParticles(pxX, pxY);
-  spawnPopParticles(pxX, pxY); // a second burst — a gem deserves more sparkle than a normal pop
-  spawnPopSparkles(ballLayer, xPct, yPct, POP_GEM_COLOR);
-  showFloatingText(ballLayer, xPct, yPct, `+${amount}`, POP_GEM_COLOR);
-
-  bumpPopScore();
-}
-
-function clearAllGems(){
-  state.popGemTimeouts.forEach(id => clearTimeout(id));
-  state.popGemTimeouts = [];
-  state.popActiveGems.forEach(g => {
-    clearTimeout(g.expireTimeout);
-    g.gem.remove();
-    state.popBallAnims = state.popBallAnims.filter(a => a !== g.anim);
-  });
-  state.popActiveGems = [];
-}
-
-/* =========================================================
-   MULTIPLIER BALL (new, 2026-07-16)
-   Same independent-schedule architecture as bombs/gems — spawns on its
-   own timer, separate from the normal ball cycle — but exactly ONE per
-   round, since popping it doubles every point value (positive AND
-   negative) for the next POP_MULTIPLIER_DURATION_MS. A single round-
-   defining moment, not a routine pickup like a gem.
-========================================================= */
-function scheduleMultiForRound(){
-  const roundMs = POP_ROUND_SECONDS * 1000;
-  // Kept out of the very start/end of the round, same margins bombs/gems
-  // use — no min-gap spacing needed since there's only ever one of these.
-  const delay = 1500 + Math.random() * (roundMs - 1500 - POP_MULTI_FUSE_MS - 800);
-  const timeoutId = setTimeout(spawnPopMulti, delay);
-  state.popMultiTimeouts.push(timeoutId);
-}
-
-function spawnPopMulti(){
-  if(!state.popRoundActive) return;
-  const ballLayer = document.getElementById('popBallLayer');
-  const pos = getNonCollidingPosition(14);
-
-  const multi = document.createElement('button');
-  multi.className = 'pop-ball multi';
-  multi.type = 'button';
-  multi.setAttribute('aria-label', 'Multiplier ball — doubles every point for a few seconds!');
-  multi.style.left = pos.xPct + '%';
-  multi.style.top = pos.yPct + '%';
-  multi.style.transform = 'translate(-50%,-50%) scale(0)';
-  multi.style.opacity = '0';
-
-  const anim = { el: multi, xPct: pos.xPct, yPct: pos.yPct, color: POP_MULTI_COLOR, scale: 0, alpha: 0, multi: true };
-  state.popBallAnims.push(anim);
-  ballLayer.appendChild(multi);
-
-  const expireTimeout = setTimeout(() => removeMulti(multi, anim), POP_MULTI_FUSE_MS);
-
-  multi.addEventListener('click', () => {
-    if(!state.popRoundActive) return;
-    clearTimeout(expireTimeout);
-    state.popMultiplierUntil = performance.now() + POP_MULTIPLIER_DURATION_MS;
-    sfxMultiplier();
-    popMultiFeedback(ballLayer, pos.xPct, pos.yPct);
-    removeMulti(multi, anim);
-  });
-
-  state.popActiveMulti.push({ el: multi, anim, expireTimeout });
-}
-
-function removeMulti(multi, anim){
-  state.popBallAnims = state.popBallAnims.filter(a => a !== anim);
-  state.popActiveMulti = state.popActiveMulti.filter(m => m.el !== multi);
-  multi.remove();
-}
-
-// A distinct "power surge" celebration — a bright ring flash across the
-// whole play area (so a x2 window starting is unmissable even mid-tap),
-// on top of the usual shockwave/particles/text.
-function popMultiFeedback(ballLayer, xPct, yPct){
-  spawnShockwave(ballLayer, xPct, yPct, POP_MULTI_COLOR);
-  const canvas = popCanvasResizer.getCanvas();
-  const pxX = (xPct / 100) * canvas.width;
-  const pxY = (yPct / 100) * canvas.height;
-  spawnPopParticles(pxX, pxY, 60, 1.4, 1.1);
-  showFloatingText(ballLayer, xPct, yPct, '×2!', POP_MULTI_COLOR);
-
-  const playArea = document.getElementById('popPlayArea');
-  playArea.classList.add('multi-flash');
-  setTimeout(() => playArea.classList.remove('multi-flash'), 400);
-}
-
-function clearAllMulti(){
-  state.popMultiTimeouts.forEach(id => clearTimeout(id));
-  state.popMultiTimeouts = [];
-  state.popActiveMulti.forEach(m => {
-    clearTimeout(m.expireTimeout);
-    m.el.remove();
-    state.popBallAnims = state.popBallAnims.filter(a => a !== m.anim);
-  });
-  state.popActiveMulti = [];
+  const at = (lo, hi) => lo + Math.random() * (hi - lo);
+  const list = [];
+  for(let i = 0; i < GEM_COUNT; i++) list.push({ at: at(800, roundMs - 1800), type: 'gold' });
+  const bombs = 3 + Math.floor(Math.random() * 3);
+  for(let i = 0; i < bombs; i++) list.push({ at: at(600, roundMs - 1500), type: 'bomb' });
+  list.push({ at: at(1500, roundMs - 3500), type: 'multi' });
+  list.push({ at: at(1200, roundMs - 4500), type: 'rainbow' });
+  return list.sort((a, b) => a.at - b.at);
 }
 
 function startPopRound(){
   cancelPopRound();
   state.popRoundActive = true;
   state.popScore = 0;
-  state.popSpecialUsedThisRound = false;
-  state.popSwarmRemaining = 0;
   state.popMultiplierUntil = 0;
+  balloons = []; shreds = []; bursts = []; popFloatTexts = [];
+  popShake = createShakeState();
+  schedule = buildSchedule();
+  nextNormalAt = 0;
 
   document.getElementById('popPopsDisplay').textContent = '0';
   document.getElementById('popTimeDisplay').textContent = POP_ROUND_SECONDS;
   setTimerFill(document.getElementById('popTimerFill'), 1);
+  document.getElementById('popPlayArea').classList.remove('idle');
+  document.getElementById('popHint').classList.remove('hidden');
+  resizePopCanvas();
 
-  const playArea = document.getElementById('popPlayArea');
-  playArea.classList.remove('idle');
-  document.getElementById('popBallLayer').innerHTML = '';
-  startPopParticleLoop(); // may have parked between turns
-  spawnPopBall();
-  scheduleBombsForRound();
-  scheduleGemsForRound();
-  scheduleMultiForRound();
+  // A handful already on their way up, so there's something to pop at once.
+  const canvas = popCanvasResizer.getCanvas();
+  const W = worldWidth(canvas);
+  for(let i = 0; i < 5; i++){
+    makeBalloon('normal', W * (0.12 + 0.19 * i) + (Math.random() - 0.5) * 6, 70 + Math.random() * 30);
+  }
 
   const start = performance.now();
-  const timeDisplay = document.getElementById('popTimeDisplay');
-  const timerFill = document.getElementById('popTimerFill');
-  const updateTimerHud = createTimerHud(timeDisplay, timerFill, POP_ROUND_SECONDS);
+  let last = start;
+  const updateTimerHud = createTimerHud(document.getElementById('popTimeDisplay'), document.getElementById('popTimerFill'), POP_ROUND_SECONDS);
   const popsEl = document.getElementById('popPopsDisplay');
-  function tick(now){
-    const remaining = Math.max(0, POP_ROUND_SECONDS - (now - start) / 1000);
-    updateTimerHud(remaining);
-    // Live "×2 active" cue on the score number itself for the whole
-    // window, not just the instant it's popped — a room full of players
-    // needs to keep seeing it, not just catch a one-off flash.
-    popsEl.classList.toggle('multi-active', popMultiplierActive());
 
-    if(remaining <= 0){
-      finishPopRound();
-      return;
+  function tick(now){
+    const dtMs = Math.min(50, now - last);
+    noteFrame();
+    last = now;
+    const elapsed = now - start;
+    const remaining = Math.max(0, POP_ROUND_SECONDS - elapsed / 1000);
+    updateTimerHud(remaining);
+    popsEl.classList.toggle('multi-active', multiplier() > 1);
+
+    const W = worldWidth(popCanvasResizer.getCanvas());
+    // A steady release of ordinary balloons, a little faster than one
+    // every half second, topped up whenever the sky gets sparse.
+    if(elapsed >= nextNormalAt && balloons.length < MAX_ON_SCREEN){
+      spawnFromBottom('normal', W);
+      nextNormalAt = elapsed + 330 + Math.random() * 260;
     }
+    while(schedule.length && elapsed >= schedule[0].at){
+      spawnFromBottom(schedule.shift().type, W);
+    }
+
+    const dt = dtMs / 1000;
+    stepBalloons(dt, now, W);
+    stepEffects(dt, frameFactor(dtMs));
+    renderPopCanvas();
+
+    if(remaining <= 0){ finishPopRound(); return; }
     state.popRoundRAF = requestAnimationFrame(tick);
   }
   state.popRoundRAF = requestAnimationFrame(tick);
 }
 
-// Cancels an in-progress round cleanly — called both when a round ends
-// naturally (time runs out) and when the teacher navigates away from
-// this stage mid-round. In the "navigated away" case there's no result
-// to show, so the UI just resets back to an idle "Begin turn" state
-// for the same team to retry.
+// Cancels an in-progress round cleanly — when the teacher navigates away
+// mid-round there's no result to show, so the same team can retry.
 export function cancelPopRound(){
   if(state.popRoundRAF) cancelAnimationFrame(state.popRoundRAF);
   state.popRoundRAF = null;
   if(state.popRoundActive){
     state.popRoundActive = false;
-    clearAllBombs();
-    clearAllGems();
-    clearAllMulti();
     document.getElementById('popPopsDisplay').classList.remove('multi-active');
-    const playArea = document.getElementById('popPlayArea');
-    if(playArea){
-      const ballLayer = document.getElementById('popBallLayer');
-      if(ballLayer) ballLayer.innerHTML = '';
-      state.popBallAnims = [];
-      state.popSwarmRemaining = 0;
-      playArea.classList.add('idle');
-    }
+    document.getElementById('popPlayArea').classList.add('idle');
+    document.getElementById('popHint').classList.add('hidden');
+    shreds = []; bursts = []; popFloatTexts = [];
+    renderPopCanvas();
     const beginBtn = document.getElementById('popBeginTurnBtn');
     if(beginBtn) beginBtn.disabled = false;
   }
@@ -1142,24 +725,19 @@ export function cancelPopRound(){
 function finishPopRound(){
   state.popRoundActive = false;
   state.popRoundRAF = null;
-  clearAllBombs();
-  clearAllGems();
-  clearAllMulti();
-  document.getElementById('popPopsDisplay').classList.remove('multi-active');
   sfxTimeUp();
-
-  const playArea = document.getElementById('popPlayArea');
-  document.getElementById('popBallLayer').innerHTML = '';
-  state.popBallAnims = [];
-  state.popSwarmRemaining = 0;
-  playArea.classList.add('idle');
+  document.getElementById('popPopsDisplay').classList.remove('multi-active');
+  document.getElementById('popPlayArea').classList.add('idle');
+  document.getElementById('popHint').classList.add('hidden');
+  shreds = []; bursts = []; popFloatTexts = [];
+  renderPopCanvas();
 
   const team = state.popTeams[state.popCurrentTeam];
   team.total += state.popScore;
   state.popTurnsPlayed++;
   renderPopScoreboard();
 
-  showPopResult().then(() => {
+  showTurnResultModal('popNextTeamBtn', { teams: state.popTeams, currentTeamIndex: state.popCurrentTeam }).then(() => {
     if(state.popTurnsPlayed >= POP_QUESTIONS.length){
       endPopGame();
     } else {
@@ -1173,10 +751,6 @@ function finishPopRound(){
   });
 }
 
-function showPopResult(){
-  return showTurnResultModal('popNextTeamBtn', { teams: state.popTeams, currentTeamIndex: state.popCurrentTeam });
-}
-
 function endPopGame(){
   const winnerText = finishTeamGame({ prefix: 'pop', teams: state.popTeams, hasTimerHud: true, setPlayAreaIdle: true });
   document.getElementById('popTurnBanner').innerHTML = `All 10 questions done — ${winnerText}`;
@@ -1186,8 +760,7 @@ wireTeamManagementButtons({
   prefix: 'pop',
   getTeams: () => state.popTeams,
   renderScoreboard: renderPopScoreboard,
-  cancelRound: cancelPopRound,
-  beforePlayAgain: stopPopParticleLoop
+  cancelRound: cancelPopRound
 });
 
 document.getElementById('popBackBtn').addEventListener('click', () => goToStage(5));

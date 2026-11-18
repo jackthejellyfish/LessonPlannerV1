@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Jack the jellyfish">
+  <!-- Jack the jellyfish: Teacher Jack's character. Used as the favicon and
+       the lesson-picker logo. Flat shapes only, readable at 16px. -->
+  <defs>
+    <linearGradient id="jfBell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C9B8F0"/>
+      <stop offset="1" stop-color="#8F7BC4"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="#A996D8" stroke-width="3.2" stroke-linecap="round">
+    <path d="M19 34 q-4 6 0 11.5 t0 11.5"/>
+    <path d="M27.5 36 q4 5.5 0 10.5 t0 11"/>
+    <path d="M36.5 36 q-4 5.5 0 10.5 t0 11"/>
+    <path d="M45 34 q4 6 0 11.5 t0 11.5"/>
+  </g>
+  <path fill="url(#jfBell)" d="M7 34 C7 15 19 5 32 5 C45 5 57 15 57 34 Q53 39.5 49 34 Q45 39.5 41 34 Q36.5 39.5 32 34 Q27.5 39.5 23 34 Q19 39.5 15 34 Q11 39.5 7 34 Z"/>
+  <ellipse cx="20" cy="15" rx="6.5" ry="3.4" fill="#fff" opacity="0.55" transform="rotate(-32 20 15)"/>
+  <ellipse cx="19" cy="27.5" rx="3.4" ry="2.2" fill="#F29BA8" opacity="0.8"/>
+  <ellipse cx="45" cy="27.5" rx="3.4" ry="2.2" fill="#F29BA8" opacity="0.8"/>
+  <circle cx="25" cy="23" r="2.9" fill="#333B3C"/>
+  <circle cx="39" cy="23" r="2.9" fill="#333B3C"/>
+  <circle cx="26" cy="22" r="1" fill="#fff"/>
+  <circle cx="40" cy="22" r="1" fill="#fff"/>
+  <path d="M28 28.5 q4 3.8 8 0" fill="none" stroke="#333B3C" stroke-width="2" stroke-linecap="round"/>
+</svg>

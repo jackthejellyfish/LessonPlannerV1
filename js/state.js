@@ -39,17 +39,6 @@ function createState(lessonId, muted){
     popScore: 0,           // pops scored in the round currently in progress
     popRoundActive: false,
     popRoundRAF: null,
-    popParticles: [],       // live particle data: {x, y, vx, vy, alpha, decay, size, color}
-    popParticleRAF: null,   // the continuous rendering loop's requestAnimationFrame id
-    popBallAnims: [],       // every currently-live ball's {el, xPct, yPct, color, scale, alpha, special}
-    popSpecialUsedThisRound: false,
-    popSwarmRemaining: 0,   // balls still to clear from the special-ball swarm, if one is in progress
-    popBombTimeouts: [],    // scheduled setTimeout ids for bombs not yet spawned this round
-    popActiveBombs: [],     // currently live bombs: { bomb, anim, fuseInterval, expireTimeout }
-    popGemTimeouts: [],     // scheduled setTimeout ids for gems not yet spawned this round
-    popActiveGems: [],      // currently live gems: { gem, anim, expireTimeout }
-    popMultiTimeouts: [],   // scheduled setTimeout ids for the multiplier ball not yet spawned this round
-    popActiveMulti: [],     // currently live multiplier ball(s): { el, anim, expireTimeout }
     popMultiplierUntil: 0,  // performance.now() timestamp — while in the future, all scoring doubles
     invTeams: [],
     invCurrentTeam: 0,
@@ -138,6 +127,23 @@ function createState(lessonId, muted){
     whackScore: 0,
     whackRoundActive: false,
     whackRoundRAF: null,
+    whackColumns: 4,      // lanes the jellyfish come up in (1-5), the teacher's choice
+    // Stage 15 (Jelly Maze)
+    mazeTeams: [],
+    mazeCurrentTeam: 0,
+    mazeQuestionOrder: [],
+    mazeTurnsPlayed: 0,
+    mazeScore: 0,
+    mazeRoundActive: false,
+    mazeRoundRAF: null,
+    // Stage 16 (Ninja Jump)
+    jumpTeams: [],
+    jumpCurrentTeam: 0,
+    jumpQuestionOrder: [],
+    jumpTurnsPlayed: 0,
+    jumpScore: 0,
+    jumpRoundActive: false,
+    jumpRoundRAF: null,
     muted
   };
 }

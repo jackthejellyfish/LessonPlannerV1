@@ -24,11 +24,27 @@
    720p board), so the card basis dropped from 280px to 250px: four fit in
    1120px (4 x 250 + 3 x 18 gap = 1054), giving 4 + 3. */
 .lesson-select-inner{ max-width:1120px; width:100%; text-align:center; }
-.lesson-select-eyebrow{
-  font-family:var(--font-display); font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
-  font-size:clamp(12px, 1.6vh, 14px); color:var(--muted); margin:0 0 8px;
+/* Brand lockup: Jack the jellyfish beside the planner's name. One row,
+   so it costs no more height than the old eyebrow + heading did (the
+   picker must still fit 4 + 4 cards on a 720p board). */
+.brand{
+  display:flex; align-items:center; justify-content:center;
+  gap:clamp(10px, 1.6vw, 18px); flex-wrap:wrap;
 }
-.lesson-select-inner h1{ font-size:clamp(30px, 5.5vh, 46px); font-weight:800; }
+.brand-mark{
+  width:clamp(48px, 8vh, 72px); height:auto; flex-shrink:0;
+  /* A slow bob - transform only, on one small element, so it's free.
+     Stopped in lite mode and for reduced motion like every other
+     decorative loop. */
+  animation: jellyBob 3.2s ease-in-out infinite;
+}
+@keyframes jellyBob{
+  0%, 100%{ transform:translateY(0) rotate(-3deg); }
+  50%{ transform:translateY(-6px) rotate(3deg); }
+}
+body.low-quality .brand-mark{ animation:none; }
+@media (prefers-reduced-motion: reduce){ .brand-mark{ animation:none; } }
+.lesson-select-inner h1{ font-size:clamp(28px, 5.2vh, 44px); font-weight:800; margin:0; }
 .lesson-select-sub{
   color:var(--muted); font-size:clamp(14px, 2vh, 17px); margin:12px 0 clamp(24px, 4vh, 40px);
 }

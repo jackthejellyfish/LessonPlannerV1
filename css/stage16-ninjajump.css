@@ -1,0 +1,71 @@
+  /* ---- Ninja Jump (Stage 16) ----
+     Reuses .inv-play-area/.inv-canvas from stage7-stardefender.css, like
+     every canvas game. Stage-specific: legend swatches, the hint colour,
+     Begin-turn placement and the on-screen touch buttons. */
+  .jump-legend-swatch{
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* Four-point shuriken, matching drawStar() on the canvas. */
+  .jump-legend-swatch.star{
+    width:28px; height:28px;
+    background: radial-gradient(circle, #FFFFFF 0 16%, #5E6A80 17%);
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+  }
+  .jump-legend-swatch.clear{
+    width:26px; height:26px; border-radius:50%;
+    background:#FFE066; color:#5A4500; font-weight:900; font-size:16px;
+  }
+  .jump-legend-swatch.clock{
+    width:26px; height:26px; border-radius:50%;
+    background:#7CFFB2; color:#0B4F3C;
+    font-family:var(--font-display); font-weight:900; font-size:11px;
+  }
+  /* The triple-jump orb, as drawn by drawPowerup(). */
+  .jump-legend-swatch.triple{
+    width:28px; height:28px; border-radius:50%;
+    background:#B983FF; color:#fff; box-shadow:0 0 10px rgba(185,131,255,0.8);
+    font-family:var(--font-display); font-weight:900; font-size:15px;
+  }
+  .jump-legend-swatch.spring{
+    width:26px; height:24px; position:relative;
+    background: repeating-linear-gradient(170deg, #9AA3B2 0 3px, transparent 3px 7px);
+    border-top:6px solid #FF5C5C;
+  }
+  .jump-legend-swatch.spikes{
+    width:30px; height:18px;
+    background:#7D889C;
+    clip-path: polygon(0% 100%, 16% 0%, 33% 100%, 50% 0%, 66% 100%, 83% 0%, 100% 100%);
+  }
+
+  #jumpPlayArea #jumpBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .inv-play-area:not(.idle) #jumpBeginTurnBtn{ display:none; }
+
+  .jump-hint{ color:#FFE7B8; }
+
+  /* ---- Touch buttons ----
+     For an interactive board with no keyboard in reach. Shown only while
+     a turn is being played, in the bottom corners, and see-through so
+     they don't hide the level. Static styles only - nothing animates. */
+  .jump-touch{
+    position:absolute; left:0; right:0; bottom:0; z-index:22;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    padding:clamp(8px,1.4vh,16px); pointer-events:none;
+  }
+  .inv-play-area.idle .jump-touch{ display:none; }
+  .jump-touch-move{ display:flex; gap:clamp(8px,1.2vw,14px); }
+  .jump-touch-btn{
+    pointer-events:auto; touch-action:none; user-select:none; -webkit-user-select:none;
+    width:clamp(56px,7vw,84px); height:clamp(56px,7vw,84px); border-radius:50%;
+    border:2px solid rgba(255,255,255,0.45); background:rgba(255,255,255,0.14);
+    color:#fff; font-size:clamp(20px,2.4vw,30px); font-weight:800; cursor:pointer;
+  }
+  .jump-touch-btn:active{ background:rgba(255,255,255,0.32); }
+  .jump-touch-jump{
+    width:clamp(80px,10vw,120px); height:clamp(80px,10vw,120px);
+    font-family:var(--font-display); font-size:clamp(15px,1.8vw,22px); letter-spacing:0.04em;
+  }
+
+  #jumpCanvas{ touch-action:none; }

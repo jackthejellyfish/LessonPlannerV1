@@ -91,7 +91,7 @@ export function renderFreeSlide(){
   document.getElementById('freePrevSlideBtn').disabled = index === 0;
   document.getElementById('freeNextSlideBtn').textContent = index < FREE_SLIDES.length - 1
     ? `Next: ${FREE_SLIDES[index + 1].label} →`
-    : 'Next: Ball Pop →';
+    : 'Next: Balloon Pop →';
 }
 
 document.getElementById('freePrevSlideBtn').addEventListener('click', () => {

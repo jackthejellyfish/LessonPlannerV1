@@ -283,3 +283,27 @@ export function sfxCombo(comboCount){
     beepFat(root * Math.pow(2, semi / 12), 0.14, 'triangle', 0.15, i * 0.045);
   });
 }
+
+// A balloon popping: a very short, bright crack (high-passed noise with
+// an instant attack - that snap is what makes it read as a balloon and
+// not a drum) over a softer, lower "whoomph" of escaping air. `size`
+// (about 0.6-1.4) makes bigger balloons deeper and fuller, and a little
+// random detune keeps a fast run of pops from sounding like one sample.
+export function sfxBalloonPop(size = 1){
+  const jitter = 0.85 + Math.random() * 0.3;
+  noiseBurst({
+    duration: 0.035 + 0.02 * size,
+    filterType: 'highpass',
+    freqStart: (2600 - 700 * size) * jitter,
+    freqEnd: 1200,
+    volume: 0.5,
+    q: 0.7
+  });
+  noiseBurst({
+    duration: 0.08 + 0.06 * size,
+    filterType: 'lowpass',
+    freqStart: (1500 - 300 * size) * jitter,
+    freqEnd: 160,
+    volume: 0.22 + 0.1 * size
+  });
+}

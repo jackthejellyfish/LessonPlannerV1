@@ -142,17 +142,24 @@
      (the fixed padding/badge ate a bigger and bigger share of a shorter
      modal). clamp() throughout keeps every piece of this modal scaling
      together instead of just the text. */
+  /* The question is the centre of attention whenever it is open
+     (feedback 2026-11-18): the modal takes most of the screen, the text
+     is sized off both height and width so long prompts still fit, and
+     the game behind is dimmed hard so nothing competes with it. */
+  #popQuestionOverlay{ background:rgba(14,19,27,0.82); }
   .modal.modal-question{
-    max-width:640px; padding:clamp(28px,5.5vh,56px) clamp(24px,4.5vh,44px) clamp(22px,4vh,40px);
+    max-width:min(1280px, 92vw); min-height:min(54vh, 560px);
+    display:flex; flex-direction:column; justify-content:center;
+    padding:clamp(40px,7vh,84px) clamp(28px,5vw,80px) clamp(28px,5vh,60px);
     background:
       radial-gradient(ellipse 120% 60% at 50% -10%, color-mix(in srgb, var(--primary) 10%, transparent), transparent),
       var(--surface);
   }
   .modal-question .modal-q-badge{
     position:absolute; top:clamp(-26px,-3vh,-20px); left:50%; transform:translateX(-50%);
-    width:clamp(40px,6vh,54px); height:clamp(40px,6vh,54px); border-radius:50%;
+    width:clamp(48px,7.5vh,72px); height:clamp(48px,7.5vh,72px); border-radius:50%;
     background:linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color:#fff; font-family:var(--font-display); font-weight:800; font-size:clamp(18px,2.8vh,24px);
+    color:#fff; font-family:var(--font-display); font-weight:800; font-size:clamp(22px,3.6vh,34px);
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 6px 16px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 0 5px var(--surface);
     animation: modalBadgePop 0.35s cubic-bezier(.34,1.56,.64,1);
@@ -162,24 +169,25 @@
     100%{ transform:translateX(-50%) scale(1); opacity:1; }
   }
   .modal-question .modal-q-text{
-    font-family:var(--font-display); font-size:clamp(28px,4.2vh,38px); font-weight:800;
-    line-height:1.35; margin-bottom:30px; color:var(--ink);
+    font-family:var(--font-display); font-size:clamp(30px, min(7.4vh, 4.6vw), 88px); font-weight:800;
+    line-height:1.25; margin-bottom:clamp(22px,4.5vh,48px); color:var(--ink);
+    text-wrap:balance;
   }
   .modal-check-row{ display:flex; justify-content:center; }
-  .btn-check-answer{ font-size:19px; padding:16px 40px; }
+  .btn-check-answer{ font-size:clamp(19px,2.8vh,26px); padding:clamp(14px,2.2vh,22px) clamp(36px,4vw,60px); }
 
   .modal-answer-block{ animation: modalAnswerIn 0.3s ease; }
   .modal-answer-word{
-    font-family:var(--font-display); font-weight:800; font-size:clamp(30px,4.6vh,44px);
-    color:var(--primary); background:var(--success-bg); border-radius:16px;
-    padding:18px 20px; margin-bottom:16px; word-break:break-word;
+    font-family:var(--font-display); font-weight:800; font-size:clamp(32px, min(6.4vh, 4vw), 72px);
+    color:var(--primary); background:var(--success-bg); border-radius:18px;
+    padding:clamp(14px,2.4vh,26px) 24px; margin-bottom:clamp(12px,2vh,22px); word-break:break-word;
   }
   @keyframes modalAnswerIn{
     0%{ transform:scale(0.94) translateY(-6px); opacity:0; }
     100%{ transform:scale(1) translateY(0); opacity:1; }
   }
   .modal-followup-text{
-    color:var(--muted); font-size:16px; margin-bottom:24px;
+    color:var(--muted); font-size:clamp(17px,2.6vh,26px); margin-bottom:clamp(14px,2.6vh,28px);
   }
   .modal-followup-text strong{ color:var(--ink); font-weight:700; }
 
@@ -202,3 +210,8 @@
   .judge-btn:focus-visible{ outline:2px solid var(--primary); outline-offset:4px; border-radius:8px; }
   .judge-correct{ color:var(--success); }
   .judge-wrong{ color:var(--error); }
+  /* Sized with the bigger question text so the mark buttons don't look
+     like an afterthought under it. */
+  .modal-question .judge-btn svg{ width:clamp(56px,9vh,96px); height:clamp(56px,9vh,96px); }
+  .modal-question .judge-btn{ font-size:clamp(14px,2.2vh,20px); }
+  .modal-question .modal-judge-row{ gap:clamp(28px,5vw,64px); }

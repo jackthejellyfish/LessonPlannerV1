@@ -1,7 +1,10 @@
   /* ---- Practice Questions (Stage 9) ---- */
   .qs-layout{ display:flex; flex-direction:column; gap:clamp(10px,1.8vh,20px); flex:1; min-height:0; }
   .qs-controls{ flex-shrink:0; }
-  .qs-set-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:clamp(8px,1.6vh,16px); }
+  /* padding-top: the tabs lift 2px and cast a shadow on hover, and they
+     sit at the very top of .stage-body (overflow:hidden), which sliced
+     off the hovered tab's top edge. */
+  .qs-set-tabs{ display:flex; gap:8px; flex-wrap:wrap; padding-top:8px; margin-bottom:clamp(8px,1.6vh,16px); }
   .qs-tab{
     padding:7px 18px; border-radius:20px; border:1.5px solid var(--line);
     background:var(--surface); font-family:var(--font-body); font-weight:600;
@@ -42,11 +45,11 @@
   .qs-q-card.correct .qs-q-num{ background:var(--success); border-color:var(--success); color:#fff; }
   .qs-q-card.incorrect .qs-q-num{ background:var(--error); border-color:var(--error); color:#fff; }
   .qs-q-body{ flex:1; min-width:0; }
-  .qs-q-prompt{ font-size:clamp(15px,2.2vh,18px); font-weight:700; color:var(--ink); margin:0 0 6px; }
+  .qs-q-prompt{ font-size:clamp(17px,2.8vh,24px); font-weight:700; color:var(--ink); margin:0 0 6px; }
   .qs-q-hint{ font-size:13px; color:var(--muted); font-style:italic; margin:0 0 8px; }
-  .qs-gap-fill{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:clamp(15px,2.2vh,19px); }
+  .qs-gap-fill{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:clamp(17px,2.8vh,24px); font-weight:600; }
   .qs-gap{ border:none; border-bottom:2.5px solid var(--primary); background:none;
-    font-family:var(--font-body); font-size:clamp(16px,2.4vh,21px); font-weight:700;
+    font-family:var(--font-body); font-size:clamp(17px,2.8vh,24px); font-weight:700;
     color:var(--primary); width:140px; text-align:center; outline:none; }
   .qs-gap.correct{ border-color:var(--success); color:var(--success); background:var(--success-bg); border-radius:6px 6px 0 0; }
   .qs-gap.incorrect{ border-color:var(--error); color:var(--error); background:var(--error-bg); border-radius:6px 6px 0 0; }
@@ -72,3 +75,12 @@
   .qs-feedback.correct{ background:var(--success-bg); color:var(--success); }
   .qs-feedback.incorrect{ background:var(--error-bg); color:var(--error); }
   .qs-feedback.info{ background:rgba(92,138,130,0.12); color:var(--primary); }
+  /* The questions are the point of this screen: the score pill here is
+     slimmer than the shared .score so all five questions fit at 1366x768. */
+  #qsScore{ font-size:clamp(16px,2.6vh,24px); padding:3px 16px; }
+  .qs-q-card{ align-items:center; }
+  /* Tighter cards so all five questions fit at 1280x720 with the
+     bigger question text. */
+  .qs-q-list{ gap:clamp(4px,0.8vh,10px); }
+  .qs-q-card{ padding:clamp(4px,0.75vh,10px) clamp(12px,1.8vw,18px); }
+  .qs-question-area{ padding-top:clamp(6px,1.2vh,16px); padding-bottom:clamp(6px,1.2vh,16px); }
