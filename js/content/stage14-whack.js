@@ -109,6 +109,34 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'I'm full. I will / won't have dessert.'", answer: "won't" },
       { prompt: "Which is correct? 'We'll / We're will hang up the decorations.'", answer: "We'll" }
     ]
+  },
+  'at-school': {
+    WHACK_QUESTIONS: [
+      { prompt: "Which is correct? 'I've got / I's got a stapler.'", answer: "I've got" },
+      { prompt: "Which is correct? 'She's got / She've got a paintbrush.'", answer: "She's got" },
+      { prompt: "Which is correct? 'What have / has you got?'", answer: "have" },
+      { prompt: "Which is correct? 'What have / has he got?'", answer: "has" },
+      { prompt: "Which is correct? 'I want / wants pizza.'", answer: "want" },
+      { prompt: "Which is correct? 'He want / wants fish.'", answer: "wants" },
+      { prompt: "Which is correct? 'What do / does she want?'", answer: "does" },
+      { prompt: "Which is correct? 'What does he want / wants?'", answer: "want" },
+      { prompt: "Which is correct? 'You paint with a pencil sharpener / paintbrush.'", answer: "paintbrush" },
+      { prompt: "Which is correct? 'I drink juice / steak.'", answer: "juice" }
+    ]
+  },
+  'months-weather': {
+    WHACK_QUESTIONS: [
+      { prompt: "Which is correct? 'My birthday is in / on May.'", answer: "in" },
+      { prompt: "Which is correct? 'It's in / on the 2nd of May.'", answer: "on" },
+      { prompt: "Which is correct? 'It's sunny / sun today.'", answer: "sunny" },
+      { prompt: "Which is correct? 'the fiveth / fifth of June'", answer: "fifth" },
+      { prompt: "Which is correct? 'It's snowy in winter / summer.'", answer: "winter" },
+      { prompt: "Which is correct? 'the first / oneth of March'", answer: "first" },
+      { prompt: "Which is correct? 'What's the weather like / likes?'", answer: "like" },
+      { prompt: "Which is correct? 'August / august is hot.'", answer: "August" },
+      { prompt: "Which is correct? 'It's windy / windly today.'", answer: "windy" },
+      { prompt: "Which is correct? 'Flowers grow in spring / autumn.'", answer: "spring" }
+    ]
   }
 };
 

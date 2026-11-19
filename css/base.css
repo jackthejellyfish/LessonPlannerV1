@@ -428,3 +428,28 @@
      specificity, and lite mode must win over all of them. */
   body.low-quality .game-over-winner,
   body.low-quality .stage:not(.hidden){ animation:none !important; }
+
+  /* ---- A teacher's setting on a game's play area ----
+     Whack-a-Jelly's lane count and Ninja Jump's round length. Sits at the
+     bottom of the play area between turns (under Begin turn) and
+     disappears for the round, so it can be changed before any turn. */
+  .game-picker{
+    position:absolute; left:50%; bottom:clamp(14px,3vh,30px); transform:translateX(-50%);
+    z-index:23; display:flex; align-items:center; gap:clamp(6px,0.8vw,10px);
+    padding:6px 8px 6px 16px; border-radius:999px;
+    background:rgba(6,22,40,0.82); border:1px solid rgba(127,232,255,0.35);
+  }
+  :not(.idle) > .game-picker{ display:none; }
+  .game-picker-label{
+    color:#BDF2FF; font-family:var(--font-display); font-weight:800;
+    font-size:clamp(13px,1.8vh,16px); letter-spacing:0.06em; text-transform:uppercase; margin-right:4px;
+  }
+  .game-picker button{
+    min-width:clamp(36px,5vh,48px); height:clamp(36px,5vh,48px); border-radius:999px; padding:0 8px;
+    border:2px solid rgba(127,232,255,0.4); background:transparent; color:#E6FAFF;
+    font-family:var(--font-display); font-weight:800; font-size:clamp(15px,2.2vh,20px); cursor:pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  .game-picker button:hover{ border-color:#7FE8FF; transform:translateY(-2px); }
+  .game-picker button.active{ background:#7FE8FF; border-color:#7FE8FF; color:#06283F; }
+  .game-picker button:focus-visible{ outline:2px solid #FFFFFF; outline-offset:2px; }

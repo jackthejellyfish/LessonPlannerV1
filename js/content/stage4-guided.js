@@ -102,6 +102,34 @@ const LESSON_CONTENT = {
       { chips: ["She", "won't", "choose", "the music"] },
       { chips: ["They'll", "blow up", "the", "balloons"] }
     ]
+  },
+  'at-school': {
+    SEMI_ITEMS: [
+      { chips: ["I've got", "a", "marker pen"] },
+      { chips: ["What", "have", "you", "got"] },
+      { chips: ["She's got", "a", "colouring pencil"] },
+      { chips: ["What", "has", "he", "got"] },
+      { chips: ["He's got", "a", "pencil sharpener"] },
+      { chips: ["I", "want", "pizza"] },
+      { chips: ["What", "do", "you", "want"] },
+      { chips: ["She", "wants", "soup", "and juice"] },
+      { chips: ["What", "does", "he", "want"] },
+      { chips: ["We've got", "a", "stapler"] }
+    ]
+  },
+  'months-weather': {
+    SEMI_ITEMS: [
+      { chips: ["When's", "your", "birthday"] },
+      { chips: ["My birthday", "is", "in", "July"] },
+      { chips: ["It's", "on", "the fifth", "of May"] },
+      { chips: ["What's", "the weather", "like", "today"] },
+      { chips: ["It's", "sunny", "and", "hot"] },
+      { chips: ["It's", "cold", "in", "winter"] },
+      { chips: ["What's", "your favourite", "season"] },
+      { chips: ["It's", "rainy", "and", "windy"] },
+      { chips: ["Christmas", "is", "on", "the 25th of December"] },
+      { chips: ["We", "go swimming", "in", "summer"] }
+    ]
   }
 };
 

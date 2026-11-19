@@ -209,7 +209,11 @@ function makeBalloon(type, x, y, opts = {}){
     phase: Math.random() * Math.PI * 2,
     swayRate: 0.9 + Math.random() * 0.8,
     tilt: 0,
-    born: performance.now()
+    // Only the rainbow's mini balloons grow in (they burst out of it).
+    // Everything else is drawn full size at once: the idle screen is a
+    // single still frame, and a balloon caught at scale 0 left its string
+    // hanging in the sky on its own.
+    born: type === 'mini' ? performance.now() : -1e9
   };
   // The string's free end, as a damped spring hanging under the knot.
   b.tailX = b.x; b.tailY = b.y + b.r * 1.2 + STRING_LEN;

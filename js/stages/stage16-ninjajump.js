@@ -42,7 +42,9 @@ import { particleCount, noteFrame } from '../quality.js';
    Static scenery (sky, moon, tiles) is drawn once per level and canvas
    size; each frame only the stars, springs, ninja and particles draw.
 ========================================================= */
-const JUMP_ROUND_SECONDS = 20;
+// The teacher picks the round length between turns (10/15/20/30s,
+// state.jumpSeconds, default 10) - see the picker under Begin turn.
+function roundSeconds(){ return state.jumpSeconds || 10; }
 const COLS = 36, ROWS = 16;
 
 // Physics, in tiles and seconds.
@@ -96,10 +98,13 @@ const POWERUP_COLOR = '#B983FF';
    - anything harder has a moving platform that goes there, and
      every moving platform ends its trip flush with the ledge it
      serves (same height, no gap) so a child can just walk off it;
-   - 8 stars, so a level can be cleared inside the 20-second round. */
+   - 8 stars per level;
+   - the triple-jump power-up sits somewhere risky or hard to reach
+     (high above a ledge, or right over a spike pit): it's a prize.
+     */
 const LEVELS = [
   { name: 'Dojo Garden', sky: ['#2B1E4A', '#E8796B'], map: [
-    '....................................',
+    '.........................T..........',
     '....................................',
     '....................................',
     '....................................',
@@ -112,7 +117,7 @@ const LEVELS = [
     '..........*................*........',
     '.........=====...........=====......',
     '....................................',
-    '.P.....*..........T........*........',
+    '.P.....*...................*........',
     '####################################',
     '####################################'
   ], movers: [
@@ -120,7 +125,7 @@ const LEVELS = [
     { x: 8, y: 8, w: 3, dx: 12, dy: 0, period: 9, phase: 0 }
   ]},
   { name: 'Spring Valley', sky: ['#14324A', '#5FB3A8'], moon: [0.52, 0.13], map: [
-    '....................................',
+    '..................T.................',
     '....................................',
     '.......*....................*.......',
     '......===..................===......',
@@ -133,7 +138,7 @@ const LEVELS = [
     '....................................',
     '....................................',
     '..........*............*............',
-    '.P..S.....###....T....###.....S.....',
+    '.P..S.....###.........###.....S.....',
     '####################################',
     '####################################'
   ], movers: [
@@ -153,10 +158,10 @@ const LEVELS = [
     '.....===....................===.....',
     '....................................',
     '...........*............*...........',
-    '..........===..........===..........',
+    '..........===......T...===..........',
     '....................................',
     '....................................',
-    '.P.....^^^^^..*..^^^^^..*..^^^^^..T.',
+    '.P.....^^^^^..*..^^^^^..*..^^^^^....',
     '####################################',
     '####################################'
   ], movers: [
@@ -166,7 +171,7 @@ const LEVELS = [
     { x: 26, y: 11, w: 2, dx: 5, dy: 0, period: 4.6, phase: 0.25 }
   ]},
   { name: 'Rooftop Run', sky: ['#0E1630', '#3E4F8C'], map: [
-    '....................................',
+    '..................................T.',
     '....................................',
     '................*..*................',
     '...............======...............',
@@ -177,7 +182,7 @@ const LEVELS = [
     '.........*..............*...........',
     '........####..........####..........',
     '........####..........####..........',
-    '.P*.....####....*T....####..........',
+    '.P*.....####....*.....####..........',
     '######..####..######..####..########',
     '######..####..######..####..########',
     '######^^####^^######^^####^^########',
@@ -207,7 +212,7 @@ renderGameIntro('jumpSetup', {
   steps: [
     'One team answers a question.',
     'Run with A / D or the arrow keys. Jump with SPACE (or W / up). Press jump again in the air to double jump!',
-    'Collect every ninja star in 20 seconds to clear the level and finish your turn.'
+    'Collect every ninja star before the time runs out to clear the level and finish your turn. The teacher picks the time.'
   ],
   scoring: [
     { swatch: '<span class="jump-legend-swatch star"></span>', label: 'Ninja star', points: '+1' },
@@ -235,8 +240,25 @@ document.getElementById('jumpStartBtn').addEventListener('click', () => {
   showGameScreen('jump');
   renderJumpScoreboard();
   renderJumpTurnBanner();
+  syncTimePicker();
   loadLevel(0);
   resizeJumpCanvas();
+});
+
+/* ---- The teacher's round-length picker (shown between turns) ---- */
+function syncTimePicker(){
+  document.querySelectorAll('#jumpTimes [data-seconds]').forEach(btn => {
+    const on = Number(btn.dataset.seconds) === roundSeconds();
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+document.querySelectorAll('#jumpTimes [data-seconds]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(state.jumpRoundActive) return;
+    state.jumpSeconds = Number(btn.dataset.seconds);
+    syncTimePicker();
+  });
 });
 
 function renderJumpScoreboard(){
@@ -1041,6 +1063,7 @@ function startJumpRound(){
   releaseAllInput();
 
   document.getElementById('jumpScoreDisplay').textContent = '0';
+  const JUMP_ROUND_SECONDS = roundSeconds(); // fixed for this round
   document.getElementById('jumpTimeDisplay').textContent = JUMP_ROUND_SECONDS;
   setTimerFill(document.getElementById('jumpTimerFill'), 1);
   document.getElementById('jumpPlayArea').classList.remove('idle');

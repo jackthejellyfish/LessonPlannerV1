@@ -108,6 +108,34 @@ const LESSON_CONTENT = {
       { prompt: "Ask a classmate a 'Will you…?' question about the party.", answer: "e.g. Will you hang up the decorations?", points: 25 },
       { prompt: "Who in your class will choose the music? Ask!", answer: "e.g. Sara will choose the music.", points: 30 }
     ]
+  },
+  'at-school': {
+    WHEEL_QUESTIONS: [
+      { prompt: "What have you got in your pencil case?", answer: "e.g. I’ve got a colouring pencil and a glue stick.", points: 10 },
+      { prompt: "Name all six classroom things from the lesson!", answer: "marker pen, stapler, paintbrush, glue stick, colouring pencil, pencil sharpener", points: 100 },
+      { prompt: "What do you want for lunch today?", answer: "e.g. I want chicken and juice.", points: 15 },
+      { prompt: "Point to a classmate. What has he or she got?", answer: "e.g. She’s got a stapler.", points: 25 },
+      { prompt: "Name all six cafeteria foods and drinks from the lesson!", answer: "pizza, fish, chicken, steak, soup, juice", points: 50 },
+      { prompt: "Make it short: 'He has got a paintbrush.'", answer: "He’s got a paintbrush.", points: 20 },
+      { prompt: "Make a sentence: she / want / fish", answer: "She wants fish.", points: 5 },
+      { prompt: "Which one is NOT food: pizza, stapler or soup?", answer: "stapler", points: 1 },
+      { prompt: "What does your best friend want for lunch? Guess!", answer: "e.g. He wants pizza.", points: 30 },
+      { prompt: "Describe your school bag: say four things you’ve got.", answer: "e.g. I’ve got a marker pen, a glue stick, a stapler and a paintbrush.", points: 200 }
+    ]
+  },
+  'months-weather': {
+    WHEEL_QUESTIONS: [
+      { prompt: "When’s your birthday?", answer: "e.g. It’s on the fifth of May.", points: 10 },
+      { prompt: "Say all twelve months in order!", answer: "January, February, March, April, May, June, July, August, September, October, November, December", points: 100 },
+      { prompt: "What’s the weather like today?", answer: "e.g. It’s sunny and windy.", points: 15 },
+      { prompt: "What’s your favourite season? Why?", answer: "e.g. Summer — it’s hot and I can swim.", points: 25 },
+      { prompt: "Say the four seasons.", answer: "spring, summer, autumn, winter", points: 5 },
+      { prompt: "What’s the date today?", answer: "e.g. It’s the nineteenth of November.", points: 20 },
+      { prompt: "What’s the weather like in winter where you live?", answer: "e.g. It’s cold and snowy.", points: 30 },
+      { prompt: "Say it in words: 3rd", answer: "third", points: 1 },
+      { prompt: "Ask a classmate when their birthday is. Which season is it in?", answer: "e.g. When’s your birthday? — It’s in July. That’s summer!", points: 50 },
+      { prompt: "Describe the weather in all four seasons.", answer: "e.g. It’s rainy in spring, hot in summer, windy in autumn and snowy in winter.", points: 200 }
+    ]
   }
 };
 

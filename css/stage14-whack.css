@@ -26,31 +26,6 @@
   pointer-events:none; z-index:22;
 }
 
-/* ---- The teacher's lane picker ----
-   Sits under Begin turn between turns and disappears for the round, so
-   the number of lanes can be changed for any turn (one lane for the
-   youngest classes). */
-.whack-lanes{
-  position:absolute; left:50%; bottom:clamp(14px,3vh,30px); transform:translateX(-50%);
-  z-index:23; display:flex; align-items:center; gap:clamp(6px,0.8vw,10px);
-  padding:6px 8px 6px 16px; border-radius:999px;
-  background:rgba(6,22,40,0.82); border:1px solid rgba(127,232,255,0.35);
-}
-.whack-play-area:not(.idle) .whack-lanes{ display:none; }
-.whack-lanes-label{
-  color:#BDF2FF; font-family:var(--font-display); font-weight:800;
-  font-size:clamp(13px,1.8vh,16px); letter-spacing:0.06em; text-transform:uppercase; margin-right:4px;
-}
-.whack-lanes button{
-  width:clamp(36px,5vh,48px); height:clamp(36px,5vh,48px); border-radius:50%;
-  border:2px solid rgba(127,232,255,0.4); background:transparent; color:#E6FAFF;
-  font-family:var(--font-display); font-weight:800; font-size:clamp(15px,2.2vh,20px); cursor:pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-}
-.whack-lanes button:hover{ border-color:#7FE8FF; transform:translateY(-2px); }
-.whack-lanes button.active{ background:#7FE8FF; border-color:#7FE8FF; color:#06283F; }
-.whack-lanes button:focus-visible{ outline:2px solid #FFFFFF; outline-offset:2px; }
-
 /* ---- Legend swatches: a little jelly, a golden jelly, a pufferfish ---- */
 .whack-legend-swatch{ display:block; position:relative; }
 .whack-legend-swatch.jelly, .whack-legend-swatch.golden{

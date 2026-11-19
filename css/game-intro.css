@@ -215,3 +215,11 @@
 @media (max-width: 760px){
   .gi-menu-btn{ flex-basis:100%; }
 }
+
+/* Five or six teams (the maximum since 2026-11-19): two rows side by
+   side, so the list stays three rows tall and Start game stays on screen
+   on a 768px-tall laptop. */
+.game-intro .pop-team-inputs:has(> :nth-child(5)){
+  display:grid; grid-template-columns:1fr 1fr; max-width:940px;
+}
+.game-intro .gi-teams:has(.pop-team-inputs > :nth-child(5)) .pop-setup-actions{ max-width:940px; }

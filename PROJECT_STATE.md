@@ -29,7 +29,7 @@ quiz the same language.
 - **Hardware target:** weak classroom PCs driving large displays. Frame rate
   matters more than visual polish (see section 5).
 
-### Lessons (7), from `js/lessons.js`
+### Lessons (9), from `js/lessons.js`
 
 | id | Title |
 |---|---|
@@ -40,6 +40,8 @@ quiz the same language.
 | `present-perfect` | Present Perfect |
 | `amusement-park` | At the Amusement Park (past simple + -ing/-ed adjectives) |
 | `party-fun` | Party Fun: Who Will…? (will for plans: Wh- and Yes/No questions, short answers) |
+| `at-school` | At School: I’ve Got… / I Want… (have got / has got and want / wants, from the Unit 2 textbook pages) |
+| `months-weather` | Months, Weather and Seasons (in + month, on + date, ordinals, It’s + weather, the seasons) |
 
 ### Stages (16), from `js/stepper.js`
 
@@ -58,9 +60,9 @@ quiz the same language.
 | 11 | Neon Arena | Team game, canvas |
 | 12 | Fruit Ninja | Team game, canvas (bombs cost 5; a mega bomb halves the score; the blade never freezes) |
 | 13 | Hoop Shot | Team game, canvas (fixed hoop, −/+ aim dock, SHOOT) |
-| 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish swim up 1-5 lanes (teacher picks between turns) |
+| 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns) |
 | 15 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
-| 16 | Ninja Jump | Team game, canvas platformer, 20s, one level per lap of turns, clearing it ends the turn; moving platforms, triple-jump power-up; ends with **Finish: choose a lesson** |
+| 16 | Ninja Jump | Team game, canvas platformer, 10/15/20/30s (teacher picks between turns), one level per lap of turns, clearing it ends the turn; moving platforms, triple-jump power-up; ends with **Finish: choose a lesson** |
 
 Every team game follows the same loop: a setup screen (rules plus teams and
 colours) → a team answers a question → the team plays a short timed turn →
@@ -267,8 +269,25 @@ worst frame, and whether lite mode is on.
   they serve: without the pause they were level for an instant and stepping
   off meant falling. The level rules are written above `LEVELS`.
 - **Whack-a-Jelly lanes** are `state.whackColumns` (1-5, default 4), set
-  from the picker on the play area between turns. With 1-2 lanes each lane
-  has a high and a low slot so the board stays busy.
+  from the picker on the play area between turns. Every lane has 3 rows of
+  holes and each jelly comes out of a random free one: the first version
+  had one vent per lane, and a class just tapped the same spot over and
+  over (2026-11-19). Rows are drawn back to front, each row's rock lips
+  over its jellies, which is what makes them come up out of the holes.
+- **Hoop Shot** is 2 shots a turn (was 3, changed 2026-11-19).
+- **Up to 6 teams** per game (`MAX_TEAMS` in `js/teamColorPicker.js`,
+  raised from 4 on 2026-11-19). With 5-6 teams the setup rows go two
+  across and the result screen lays out 3 + 3 (`:has()` rules in
+  `game-intro.css` / `modals.css`). Every game is still 10 turns, so with
+  6 teams some teams get one more turn than others.
+- **Lesson picker** wraps 5 cards a row once there are 9 lessons (5 + 4),
+  so it stays two rows on a 720p board.
+- **Stage 5's timer slide must fit 1280x720** (a test checks every
+  lesson). Keep a new lesson's task headline to two lines and its steps
+  to one line each, or the stopwatch is pushed off the bottom.
+- **Teacher pickers on a play area** (`.game-picker` in `css/base.css`):
+  Whack-a-Jelly's lanes and Ninja Jump's round length
+  (`state.jumpSeconds`). Shown only while the play area is `.idle`.
 - **The question is always the centre of attention** (feedback
   2026-11-18). Every game's question modal (`.modal-question` in
   `css/modals.css`) fills most of the screen over a dark backdrop, with the

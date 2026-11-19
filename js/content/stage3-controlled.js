@@ -108,6 +108,34 @@ const LESSON_CONTENT = {
       { word: "We ___ forget the decorations — we promise!", correct: "won’t", options: ["won’t", "will", "not will"] },
       { word: "‘I’ll’ means…", correct: "I will", options: ["I am", "I will", "I all"] }
     ]
+  },
+  'at-school': {
+    MC_QUESTIONS: [
+      { word: "I ___ got a marker pen.", correct: "have", options: ["have", "has", "am"] },
+      { word: "She ___ got a stapler.", correct: "has", options: ["have", "has", "is"] },
+      { word: "What ___ you got? — I’ve got a glue stick.", correct: "have", options: ["has", "do", "have"] },
+      { word: "What has he got? — He ___ a paintbrush.", correct: "’s got", options: ["’s got", "’ve got", "have"] },
+      { word: "I ___ pizza.", correct: "want", options: ["want", "wants", "wanting"] },
+      { word: "He ___ fish.", correct: "wants", options: ["want", "wants", "is want"] },
+      { word: "What ___ she want?", correct: "does", options: ["do", "does", "is"] },
+      { word: "What does he want? — He ___ chicken.", correct: "wants", options: ["want", "wants", "does want"] },
+      { word: "We ___ got colouring pencils.", correct: "have", options: ["has", "have", "are"] },
+      { word: "Which one can you eat?", correct: "steak", options: ["stapler", "steak", "glue stick"] }
+    ]
+  },
+  'months-weather': {
+    MC_QUESTIONS: [
+      { word: "My birthday is ___ May.", correct: "in", options: ["in", "on", "at"] },
+      { word: "Her birthday is ___ the 3rd of June.", correct: "on", options: ["in", "on", "at"] },
+      { word: "The month after March is ___.", correct: "April", options: ["May", "February", "April"] },
+      { word: "5th = the ___ of May", correct: "fifth", options: ["fiveth", "fifth", "five"] },
+      { word: "What’s the weather like? — It’s ___.", correct: "sunny", options: ["sun", "sunny", "suns"] },
+      { word: "It’s cold and snowy in ___.", correct: "winter", options: ["summer", "winter", "spring"] },
+      { word: "1st = the ___ of January", correct: "first", options: ["oneth", "first", "one"] },
+      { word: "It’s very ___ in summer.", correct: "hot", options: ["cold", "snowy", "hot"] },
+      { word: "The last month of the year is ___.", correct: "December", options: ["November", "January", "December"] },
+      { word: "Leaves fall from the trees in ___.", correct: "autumn", options: ["autumn", "spring", "summer"] }
+    ]
   }
 };
 

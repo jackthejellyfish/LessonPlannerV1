@@ -211,6 +211,71 @@ const LESSON_CONTENT = {
       biscuits: "var(--rule-c)", pizza: "var(--rule-c)", music: "var(--rule-c)", poster: "var(--rule-c)",
       balloons: "var(--rule-a)", tick: "var(--rule-a)", dice: "var(--rule-a)"
     }
+  },
+  'at-school': {
+    // Two grammar points from Unit 2 (In the Classroom + At the
+    // Cafeteria): have got / has got, then want / wants. Sentence-style
+    // examples: subject on the left, the rest as the highlighted part.
+    RULES: [
+      { name: "I’ve got / You’ve got", formula: "I / You / We / They + ’ve got + a + thing (’ve got = have got)", color: "var(--rule-a)",
+        examples: [["I","’ve got a marker pen."],["You","’ve got a stapler."],["We","’ve got a glue stick."]] },
+      { name: "He’s got / She’s got", formula: "He / She + ’s got + a + thing (’s got = has got)", color: "var(--rule-c)",
+        examples: [["He","’s got a paintbrush."],["She","’s got a colouring pencil."],["Tom","’s got a pencil sharpener."]] },
+      { name: "What have you got? / What has she got?", formula: "What have you got? → I’ve got… · What has he got? → He’s got…", color: "var(--rule-b)",
+        examples: [["I","’ve got a paintbrush."],["She","’s got a stapler."],["He","’s got a marker pen."]] },
+      { name: "I want / He wants", formula: "I / You / We / They + want · He / She + wants", color: "var(--rule-d)",
+        examples: [["I"," want pizza."],["He"," wants fish."],["She"," wants juice."]] },
+      { name: "What do you want? / What does he want?", formula: "What do you want? → I want… · What does she want? → She wants…", color: "var(--rule-a)",
+        examples: [["I"," want soup."],["He"," wants chicken."],["She"," wants steak."]] },
+      { name: "Watch out!", formula: "a + one classroom thing · no a with food · does + want (not wants)", color: "var(--rule-b)",
+        examples: [["I’ve got"," a paintbrush. (one thing: a)"],["She wants"," juice. (not a juice)"],["What does he"," want? (not wants)"]] }
+    ],
+    COMPARE_DEMOS: [
+      { labelA: "I’ve got…", labelB: "She’s got…", valueA: 75, valueB: 75, iconA: "pencil", iconB: "glue",
+        caption: 'I<span class="hl">’ve got</span> a colouring pencil, and she<span class="hl">’s got</span> a glue stick.' },
+      { labelA: "What have you got?", labelB: "A paintbrush!", valueA: 75, valueB: 75, iconA: "brush", iconB: "tick",
+        caption: 'What <span class="hl">have</span> you <span class="hl">got</span>? — I<span class="hl">’ve got</span> a paintbrush.' },
+      { labelA: "I want…", labelB: "He wants…", valueA: 75, valueB: 75, iconA: "pizza", iconB: "fish",
+        caption: 'I <span class="hl">want</span> pizza, but he <span class="hl">wants</span> fish.' },
+      { labelA: "What does she want?", labelB: "Soup and juice!", valueA: 75, valueB: 75, iconA: "bowl", iconB: "juice",
+        caption: 'What <span class="hl">does</span> she <span class="hl">want</span>? — She <span class="hl">wants</span> soup and juice.' }
+    ],
+    COMPARE_ICON_COLORS: {
+      pencil: "var(--rule-c)", brush: "var(--rule-c)", pizza: "var(--rule-c)", bowl: "var(--rule-c)",
+      glue: "var(--rule-a)", tick: "var(--rule-a)", fish: "var(--rule-a)", juice: "var(--rule-a)"
+    }
+  },
+  'months-weather': {
+    // Three topics: the months and dates (in + month, on + date), the
+    // weather (It’s + adjective) and the seasons (in + season).
+    RULES: [
+      { name: "The twelve months", formula: "January, February, March, April, May, June, July, August, September, October, November, December — always a capital letter", color: "var(--rule-a)",
+        examples: [["My birthday is"," in May."],["It’s cold"," in January."],["We go to the beach"," in August."]] },
+      { name: "Dates: add -th", formula: "number + th · four → fourth (4th) · seven → seventh (7th)", color: "var(--rule-c)",
+        examples: [["four","th"],["six","th"],["ten","th"]] },
+      { name: "Special dates", formula: "1st first · 2nd second · 3rd third · 5th fifth · 12th twelfth · 20th twentieth", color: "var(--rule-b)",
+        examples: [["twenty-","first (21st)"],["twenty-","second (22nd)"],["thirty-","first (31st)"]] },
+      { name: "in + month · on + date", formula: "When’s your birthday? → It’s in May. / It’s on the fifth of May.", color: "var(--rule-d)",
+        examples: [["It’s"," in March."],["It’s"," on the 12th of March."],["Christmas is"," on the 25th of December."]] },
+      { name: "The weather", formula: "What’s the weather like? → It’s sunny / rainy / windy / cloudy / snowy / hot / cold.", color: "var(--rule-a)",
+        examples: [["It","’s sunny."],["It","’s rainy and cold."],["It","’s windy today."]] },
+      { name: "The seasons", formula: "spring · summer · autumn · winter → in + season", color: "var(--rule-c)",
+        examples: [["It’s hot"," in summer."],["It’s snowy"," in winter."],["Leaves fall"," in autumn."]] }
+    ],
+    COMPARE_DEMOS: [
+      { labelA: "in May", labelB: "on the 5th", valueA: 75, valueB: 75, iconA: "calendar", iconB: "cake",
+        caption: 'My birthday is <span class="hl">in</span> May. It’s <span class="hl">on</span> the fifth of May.' },
+      { labelA: "Summer", labelB: "Winter", valueA: 75, valueB: 75, iconA: "sun", iconB: "snowflake",
+        caption: 'It’s <span class="hl">hot and sunny</span> in summer, but it’s <span class="hl">cold and snowy</span> in winter.' },
+      { labelA: "Spring", labelB: "Autumn", valueA: 75, valueB: 75, iconA: "flower", iconB: "leaf",
+        caption: 'Flowers grow <span class="hl">in spring</span>. Leaves fall <span class="hl">in autumn</span>.' },
+      { labelA: "What’s the weather like?", labelB: "It’s rainy!", valueA: 75, valueB: 75, iconA: "cloud", iconB: "umbrella",
+        caption: 'What’s the weather <span class="hl">like</span>? — It’s <span class="hl">rainy</span>. Take an umbrella!' }
+    ],
+    COMPARE_ICON_COLORS: {
+      calendar: "var(--rule-c)", sun: "var(--rule-d)", flower: "var(--rule-a)", cloud: "var(--rule-b)",
+      cake: "var(--rule-a)", snowflake: "var(--rule-b)", leaf: "var(--rule-c)", umbrella: "var(--rule-a)"
+    }
   }
 };
 

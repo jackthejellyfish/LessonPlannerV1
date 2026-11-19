@@ -21,33 +21,38 @@ import { particleCount, noteFrame } from '../quality.js';
    jellyfish come up in - one lane for the youngest classes, five for a
    frantic board.
 
-   Answer a question, then for 15 seconds jellyfish swim up out of the
-   glowing vents at the bottom of each lane. Tap one to bop it (+1). A
+   Answer a question, then for 15 seconds jellyfish pop out of holes in
+   the reef, whack-a-mole style: three rows of holes in every lane, and
+   each jelly comes out of a random one. (The first version had one vent
+   per lane, so a class could tap the same spot over and over and catch
+   everything - classroom feedback 2026-11-19.) Tap one to bop it (+1). A
    golden jelly is +3 but ducks back sooner; a spiky pufferfish is -2.
 
    The physics, in world units (the play area is 100 tall):
-   - a jellyfish SWIMS: its bell contracts in pulses, each pulse an
-     upward push sized to how far it still has to go, with water drag in
-     between, so it surges up in a few beats and then bobs in place;
-   - when its time is up it stops pulsing and sinks back into the dark,
-     tentacles trailing above it (still tappable until it fades);
-   - a bopped jelly squashes, spins and tumbles away in a burst of
-     bubbles;
+   - a jellyfish SWIMS out of its hole: its bell contracts in pulses,
+     each pulse an upward push sized to how far it still has to go, with
+     water drag in between, so it surges up in a beat or two and bobs;
+   - when its time is up it stops pulsing and sinks back into the hole;
+   - a bopped jelly squashes, goes dizzy and drops back into its hole in
+     a burst of bubbles;
    - tentacles wave and stretch with each pulse.
+   Each hole's rock lip is drawn OVER the jelly in it, row by row from the
+   back, so a jelly genuinely comes up out of the hole.
 
-   Lanes: with 1-2 lanes each lane has two "slots" (high and low) so the
-   board stays busy; with 3+ lanes each lane has one.
-
-   Performance: the sea, light rays and vents are drawn once per canvas
-   size and lane count. Per frame: up to ~10 creatures (a few fills and
-   one tentacle stroke each), drifting specks and bubbles.
+   Performance: the sea, light rays and the backs of the holes are drawn
+   once per canvas size and lane count. Per frame: up to 5 creatures (a
+   few fills and one tentacle stroke each), one fill and one stroke per
+   row for the hole lips, drifting specks and bubbles.
 ========================================================= */
 const WHACK_ROUND_SECONDS = 15;
 const WHACK_DEFAULT_LANES = 4;
-const HOVER_MS = 1700;
-const HOVER_MS_GOLDEN = 1150;
-const SPAWN_GAP_MIN_MS = 260;
-const SPAWN_GAP_MAX_MS = 520;
+// Quicker since 2026-11-19 ("it needs to be a bit challenging"): a jelly
+// is out of its hole for about a second (was 1.7s), shoots up faster,
+// drops back faster, and the next one comes sooner.
+const HOVER_MS = 1000;
+const HOVER_MS_GOLDEN = 650;
+const SPAWN_GAP_MIN_MS = 180;
+const SPAWN_GAP_MAX_MS = 380;
 const BOMB_CHANCE = 0.1;
 const GOLDEN_CHANCE = 0.13;
 const JELLY_COLORS = ['#FF8FD8', '#7FE8FF', '#B9A5E8', '#9CFFB8'];
@@ -77,7 +82,7 @@ renderGameIntro('whackSetup', {
   title: 'Whack-a-Jelly',
   steps: [
     'One team answers a question.',
-    'Jellyfish swim up from the deep. Tap them before they sink back down!',
+    'Jellyfish pop out of holes in the reef. Tap them before they hide again!',
     'Bop as many as you can in 15 seconds. The teacher picks 1 to 5 lanes.'
   ],
   scoring: [
@@ -160,11 +165,18 @@ export function ensureWhackLayout(){
 function unitOf(canvas){ return canvas.height / 100; }
 function worldW(canvas){ return canvas.height > 0 ? 100 * canvas.width / canvas.height : 160; }
 function laneCenter(i, W){ return W * (i + 0.5) / lanes(); }
-function creatureSize(W){ return Math.min(9, (W / lanes()) * 0.3); }
+// Three rows of holes; this is where each row's hole opens (world units).
+// Rows are 25 apart, and a jelly plus its hole's lip is under 3.4 radii
+// tall, so the radius is capped at 7.2 to keep rows from overlapping.
+const ROWS = 3;
+const ROW_MOUTH_Y = [36, 61, 86];
+function creatureSize(W){ return Math.min(7.2, (W / lanes()) * 0.27); }
+// How many may be out at once: 2 with one lane (3 holes), up to 5.
+function maxOut(){ return Math.max(2, Math.min(5, Math.ceil(lanes() * ROWS / 3))); }
 
-// The sea: deep gradient, shafts of light from the surface, a sandy
-// floor, and a glowing vent at the foot of each lane. Static per canvas
-// size AND lane count, so it's cached on both.
+// The sea: deep gradient, shafts of light from the surface, and the
+// backs of all the reef holes. Static per canvas size AND lane count, so
+// it's cached on both.
 let seaLayer = null, seaKey = '';
 function drawSea(ctx, canvas){
   const key = `${canvas.width}x${canvas.height}:${lanes()}`;
@@ -202,61 +214,58 @@ function paintSea(ctx, w, h){
     ctx.closePath();
     ctx.fill();
   }
-  // Faint lane dividers, so the class can see the lanes.
-  const n = lanes();
-  ctx.strokeStyle = 'rgba(127,232,255,0.08)';
-  ctx.lineWidth = Math.max(1, u * 0.3);
-  ctx.setLineDash([u * 2, u * 2]);
-  for(let i = 1; i < n; i++){
-    ctx.beginPath();
-    ctx.moveTo(w * i / n, h * 0.05);
-    ctx.lineTo(w * i / n, h * 0.88);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-  // Sea floor.
-  ctx.fillStyle = '#0A1E2E';
-  ctx.beginPath();
-  ctx.moveTo(0, h);
-  ctx.lineTo(0, h * 0.9);
-  for(let x = 0; x <= 10; x++) ctx.lineTo(w * x / 10, h * (0.9 + 0.025 * Math.sin(x * 1.7)));
-  ctx.lineTo(w, h);
-  ctx.fill();
-  // A vent at the foot of each lane: a dark rock mound with a glowing mouth.
-  for(let i = 0; i < n; i++){
-    const cx = (W * (i + 0.5) / n) * u, cy = h * 0.93;
-    const rw = Math.min(w / n * 0.32, u * 14);
-    const glow = ctx.createRadialGradient(cx, cy - u * 2, 0, cx, cy - u * 2, rw * 1.6);
-    glow.addColorStop(0, 'rgba(127,232,255,0.45)');
-    glow.addColorStop(1, 'rgba(127,232,255,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(cx - rw * 1.6, cy - u * 2 - rw * 1.6, rw * 3.2, rw * 3.2);
-    ctx.fillStyle = '#16303F';
-    ctx.beginPath();
-    ctx.moveTo(cx - rw, h);
-    ctx.quadraticCurveTo(cx - rw * 0.9, cy - u * 4, cx - rw * 0.35, cy - u * 3);
-    ctx.lineTo(cx + rw * 0.35, cy - u * 3);
-    ctx.quadraticCurveTo(cx + rw * 0.9, cy - u * 4, cx + rw, h);
-    ctx.fill();
-    ctx.fillStyle = '#7FE8FF';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy - u * 3, rw * 0.36, u * 0.9, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // A little coral on the floor between vents.
-  const coral = ['#FF7A8A', '#FFB86B', '#C77DFF'];
-  ctx.lineCap = 'round';
-  for(let i = 0; i <= n; i++){
-    const cx = (W * i / n) * u, base = h * 0.95;
-    ctx.strokeStyle = coral[i % coral.length];
-    ctx.lineWidth = u * 0.9;
-    ctx.beginPath();
-    for(const [dx, ht] of [[-1.2, 5], [0, 7], [1.3, 4.5]]){
-      ctx.moveTo(cx + dx * u, base);
-      ctx.quadraticCurveTo(cx + dx * u * 2, base - ht * u * 0.6, cx + dx * u * 1.4, base - ht * u);
+  // The BACK of every hole: a glow from inside, the rock rim behind the
+  // opening, and the dark opening itself. The front lip is drawn over
+  // the jellies each frame (drawHoleFronts).
+  const r = creatureSize(W) * u;
+  for(let row = 0; row < ROWS; row++){
+    for(let lane = 0; lane < lanes(); lane++){
+      const cx = laneCenter(lane, W) * u, cy = ROW_MOUTH_Y[row] * u;
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 2.4);
+      glow.addColorStop(0, 'rgba(127,232,255,0.28)');
+      glow.addColorStop(1, 'rgba(127,232,255,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(cx - r * 2.4, cy - r * 2.4, r * 4.8, r * 4.8);
+      ctx.fillStyle = '#244A5E';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * 1.75, r * 0.62, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#020A16';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * 1.3, r * 0.36, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
-    ctx.stroke();
   }
+}
+
+// The FRONT of every hole in one row: a rounded rock with the opening's
+// lower lip along its top, filled as one path and its lip lit with one
+// stroke. Drawn after that row's jellies, so they come up out of it.
+function drawHoleFronts(ctx, row, u, W){
+  const r = creatureSize(W) * u;
+  const cy = ROW_MOUTH_Y[row] * u;
+  ctx.fillStyle = '#183447';
+  ctx.beginPath();
+  for(let lane = 0; lane < lanes(); lane++){
+    const cx = laneCenter(lane, W) * u;
+    ctx.moveTo(cx - r * 1.75, cy + r * 3.0);
+    ctx.lineTo(cx - r * 1.75, cy + r * 0.4);
+    ctx.quadraticCurveTo(cx - r * 1.75, cy, cx - r * 1.3, cy);
+    ctx.quadraticCurveTo(cx, cy + r * 0.72, cx + r * 1.3, cy);
+    ctx.quadraticCurveTo(cx + r * 1.75, cy, cx + r * 1.75, cy + r * 0.4);
+    ctx.lineTo(cx + r * 1.75, cy + r * 3.0);
+    ctx.closePath();
+  }
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(127,232,255,0.55)';
+  ctx.lineWidth = Math.max(1.5, u * 0.35);
+  ctx.beginPath();
+  for(let lane = 0; lane < lanes(); lane++){
+    const cx = laneCenter(lane, W) * u;
+    ctx.moveTo(cx - r * 1.3, cy);
+    ctx.quadraticCurveTo(cx, cy + r * 0.72, cx + r * 1.3, cy);
+  }
+  ctx.stroke();
 }
 
 /* =========================================================
@@ -269,34 +278,28 @@ let whackShake = createShakeState();
 // Drifting specks of "marine snow" - positions in world units, wrapped.
 const specks = Array.from({ length: 28 }, () => ({ x: Math.random(), y: Math.random() * 100, s: 0.2 + Math.random() * 0.35, v: 0.6 + Math.random() * 1.2 }));
 
-function slotsPerLane(){ return lanes() <= 2 ? 2 : 1; }
-
-// A slot is busy while its creature is rising or hovering; once it sinks
-// (or is bopped) the slot is free for the next one.
-function freeSlots(){
-  const busy = new Set(creatures.filter(c => c.state === 'rise' || c.state === 'hover').map(c => `${c.lane}:${c.slot}`));
-  const out = [];
-  for(let l = 0; l < lanes(); l++) for(let s = 0; s < slotsPerLane(); s++) if(!busy.has(`${l}:${s}`)) out.push({ lane: l, slot: s });
-  return out;
-}
-
+// One creature per hole until it has fully gone back down.
 function spawnCreature(now, W){
-  const free = freeSlots();
+  const out = creatures.filter(c => c.state === 'rise' || c.state === 'hover').length;
+  if(out >= maxOut()) return;
+  const busy = new Set(creatures.map(c => `${c.lane}:${c.row}`));
+  const free = [];
+  for(let lane = 0; lane < lanes(); lane++) for(let row = 0; row < ROWS; row++){
+    if(!busy.has(`${lane}:${row}`)) free.push({ lane, row });
+  }
   if(!free.length) return;
-  const { lane, slot } = free[Math.floor(Math.random() * free.length)];
+  const { lane, row } = free[Math.floor(Math.random() * free.length)];
   const roll = Math.random();
   const kind = roll < BOMB_CHANCE ? 'puffer' : roll < BOMB_CHANCE + GOLDEN_CHANCE ? 'golden' : 'jelly';
-  // Two height bands when lanes share slots, one wide band otherwise.
-  const target = slotsPerLane() === 2
-    ? (slot === 0 ? 20 + Math.random() * 14 : 46 + Math.random() * 14)
-    : 22 + Math.random() * 36;
+  const r = creatureSize(W) * (kind === 'puffer' ? 0.85 : 1);
+  const mouth = ROW_MOUTH_Y[row];
   creatures.push({
-    kind, lane, slot, state: 'rise',
-    x: laneCenter(lane, W), y: 104, vy: 0,
-    target, r: creatureSize(W) * (kind === 'puffer' ? 0.85 : 1),
+    kind, lane, row, mouth, state: 'rise',
+    x: laneCenter(lane, W), y: mouth + r * 1.2, vy: 0,
+    target: mouth - r * 0.85, r,
     color: kind === 'golden' ? GOLD : kind === 'puffer' ? PUFFER : JELLY_COLORS[Math.floor(Math.random() * JELLY_COLORS.length)],
     nextPulse: now, pulseAt: -1e9, hoverUntil: 0,
-    phase: Math.random() * 6, spin: 0, rot: 0, alpha: 1, born: now
+    phase: Math.random() * 6, rot: 0, alpha: 1, born: now
   });
   sfxRise();
 }
@@ -305,29 +308,30 @@ function pulse(c, now, strength){
   c.vy = Math.min(c.vy, 0) - strength;
   c.pulseAt = now;
   if(c.kind !== 'puffer' && Math.random() < 0.5){
-    bubbles.push({ x: c.x + (Math.random() - 0.5) * c.r, y: c.y + c.r * 0.4, r: 0.5 + Math.random() * 0.6, vy: -8, life: 1 });
+    bubbles.push({ x: c.x + (Math.random() - 0.5) * c.r, y: c.y - c.r * 0.6, r: 0.5 + Math.random() * 0.6, vy: -8, life: 1 });
   }
 }
 
+// Gone back into its hole far enough to be hidden behind the lip.
+function hidden(c){ return c.y > c.mouth + c.r * 1.25; }
+
 function stepCreatures(dt, now, W){
   for(const c of creatures){
-    // Keep each creature in its lane even if the lane count or canvas
-    // changes underneath it, with a gentle side-to-side drift.
-    c.x = laneCenter(c.lane, W) + Math.sin(now / 700 + c.phase) * c.r * 0.25;
+    // Stay over its own hole even if the lanes or canvas change, with a
+    // tiny side-to-side drift.
+    c.x = laneCenter(c.lane, W) + Math.sin(now / 700 + c.phase) * c.r * 0.08;
     if(c.state === 'rise' || c.state === 'hover'){
-      const period = c.state === 'rise' ? 420 : 900;
+      const period = c.state === 'rise' ? 220 : 700;
       if(now >= c.nextPulse){
         const dist = Math.max(0, c.y - c.target);
-        pulse(c, now, c.state === 'rise' ? dist * 2.1 + 10 : dist * 2.2 + 7);
+        pulse(c, now, c.state === 'rise' ? dist * 4.4 + 12 : dist * 2.4 + 5);
         c.nextPulse = now + period;
       }
       c.vy += 9 * dt;                       // a jelly sinks a little between beats
-      c.vy *= Math.exp(-2.6 * dt);          // water drag
+      c.vy *= Math.exp(-3 * dt);            // water drag
       c.y += c.vy * dt;
-      // Never above the top edge (and clear of the hint pill).
-      const top = 12 + c.r * 1.2;
-      if(c.y < top){ c.y = top; c.vy = Math.max(0, c.vy); }
-      if(c.state === 'rise' && c.y <= c.target + 3){
+      if(c.y < c.target - c.r * 0.4){ c.y = c.target - c.r * 0.4; c.vy = Math.max(0, c.vy); }
+      if(c.state === 'rise' && c.y <= c.target + 1.5){
         c.state = 'hover';
         c.vy *= 0.3; // arriving: the surge settles into a bob
         c.hoverUntil = now + (c.kind === 'golden' ? HOVER_MS_GOLDEN : HOVER_MS);
@@ -335,18 +339,15 @@ function stepCreatures(dt, now, W){
         c.state = 'sink';
       }
     } else if(c.state === 'sink'){
-      c.vy += 16 * dt;
-      c.vy *= Math.exp(-1.4 * dt);
+      c.vy += 80 * dt;
       c.y += c.vy * dt;
-      c.alpha = Math.max(0, Math.min(1, (96 - c.y) / 18));
     } else if(c.state === 'bopped'){
-      c.vy += 70 * dt;
+      c.vy += 110 * dt;
       c.y += c.vy * dt;
-      c.rot += c.spin * dt;
-      c.alpha -= dt * 2.2;
+      c.rot = Math.sin((now - c.pulseAt) / 60) * 0.25; // a dizzy wobble
     }
   }
-  creatures = creatures.filter(c => c.alpha > 0.02 && c.y < 120);
+  creatures = creatures.filter(c => !((c.state === 'sink' || c.state === 'bopped') && hidden(c)));
 
   for(const b of bubbles){
     b.vy -= 6 * dt;
@@ -362,8 +363,7 @@ function bop(c){
   const canvas = whackCanvasResizer.getCanvas();
   const u = unitOf(canvas);
   c.state = 'bopped';
-  c.vy = -26;
-  c.spin = (Math.random() < 0.5 ? -1 : 1) * (6 + Math.random() * 4);
+  c.vy = -10; // a little bounce, then down the hole
   c.pulseAt = performance.now(); // the squash
 
   let delta;
@@ -382,7 +382,7 @@ function bop(c){
   const n = particleCount(c.kind === 'golden' ? 12 : 8);
   for(let i = 0; i < n; i++){
     const a = Math.random() * Math.PI * 2;
-    bubbles.push({ x: c.x + Math.cos(a) * c.r * 0.6, y: c.y + Math.sin(a) * c.r * 0.6, r: 0.5 + Math.random() * 1.1,
+    bubbles.push({ x: c.x + Math.cos(a) * c.r * 0.6, y: Math.min(c.mouth, c.y) - c.r * 0.3 + Math.sin(a) * c.r * 0.6, r: 0.5 + Math.random() * 1.1,
       vy: -6 - Math.random() * 14, life: 1, tint: c.kind === 'puffer' ? '#FF6B5B' : c.color });
   }
   state.whackScore = Math.max(0, state.whackScore + delta);
@@ -404,11 +404,12 @@ function onWhackPointerDown(e){
   const rect = canvas.getBoundingClientRect();
   const wx = (e.clientX - rect.left) * 100 / rect.height;
   const wy = (e.clientY - rect.top) * 100 / rect.height;
-  // A forgiving oval covering the bell and the top of the tentacles.
+  // A forgiving oval round the bell, but only the part that's out of the
+  // hole: a tap on the rock below the opening doesn't count.
   let best = null, bestD = Infinity;
   for(const c of creatures){
-    if(c.state === 'bopped' || c.alpha < 0.35) continue;
-    const dx = (wx - c.x) / (c.r * 1.3), dy = (wy - (c.y + c.r * 0.35)) / (c.r * 1.7);
+    if(c.state === 'bopped' || wy > c.mouth + c.r * 0.3) continue;
+    const dx = (wx - c.x) / (c.r * 1.35), dy = (wy - (c.y - c.r * 0.2)) / (c.r * 1.45);
     const d = dx * dx + dy * dy;
     if(d <= 1 && d < bestD){ best = c; bestD = d; }
   }
@@ -421,8 +422,8 @@ whackCanvasResizer.getCanvas().addEventListener('pointerdown', onWhackPointerDow
 export function debugWhackTargets(){
   const canvas = whackCanvasResizer.getCanvas();
   const W = worldW(canvas);
-  return creatures.filter(c => c.kind !== 'puffer' && (c.state === 'hover' || c.state === 'rise') && c.y < 90)
-    .map(c => ({ x: c.x / W, y: c.y / 100, lane: c.lane }));
+  return creatures.filter(c => c.kind !== 'puffer' && (c.state === 'hover' || c.state === 'rise') && c.y - c.r * 0.4 < c.mouth)
+    .map(c => ({ x: c.x / W, y: (c.y - c.r * 0.4) / 100, lane: c.lane, row: c.row }));
 }
 
 /* =========================================================
@@ -596,15 +597,18 @@ function renderWhackCanvas(){
     ctx.fillRect(s.x * W * u, y, s.s * u, s.s * u);
   }
 
-  if(state.whackRoundActive || creatures.length){
-    for(const c of creatures) (c.kind === 'puffer' ? drawPuffer : drawJelly)(ctx, c, u, now);
-  } else {
-    // Between turns: one friendly jelly bobbing over each vent, so the
-    // lane picker shows exactly what it changed.
-    for(let i = 0; i < lanes(); i++){
-      drawJelly(ctx, { x: laneCenter(i, W), y: 58, r: creatureSize(W), color: JELLY_COLORS[i % JELLY_COLORS.length],
-        state: 'hover', kind: 'jelly', alpha: 0.9, pulseAt: -1e9, phase: i, rot: 0 }, u, now);
-    }
+  // Back row first: each row's jellies, then that row's hole lips over
+  // them. Between turns, one friendly jelly peeks out of a hole in each
+  // lane, so the lane picker shows exactly what it changed.
+  const list = (state.whackRoundActive || creatures.length) ? creatures
+    : Array.from({ length: lanes() }, (_, i) => {
+      const r = creatureSize(W), row = i % ROWS;
+      return { x: laneCenter(i, W), y: ROW_MOUTH_Y[row] - r * 0.85, r, row, mouth: ROW_MOUTH_Y[row],
+        color: JELLY_COLORS[i % JELLY_COLORS.length], state: 'hover', kind: 'jelly', alpha: 1, pulseAt: -1e9, phase: i, rot: 0 };
+    });
+  for(let row = 0; row < ROWS; row++){
+    for(const c of list) if(c.row === row) (c.kind === 'puffer' ? drawPuffer : drawJelly)(ctx, c, u, now);
+    drawHoleFronts(ctx, row, u, W);
   }
 
   // Bubbles: rings, all in one stroke (tinted ones from a bop drawn on top).

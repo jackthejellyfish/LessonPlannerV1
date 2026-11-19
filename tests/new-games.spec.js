@@ -32,7 +32,7 @@ function watchErrors(page) {
   return errors;
 }
 
-test('Hoop Shot: angle and power are set directly, then SHOOT fires; three shots end the turn', async ({ page }) => {
+test('Hoop Shot: angle and power are set directly, then SHOOT fires; two shots end the turn', async ({ page }) => {
   const errors = watchErrors(page);
   await openGame(page, 12, 'hoop');
 
@@ -40,7 +40,7 @@ test('Hoop Shot: angle and power are set directly, then SHOOT fires; three shots
   const angle = page.locator('#hoopAngleValue');
   const power = page.locator('#hoopPowerValue');
   const shoot = page.locator('#hoopShootBtn');
-  await expect(shotsLeft).toHaveText('3');
+  await expect(shotsLeft).toHaveText('2');
   await expect(page.locator('#hoopControls')).toBeVisible();
 
   // The +/- buttons change the values directly — no timing involved.
@@ -57,10 +57,10 @@ test('Hoop Shot: angle and power are set directly, then SHOOT fires; three shots
 
   // Tapping the court points the shot but never fires it.
   await page.locator('#hoopCanvas').click({ position: { x: 600, y: 150 } });
-  await expect(shotsLeft).toHaveText('3');
+  await expect(shotsLeft).toHaveText('2');
   await expect(shoot).toBeEnabled();
 
-  for (const remaining of ['2', '1', '0']) {
+  for (const remaining of ['1', '0']) {
     await expect(shoot).toBeEnabled({ timeout: 9000 });
     await shoot.click();
     // Controls lock while the ball is in the air.
@@ -204,8 +204,28 @@ test('Ninja Jump: clearing the level ends the turn at once, with +5 and a time b
   await page.evaluate(async () => (await import('/js/stages/stage16-ninjajump.js')).debugCollectAllStars());
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 4000 });
   const score = Number(await page.locator('#jumpScoreDisplay').textContent());
-  // 8 stars + 5 for the clear + about a point per second left of 20.
-  expect(score).toBeGreaterThanOrEqual(8 + 5 + 15);
+  // 8 stars + 5 for the clear + about a point per second left of 10.
+  expect(score).toBeGreaterThanOrEqual(8 + 5 + 7);
+  expect(errors).toEqual([]);
+});
+
+test('Ninja Jump: the teacher picks the round length between turns', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(15).evaluate((el) => el.click());
+  await page.click('#jumpNewGameBtn');
+  await page.click('#jumpStartBtn');
+  await page.waitForTimeout(250);
+  await expect(page.locator('#jumpTimes [data-seconds="10"]')).toHaveClass(/active/); // the default
+  await page.click('#jumpTimes [data-seconds="30"]');
+  await expect(page.locator('#jumpTimes [data-seconds="30"]')).toHaveClass(/active/);
+  await page.click('#jumpBeginTurnBtn');
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  await expect(page.locator('#jumpTimes')).toBeHidden(); // hidden during the round
+  await page.waitForTimeout(400);
+  expect(Number(await page.locator('#jumpTimeDisplay').textContent())).toBeGreaterThan(25);
   expect(errors).toEqual([]);
 });
 

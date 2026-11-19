@@ -99,6 +99,34 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'Dave will playing the music.'", answer: "No — 'Dave will play the music.'" },
       { prompt: "Is this correct? 'Will you blow up the balloons? — Yes, I'll.'", answer: "No — 'Yes, I will.' (never I'll at the end)" }
     ]
+  },
+  'at-school': {
+    FRUIT_QUESTIONS: [
+      { prompt: "Is this correct? 'I've got a stapler.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'She have got a paintbrush.'", answer: "No — 'She has got (She's got) a paintbrush.'" },
+      { prompt: "Is this correct? 'What has you got?'", answer: "No — 'What have you got?'" },
+      { prompt: "Is this correct? 'He's got a glue stick.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'I wants pizza.'", answer: "No — 'I want pizza.'" },
+      { prompt: "Is this correct? 'She wants fish.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'What does he wants?'", answer: "No — 'What does he want?'" },
+      { prompt: "Is this correct? 'What do she want?'", answer: "No — 'What does she want?'" },
+      { prompt: "Is this correct? 'We've got a pencil sharpener.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'They has got a marker pen.'", answer: "No — 'They have got (They've got) a marker pen.'" }
+    ]
+  },
+  'months-weather': {
+    FRUIT_QUESTIONS: [
+      { prompt: "Is this correct? 'My birthday is on May.'", answer: "No — 'My birthday is in May.'" },
+      { prompt: "Is this correct? 'It's on the fifth of June.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'It's hot and snowy in summer.'", answer: "No — 'It's hot and sunny in summer.'" },
+      { prompt: "Is this correct? 'Today is the twoth of March.'", answer: "No — 'the second of March.'" },
+      { prompt: "Is this correct? 'What's the weather like?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'It's sun today.'", answer: "No — 'It's sunny today.'" },
+      { prompt: "Is this correct? 'My birthday is in july.'", answer: "No — July needs a capital letter." },
+      { prompt: "Is this correct? 'Leaves fall in autumn.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'It's rainy and windy.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Christmas is in the 25th of December.'", answer: "No — 'on the 25th of December.'" }
+    ]
   }
 };
 

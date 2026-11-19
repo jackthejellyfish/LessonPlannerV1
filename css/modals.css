@@ -101,6 +101,8 @@
   .result-pill:nth-child(2){ animation-delay:0.23s; }
   .result-pill:nth-child(3){ animation-delay:0.30s; }
   .result-pill:nth-child(4){ animation-delay:0.37s; }
+  .result-pill:nth-child(5){ animation-delay:0.44s; }
+  .result-pill:nth-child(6){ animation-delay:0.51s; }
   .result-pill.active{
     box-shadow:0 0 0 3px var(--tc, var(--primary)), 0 0 18px color-mix(in srgb, var(--tc, var(--primary)) 55%, transparent);
     transform:scale(1.06);
@@ -215,3 +217,5 @@
   .modal-question .judge-btn svg{ width:clamp(56px,9vh,96px); height:clamp(56px,9vh,96px); }
   .modal-question .judge-btn{ font-size:clamp(14px,2.2vh,20px); }
   .modal-question .modal-judge-row{ gap:clamp(28px,5vw,64px); }
+  /* Five or six teams: three per row (3 + 3) rather than 4 + 2. */
+  .result-standings:has(> :nth-child(5)) .result-pill{ flex:1 1 28%; max-width:31%; }

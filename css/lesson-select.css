@@ -85,3 +85,8 @@ body.low-quality .brand-mark{ animation:none; }
    (right:74px, top:20px, fullscreen-only) never coexists with this in a
    way that overlaps either. ---- */
 .change-lesson-toggle{ top:74px; }
+
+/* Nine lessons (2026-11-19): five cards a row, 5 + 4, so the picker
+   stays two rows tall instead of wrapping a lone ninth card onto a
+   third row below the bottom of a laptop screen. */
+.lesson-cards:has(> :nth-child(9)) .lesson-card{ flex-basis:196px; padding:18px 18px 16px; }

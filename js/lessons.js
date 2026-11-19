@@ -94,6 +94,32 @@ export const LESSONS = [
     printWorksheetTitle: 'Party Fun: Who Will…? — Practice Worksheet',
     printFooter: 'Party Fun: Who Will…? — Teacher Jack\u2019s Lesson Planner',
     mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+  },
+  {
+    // From the Unit 2 "At School" pages: In the Classroom (have got /
+    // has got) and At the Cafeteria (want / wants).
+    id: 'at-school',
+    title: 'At School: I’ve Got… / I Want…',
+    tagline: 'Classroom things and cafeteria food — say what you’ve got and what you want.',
+    objective: 'By the end of this lesson, you will be able to ask and answer What have you got? / What has she got? and What do you want? / What does he want? about classroom things and lunch.',
+    pageTitle: 'At School: I’ve Got… / I Want… — Teacher Jack\u2019s Lesson Planner',
+    printRulesTitle: 'At School — Rules Reference',
+    printRulesSubtitle: 'have got / has got and want / wants: statements and questions',
+    printWorksheetTitle: 'At School — Practice Worksheet',
+    printFooter: 'At School: I’ve Got… / I Want… — Teacher Jack\u2019s Lesson Planner',
+    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+  },
+  {
+    id: 'months-weather',
+    title: 'Months, Weather and Seasons',
+    tagline: 'Birthdays, dates and the weather — talk about the months and seasons of the year.',
+    objective: 'By the end of this lesson, you will be able to say the months and dates (It’s on the fifth of May), describe the weather (It’s sunny) and talk about the seasons (It’s cold in winter).',
+    pageTitle: 'Months, Weather and Seasons — Teacher Jack\u2019s Lesson Planner',
+    printRulesTitle: 'Months, Weather and Seasons — Rules Reference',
+    printRulesSubtitle: 'Months and dates (in / on), weather words and the four seasons',
+    printWorksheetTitle: 'Months, Weather and Seasons — Practice Worksheet',
+    printFooter: 'Months, Weather and Seasons — Teacher Jack\u2019s Lesson Planner',
+    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
   }
 ];
 

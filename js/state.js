@@ -144,6 +144,7 @@ function createState(lessonId, muted){
     jumpScore: 0,
     jumpRoundActive: false,
     jumpRoundRAF: null,
+    jumpSeconds: 10,      // round length, the teacher's choice (10/15/20/30)
     muted
   };
 }

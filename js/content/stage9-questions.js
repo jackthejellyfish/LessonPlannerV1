@@ -241,6 +241,74 @@ const LESSON_CONTENT = {
           {prompt:"Ask four friends 'What will you do for the party?'. Write what each friend will do."},
         ]},
     ]
+  },
+  'at-school': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Complete each sentence with have, has, do, does, want or wants.",
+        questions:[
+          {prompt:"I ___ got a glue stick.", answer:"have"},
+          {prompt:"She ___ got a pencil sharpener.", answer:"has"},
+          {prompt:"What does he want? — He ___ fish.", answer:"wants"},
+          {prompt:"What ___ you want? — I want soup.", answer:"do"},
+          {prompt:"What ___ Tom got? — He’s got a stapler.", answer:"has"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+        questions:[
+          {chips:["What","have","you","got","?"],answer:"What have you got ?"},
+          {chips:["She's","got","a","paintbrush","."],answer:"She's got a paintbrush ."},
+          {chips:["What","does","he","want","?"],answer:"What does he want ?"},
+          {chips:["I","want","pizza","and","juice","."],answer:"I want pizza and juice ."},
+          {chips:["He's","got","a","colouring","pencil","."],answer:"He's got a colouring pencil ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence or question about school or lunch.",
+        questions:[
+          {prompt:'Write a sentence using "I’ve got".',                   hint:'I’ve got a ___.'},
+          {prompt:'Write a sentence using "She’s got".',                  hint:'She’s got a ___.'},
+          {prompt:'Write a question using "What has".',                   hint:'What has ___ got?'},
+          {prompt:'Write a sentence using "wants".',                      hint:'___ wants ___.'},
+          {prompt:'Answer the question "What do you want for lunch?"',    hint:'I want ___.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3–5 sentences using have got / has got and want / wants.",
+        questions:[
+          {prompt:"What have you got in your school bag? Write at least 3 sentences."},
+          {prompt:"Ask three friends 'What do you want for lunch?'. Write what each friend wants."},
+          {prompt:"Look around your classroom. What has your teacher got? What have your friends got? Write at least 3 sentences."},
+        ]},
+    ]
+  },
+  'months-weather': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Complete each sentence with in, on, a date word or a weather word.",
+        questions:[
+          {prompt:"My birthday is ___ June.", answer:"in"},
+          {prompt:"It’s ___ the 9th of June.", answer:"on"},
+          {prompt:"5th → the ___ of March", answer:"fifth"},
+          {prompt:"There’s a lot of sun today. It’s ___.", answer:"sunny"},
+          {prompt:"It’s cold and snowy in ___.", answer:"winter"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+        questions:[
+          {chips:["When's","your","birthday","?"],answer:"When's your birthday ?"},
+          {chips:["It's","on","the","fifth","of","May","."],answer:"It's on the fifth of May ."},
+          {chips:["What's","the","weather","like","?"],answer:"What's the weather like ?"},
+          {chips:["It's","rainy","and","windy","today","."],answer:"It's rainy and windy today ."},
+          {chips:["It's","hot","in","summer","."],answer:"It's hot in summer ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence or question about dates, weather or seasons.",
+        questions:[
+          {prompt:'Write when your birthday is.',             hint:'My birthday is in ___. It’s on the ___ of ___.'},
+          {prompt:'Write about the weather today.',           hint:'It’s ___ and ___.'},
+          {prompt:'Write a sentence about winter.',           hint:'In winter, it’s ___.'},
+          {prompt:'Write a question about the weather.',      hint:'What’s the weather ___?'},
+          {prompt:'Write your favourite season and why.',     hint:'My favourite season is ___ because ___.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3–5 sentences about months, weather and seasons.",
+        questions:[
+          {prompt:"Write about your favourite season. What’s the weather like? What do you do? Write at least 3 sentences."},
+          {prompt:"Ask three friends 'When’s your birthday?'. Write each friend’s birthday and its season."},
+          {prompt:"Write a weather report for this week. What’s the weather like on each day?"},
+        ]},
+    ]
   }
 };
 

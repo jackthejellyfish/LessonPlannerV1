@@ -29,7 +29,11 @@ export const TEAM_COLOR_PALETTE = [
   "#E8366F", "#FF8FA3", "#A9714B", "#5D4037", "#64E3C2", "#495057"
 ];
 
-const DEFAULT_TEAM_COLORS = ["#1C64D6", "#E01B24", "#2F9E44", "#F59F00"];
+// Up to 6 teams per game (raised from 4 on 2026-11-19). The two extra
+// defaults (violet, cyan) are as far from the first four as the palette
+// allows, so six teams are still tellable apart at a glance.
+export const MAX_TEAMS = 6;
+const DEFAULT_TEAM_COLORS = ["#1C64D6", "#E01B24", "#2F9E44", "#F59F00", "#8B5CF6", "#22C3DD"];
 
 let openPopover = null;
 let openAnchor = null;
@@ -187,13 +191,13 @@ export function renderTeamSetupRows(containerId, addBtnId, count, rowColors, ren
     wrap.appendChild(row);
   }
   rowColors.length = count;
-  document.getElementById(addBtnId).disabled = count >= 4;
+  document.getElementById(addBtnId).disabled = count >= MAX_TEAMS;
 }
 
 // Wires the "+ Add team" click handler shared by every stage's setup
 // screen — same preserve-names-then-re-render logic every stage used
 // to duplicate individually.
-export function wireAddTeamButton(containerId, addBtnId, renderFn, max = 4){
+export function wireAddTeamButton(containerId, addBtnId, renderFn, max = MAX_TEAMS){
   document.getElementById(addBtnId).addEventListener('click', () => {
     const current = document.querySelectorAll(`#${containerId} input`).length;
     if(current >= max) return;

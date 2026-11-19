@@ -54,6 +54,20 @@ const LESSON_CONTENT = {
       { icon: 'pizza', sentenceHtml: 'Who <span class="hl">will</span> order the pizza? Dave <span class="hl">will</span> order the pizza.' },
       { icon: 'music', sentenceHtml: '<span class="hl">Will</span> Rosa choose the music? No, she <span class="hl">won’t</span>.' }
     ]
+  },
+  'at-school': {
+    AIM_EXAMPLES: [
+      { icon: 'pencil', sentenceHtml: 'What have you got? I<span class="hl">’ve got</span> a colouring pencil.' },
+      { icon: 'gluestick', sentenceHtml: 'What has she got? She<span class="hl">’s got</span> a glue stick.' },
+      { icon: 'pizza', sentenceHtml: 'What do you want? I <span class="hl">want</span> pizza. Tom <span class="hl">wants</span> fish.' }
+    ]
+  },
+  'months-weather': {
+    AIM_EXAMPLES: [
+      { icon: 'calendar', sentenceHtml: 'When’s your birthday? It’s <span class="hl">in</span> May. It’s <span class="hl">on</span> the fifth of May.' },
+      { icon: 'sun', sentenceHtml: 'What’s the weather like today? It’s <span class="hl">sunny</span> and <span class="hl">hot</span>.' },
+      { icon: 'snowflake', sentenceHtml: 'My favourite season is <span class="hl">winter</span>. It’s cold and snowy in December.' }
+    ]
   }
 };
 

@@ -213,6 +213,68 @@ const LESSON_CONTENT = {
       'I<span class="blank">’ll</span> <span class="blank">___</span>, but I <span class="blank">won’t</span> <span class="blank">___</span>.',
       '<span class="blank">___</span> will <span class="blank">___</span>, and <span class="blank">___</span> will <span class="blank">___</span>.'
     ]
+  },
+  'at-school': {
+    FREE_TASK: {
+      headline: "What have you got? What do you want?",
+      steps: [
+        "Hide three classroom things in your bag.",
+        "Ask “What have you got?” Tell the class.",
+        "Order lunch: ask “What do you want?”"
+      ],
+      example: [
+        ["A", "What have you got?"],
+        ["B", "I’ve got a paintbrush and a stapler. What do you want for lunch?"],
+        ["A", "I want pizza and juice."],
+        ["B", "Mia wants pizza and juice!"]
+      ]
+    },
+    // The short forms first, then what you do with each classroom thing,
+    // then the food and drink. Kept short: the timer slide has to fit a
+    // 1280x720 board (tests/full-regression.spec.js).
+    WORD_BANK: [
+      ["I have got","I’ve got"], ["she has got","she’s got"], ["I want","she wants"],
+      ["draw with","a marker pen"], ["paint with","a paintbrush"], ["stick with","a glue stick"],
+      ["colour with","a colouring pencil"], ["sharpen with","a pencil sharpener"], ["staple with","a stapler"],
+      ["eat","pizza · fish · chicken"], ["eat","steak · soup"], ["drink","juice"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'What have you got? — I<span class="blank">’ve got</span> a <span class="blank">___</span>.',
+      'What <span class="blank">has</span> <span class="blank">___</span> got? — <span class="blank">___</span>’s got a <span class="blank">___</span>.',
+      'What do you want? — I <span class="blank">want</span> <span class="blank">___</span> and <span class="blank">___</span>.',
+      'What <span class="blank">does</span> <span class="blank">___</span> want? — <span class="blank">___</span> <span class="blank">wants</span> <span class="blank">___</span>.',
+      'I<span class="blank">’ve got</span> a <span class="blank">___</span>, but <span class="blank">___</span>’s got a <span class="blank">___</span>.'
+    ]
+  },
+  'months-weather': {
+    FREE_TASK: {
+      headline: "Make a birthday and weather calendar.",
+      steps: [
+        "Ask five classmates “When’s your birthday?”",
+        "Say the season and weather: “July — it’s summer, so it’s hot!”",
+        "Tell the class whose birthday is next!"
+      ],
+      example: [
+        ["A", "When’s your birthday?"],
+        ["B", "It’s on the twelfth of March."],
+        ["A", "That’s in spring! What’s the weather like in March?"],
+        ["B", "It’s windy and rainy."]
+      ]
+    },
+    // Number → date word, season → its months, weather noun → adjective.
+    WORD_BANK: [
+      ["1st","first"], ["2nd","second"], ["3rd","third"], ["5th","fifth"], ["12th","twelfth"], ["20th","twentieth"],
+      ["spring","March · April · May"], ["summer","June · July · August"],
+      ["autumn","September · October · November"], ["winter","December · January · February"],
+      ["sun","sunny"], ["rain","rainy"], ["wind","windy"], ["snow","snowy"], ["cloud","cloudy"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'When’s your birthday? — It’s <span class="blank">in</span> <span class="blank">___</span>.',
+      'It’s <span class="blank">on</span> the <span class="blank">___</span> of <span class="blank">___</span>.',
+      'What’s the weather like? — It’s <span class="blank">___</span> and <span class="blank">___</span>.',
+      'My favourite season is <span class="blank">___</span>. It’s <span class="blank">___</span> <span class="blank">in</span> <span class="blank">___</span>.',
+      'In <span class="blank">___</span>, I like to <span class="blank">___</span> because it’s <span class="blank">___</span>.'
+    ]
   }
 };
 

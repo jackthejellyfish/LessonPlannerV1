@@ -99,6 +99,34 @@ const LESSON_CONTENT = {
       { prompt: "Make it negative: 'I'll hang up the decorations.'", answer: "I won't hang up the decorations." },
       { prompt: "Make it negative: 'Tom will bring games.'", answer: "Tom won't bring games." }
     ]
+  },
+  'at-school': {
+    NEON_QUESTIONS: [
+      { prompt: "Ask the question: 'I've got a stapler.'", answer: "What have you got?" },
+      { prompt: "Ask the question: 'She's got a paintbrush.'", answer: "What has she got?" },
+      { prompt: "Ask the question: 'He's got a glue stick.'", answer: "What has he got?" },
+      { prompt: "Ask the question: 'They've got colouring pencils.'", answer: "What have they got?" },
+      { prompt: "Ask the question: 'Mia's got a marker pen.'", answer: "What has Mia got?" },
+      { prompt: "Ask the question: 'I want pizza.'", answer: "What do you want?" },
+      { prompt: "Ask the question: 'He wants fish.'", answer: "What does he want?" },
+      { prompt: "Ask the question: 'She wants juice.'", answer: "What does she want?" },
+      { prompt: "Ask the question: 'They want soup.'", answer: "What do they want?" },
+      { prompt: "Ask the question: 'Tom wants steak.'", answer: "What does Tom want?" }
+    ]
+  },
+  'months-weather': {
+    NEON_QUESTIONS: [
+      { prompt: "Make the weather word: 'sun' → It's ___.", answer: "sunny" },
+      { prompt: "Make the weather word: 'rain' → It's ___.", answer: "rainy" },
+      { prompt: "Make the weather word: 'wind' → It's ___.", answer: "windy" },
+      { prompt: "Make the weather word: 'snow' → It's ___.", answer: "snowy" },
+      { prompt: "Make the weather word: 'cloud' → It's ___.", answer: "cloudy" },
+      { prompt: "Make the weather word: 'fog' → It's ___.", answer: "foggy" },
+      { prompt: "Which season? 'December, January, February'", answer: "winter" },
+      { prompt: "Which season? 'March, April, May'", answer: "spring" },
+      { prompt: "Which season? 'June, July, August'", answer: "summer" },
+      { prompt: "Which season? 'September, October, November'", answer: "autumn" }
+    ]
   }
 };
 

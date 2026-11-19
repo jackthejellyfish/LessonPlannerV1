@@ -99,6 +99,34 @@ const LESSON_CONTENT = {
       { prompt: "Short answer, yes: 'Will your friends set up the games?'", answer: "Yes, they will." },
       { prompt: "Short answer, no: 'Will Mr Kim serve the pizza?'", answer: "No, he won't." }
     ]
+  },
+  'at-school': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Answer with I: 'What have you got?' (a marker pen)", answer: "I've got a marker pen." },
+      { prompt: "Answer with she: 'What has she got?' (a stapler)", answer: "She's got a stapler." },
+      { prompt: "Answer with he: 'What has he got?' (a glue stick)", answer: "He's got a glue stick." },
+      { prompt: "Answer with we: 'What have you got?' (a paintbrush)", answer: "We've got a paintbrush." },
+      { prompt: "Answer with she: 'What has Mia got?' (a pencil sharpener)", answer: "She's got a pencil sharpener." },
+      { prompt: "Answer with I: 'What do you want?' (pizza)", answer: "I want pizza." },
+      { prompt: "Answer with he: 'What does he want?' (fish)", answer: "He wants fish." },
+      { prompt: "Answer with she: 'What does she want?' (soup)", answer: "She wants soup." },
+      { prompt: "Answer with they: 'What do they want?' (chicken)", answer: "They want chicken." },
+      { prompt: "Answer with he: 'What does Tom want?' (steak and juice)", answer: "He wants steak and juice." }
+    ]
+  },
+  'months-weather': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Answer: 'When's your birthday?' (May)", answer: "It's in May." },
+      { prompt: "Answer: 'When's your birthday?' (the 5th of May)", answer: "It's on the fifth of May." },
+      { prompt: "Answer: 'What's the weather like?' (sun)", answer: "It's sunny." },
+      { prompt: "Answer: 'What's the weather like?' (rain)", answer: "It's rainy." },
+      { prompt: "Answer: 'What's the weather like?' (snow, cold)", answer: "It's snowy and cold." },
+      { prompt: "Answer: 'What season is it?' (June)", answer: "It's summer." },
+      { prompt: "Answer: 'What season is it?' (October)", answer: "It's autumn." },
+      { prompt: "Answer: 'When's Christmas?' (the 25th of December)", answer: "It's on the twenty-fifth of December." },
+      { prompt: "Answer: 'What's the weather like?' (wind)", answer: "It's windy." },
+      { prompt: "Answer: 'What season is it?' (April)", answer: "It's spring." }
+    ]
   }
 };
 

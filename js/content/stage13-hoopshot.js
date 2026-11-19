@@ -105,6 +105,34 @@ const LESSON_CONTENT = {
       { prompt: "Ask your partner what Tom will do for the party.", answer: "What will Tom do for the party?" },
       { prompt: "Make it a question: 'She will set up the games.'", answer: "Will she set up the games?" }
     ]
+  },
+  'at-school': {
+    HOOP_QUESTIONS: [
+      { prompt: "Ask your partner what they have got.", answer: "What have you got?" },
+      { prompt: "Ask what Mia has got.", answer: "What has Mia got?" },
+      { prompt: "Ask your partner what they want for lunch.", answer: "What do you want?" },
+      { prompt: "Ask what he wants.", answer: "What does he want?" },
+      { prompt: "Ask what she has got.", answer: "What has she got?" },
+      { prompt: "Ask what Tom wants.", answer: "What does Tom want?" },
+      { prompt: "Ask what they have got.", answer: "What have they got?" },
+      { prompt: "Ask what your friends want.", answer: "What do your friends want?" },
+      { prompt: "Tell your partner you have a paintbrush.", answer: "I've got a paintbrush." },
+      { prompt: "Tell your partner you want soup and juice.", answer: "I want soup and juice." }
+    ]
+  },
+  'months-weather': {
+    HOOP_QUESTIONS: [
+      { prompt: "Ask your partner about their birthday.", answer: "When's your birthday?" },
+      { prompt: "Ask about the weather today.", answer: "What's the weather like today?" },
+      { prompt: "Ask your partner about their favourite season.", answer: "What's your favourite season?" },
+      { prompt: "Ask which month it is.", answer: "What month is it?" },
+      { prompt: "Ask about the date today.", answer: "What's the date today?" },
+      { prompt: "Tell your partner your birthday is in March.", answer: "My birthday is in March." },
+      { prompt: "Tell your partner it is raining.", answer: "It's rainy." },
+      { prompt: "Ask what the weather is like in summer.", answer: "What's the weather like in summer?" },
+      { prompt: "Tell your partner it's the 3rd of April today.", answer: "It's the third of April." },
+      { prompt: "Ask when Ana's birthday is.", answer: "When's Ana's birthday?" }
+    ]
   }
 };
 

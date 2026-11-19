@@ -101,6 +101,34 @@ const LESSON_CONTENT = {
       { prompt: "Put the words in order: draw / she'll / the posters", answer: "She'll draw the posters." },
       { prompt: "Put the words in order: will / the games / who / set up / ?", answer: "Who will set up the games?" }
     ]
+  },
+  'at-school': {
+    JUMP_QUESTIONS: [
+      { prompt: "Put the words in order: got / what / you / have / ?", answer: "What have you got?" },
+      { prompt: "Put the words in order: a / I've / got / stapler", answer: "I've got a stapler." },
+      { prompt: "Put the words in order: has / what / got / she / ?", answer: "What has she got?" },
+      { prompt: "Put the words in order: got / he's / a / paintbrush", answer: "He's got a paintbrush." },
+      { prompt: "Put the words in order: want / you / what / do / ?", answer: "What do you want?" },
+      { prompt: "Put the words in order: pizza / want / I", answer: "I want pizza." },
+      { prompt: "Put the words in order: does / want / what / he / ?", answer: "What does he want?" },
+      { prompt: "Put the words in order: fish / wants / she", answer: "She wants fish." },
+      { prompt: "Put the words in order: a / glue stick / we've / got", answer: "We've got a glue stick." },
+      { prompt: "Put the words in order: wants / Tom / soup / and / juice", answer: "Tom wants soup and juice." }
+    ]
+  },
+  'months-weather': {
+    JUMP_QUESTIONS: [
+      { prompt: "Put the words in order: birthday / your / when's / ?", answer: "When's your birthday?" },
+      { prompt: "Put the words in order: in / is / my birthday / May", answer: "My birthday is in May." },
+      { prompt: "Put the words in order: the / it's / of June / tenth / on", answer: "It's on the tenth of June." },
+      { prompt: "Put the words in order: like / what's / weather / the / ?", answer: "What's the weather like?" },
+      { prompt: "Put the words in order: sunny / it's / and / hot", answer: "It's sunny and hot." },
+      { prompt: "Put the words in order: cold / in / it's / winter", answer: "It's cold in winter." },
+      { prompt: "Put the words in order: favourite / what's / season / your / ?", answer: "What's your favourite season?" },
+      { prompt: "Put the words in order: fall / leaves / autumn / in", answer: "Leaves fall in autumn." },
+      { prompt: "Put the words in order: today / it's / windy", answer: "It's windy today." },
+      { prompt: "Put the words in order: on / Christmas / is / the 25th of December", answer: "Christmas is on the 25th of December." }
+    ]
   }
 };
 

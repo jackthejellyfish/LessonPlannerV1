@@ -16,7 +16,8 @@ import { noteFrame } from '../quality.js';
 /* =========================================================
    STAGE 13 — HOOP SHOT
 
-   Answer a question, then take three shots at the hoop.
+   Answer a question, then take two shots at the hoop (three until
+   2026-11-19, cut to two after classroom feedback).
 
    v3 rework, per classroom feedback:
    - The hoop NEVER moves. A moving hoop turned the game into a
@@ -41,7 +42,7 @@ import { noteFrame } from '../quality.js';
    a band of scoring shots, and those bands sit between ~20% and 100%
    power, so the whole meter is live.
 ========================================================= */
-const HOOP_SHOTS_PER_TURN = 3;
+const HOOP_SHOTS_PER_TURN = 2;
 const HOOP_GRAVITY = 155;          // %H/second²
 const HOOP_FLOOR_Y = 80;           // court line; the control dock sits below it
 const HOOP_RIM_Y = 30;             // height of the rim
@@ -105,7 +106,7 @@ renderGameIntro('hoopSetup', {
   steps: [
     'One team answers a question.',
     'Set the angle and the power, then press SHOOT.',
-    'You get three shots. The ball starts somewhere new every time!'
+    'You get two shots. The ball starts somewhere new every time!'
   ],
   scoring: [
     { swatch: '<span class="hoop-legend-swatch basket"></span>', label: 'In the hoop', points: '+3' },

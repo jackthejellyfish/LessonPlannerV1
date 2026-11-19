@@ -99,6 +99,34 @@ const LESSON_CONTENT = {
       { prompt: "Will or won't? 'The pizza is here! Dad ___ serve it now.'", answer: "will" },
       { prompt: "Will or won't? 'Leo hates loud music. He ___ play the music.'", answer: "won't" }
     ]
+  },
+  'at-school': {
+    INV_QUESTIONS: [
+      { prompt: "Have or has? 'I ___ got a marker pen.'", answer: "have" },
+      { prompt: "Have or has? 'She ___ got a pencil sharpener.'", answer: "has" },
+      { prompt: "Have or has? 'We ___ got two glue sticks.'", answer: "have" },
+      { prompt: "Have or has? 'Tom ___ got a paintbrush.'", answer: "has" },
+      { prompt: "Have or has? 'What ___ you got?'", answer: "have" },
+      { prompt: "Have or has? 'What ___ Mia got?'", answer: "has" },
+      { prompt: "Want or wants? 'I ___ steak.'", answer: "want" },
+      { prompt: "Want or wants? 'My sister ___ soup.'", answer: "wants" },
+      { prompt: "Want or wants? 'What does he ___?'", answer: "want" },
+      { prompt: "Want or wants? 'They ___ pizza and juice.'", answer: "want" }
+    ]
+  },
+  'months-weather': {
+    INV_QUESTIONS: [
+      { prompt: "In or on? 'My birthday is ___ May.'", answer: "in" },
+      { prompt: "In or on? 'It's ___ the 4th of July.'", answer: "on" },
+      { prompt: "In or on? 'It's snowy ___ winter.'", answer: "in" },
+      { prompt: "In or on? 'We have a party ___ the 1st of January.'", answer: "on" },
+      { prompt: "In or on? 'Leaves fall ___ autumn.'", answer: "in" },
+      { prompt: "In or on? 'School starts ___ September.'", answer: "in" },
+      { prompt: "In or on? 'Her birthday is ___ the 20th of March.'", answer: "on" },
+      { prompt: "In or on? 'It's hot ___ August.'", answer: "in" },
+      { prompt: "In or on? 'Christmas is ___ the 25th of December.'", answer: "on" },
+      { prompt: "In or on? 'Flowers grow ___ spring.'", answer: "in" }
+    ]
   }
 };
 

@@ -102,6 +102,34 @@ const LESSON_CONTENT = {
       { prompt: "Fill the gap: 'Who will ___ the posters?' (draw)", answer: "draw" },
       { prompt: "Fill the gap: 'They'll ___ up the games.' (set)", answer: "set" }
     ]
+  },
+  'at-school': {
+    MAZE_QUESTIONS: [
+      { prompt: "Fill the gap: 'What ___ you got?' (have)", answer: "have" },
+      { prompt: "Fill the gap: 'She's ___ a marker pen.' (got)", answer: "got" },
+      { prompt: "Fill the gap: 'What ___ Tom got?' (has)", answer: "has" },
+      { prompt: "Fill the gap: 'I've got a glue ___.' (stick)", answer: "stick" },
+      { prompt: "Fill the gap: 'He's got a pencil ___.' (sharpener)", answer: "sharpener" },
+      { prompt: "Fill the gap: 'What do you ___?' (want)", answer: "want" },
+      { prompt: "Fill the gap: 'She ___ chicken.' (wants)", answer: "wants" },
+      { prompt: "Fill the gap: 'What ___ he want?' (does)", answer: "does" },
+      { prompt: "Fill the gap: 'I want soup and ___.' (juice)", answer: "juice" },
+      { prompt: "Fill the gap: 'We've got a ___ to paint with.' (paintbrush)", answer: "paintbrush" }
+    ]
+  },
+  'months-weather': {
+    MAZE_QUESTIONS: [
+      { prompt: "Fill the gap: 'When's your ___?' (birthday)", answer: "birthday" },
+      { prompt: "Fill the gap: 'My birthday is ___ June.' (in)", answer: "in" },
+      { prompt: "Fill the gap: 'It's ___ the third of June.' (on)", answer: "on" },
+      { prompt: "Fill the gap: 'What's the weather ___?' (like)", answer: "like" },
+      { prompt: "Fill the gap: 'It's ___ and cloudy.' (rainy)", answer: "rainy" },
+      { prompt: "Fill the gap: 'January, February, ___' (March)", answer: "March" },
+      { prompt: "Fill the gap: 'spring, summer, ___, winter' (autumn)", answer: "autumn" },
+      { prompt: "Fill the gap: 'It's the ___ of May.' (first)", answer: "first" },
+      { prompt: "Fill the gap: 'It's cold and ___ in winter.' (snowy)", answer: "snowy" },
+      { prompt: "Fill the gap: 'We swim in the sea in ___.' (summer)", answer: "summer" }
+    ]
   }
 };
 

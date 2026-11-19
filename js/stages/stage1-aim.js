@@ -149,6 +149,52 @@ function buildAimIcon(type){
       <ellipse cx="68" cy="46" rx="10" ry="8" fill="var(--rule-a)"/>
     </svg>`;
   }
+  // --- At School + Months/Weather lesson icons (2026-11-19). Same flat,
+  // few-primitive style as above.
+  if(type === 'pencil'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <g transform="rotate(-28 50 35)">
+        <rect x="20" y="27" width="54" height="16" rx="2" fill="var(--rule-a)"/>
+        <rect x="12" y="27" width="10" height="16" rx="3" fill="var(--rule-c)"/>
+        <polygon points="74,27 92,35 74,43" fill="#E9C99A"/>
+        <polygon points="86,32.3 92,35 86,37.7" fill="var(--ink)"/>
+      </g>
+    </svg>`;
+  }
+  if(type === 'gluestick'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <rect x="36" y="22" width="28" height="44" rx="5" fill="var(--rule-b)"/>
+      <rect x="36" y="36" width="28" height="12" fill="var(--paper)" opacity="0.85"/>
+      <rect x="39" y="6" width="22" height="18" rx="4" fill="var(--rule-d)"/>
+    </svg>`;
+  }
+  if(type === 'calendar'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <rect x="26" y="12" width="48" height="52" rx="6" fill="var(--paper)" stroke="var(--rule-c)" stroke-width="3"/>
+      <rect x="26" y="12" width="48" height="15" rx="6" fill="var(--rule-c)"/>
+      <rect x="35" y="5" width="5" height="13" rx="2" fill="var(--muted)"/>
+      <rect x="60" y="5" width="5" height="13" rx="2" fill="var(--muted)"/>
+      ${[0, 1, 2].map(r => [0, 1, 2].map(c => `<rect x="${34 + c * 12}" y="${34 + r * 9}" width="7" height="5" rx="1" fill="var(--muted)" opacity="0.5"/>`).join('')).join('')}
+      <circle cx="61" cy="45" r="7" fill="none" stroke="var(--rule-a)" stroke-width="3"/>
+    </svg>`;
+  }
+  if(type === 'sun'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <circle cx="50" cy="35" r="15" fill="var(--rule-d)"/>
+      ${[0, 45, 90, 135, 180, 225, 270, 315].map(a => {
+        const r = a * Math.PI / 180;
+        return `<line x1="${50 + Math.cos(r) * 21}" y1="${35 + Math.sin(r) * 21}" x2="${50 + Math.cos(r) * 29}" y2="${35 + Math.sin(r) * 29}" stroke="var(--rule-d)" stroke-width="4" stroke-linecap="round"/>`;
+      }).join('')}
+    </svg>`;
+  }
+  if(type === 'snowflake'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      ${[0, 60, 120].map(a => `<g transform="rotate(${a} 50 35)" stroke="var(--rule-b)" stroke-width="4" stroke-linecap="round" fill="none">
+        <line x1="50" y1="8" x2="50" y2="62"/>
+        <path d="M43 15 L50 21 L57 15 M43 55 L50 49 L57 55"/>
+      </g>`).join('')}
+    </svg>`;
+  }
   return '';
 }
 

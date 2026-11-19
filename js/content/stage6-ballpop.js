@@ -99,6 +99,34 @@ const LESSON_CONTENT = {
       { prompt: "Use will: 'Ann hangs up the decorations.' → Ann ___ the decorations.", answer: "will hang up" },
       { prompt: "Use will: 'You serve the pizza.' → You ___ the pizza.", answer: "will serve" }
     ]
+  },
+  'at-school': {
+    POP_QUESTIONS: [
+      { prompt: "Make it short: 'I have got a marker pen.'", answer: "I've got a marker pen." },
+      { prompt: "Make it short: 'She has got a stapler.'", answer: "She's got a stapler." },
+      { prompt: "Make it short: 'We have got a glue stick.'", answer: "We've got a glue stick." },
+      { prompt: "Make it short: 'He has got a paintbrush.'", answer: "He's got a paintbrush." },
+      { prompt: "Make it short: 'They have got colouring pencils.'", answer: "They've got colouring pencils." },
+      { prompt: "Change to he: 'I want pizza.' → He ___ pizza.", answer: "wants" },
+      { prompt: "Change to she: 'I want juice.' → She ___ juice.", answer: "wants" },
+      { prompt: "Change to Tom: 'I want fish.' → Tom ___ fish.", answer: "wants" },
+      { prompt: "Change to they: 'He wants soup.' → They ___ soup.", answer: "want" },
+      { prompt: "Change to we: 'She wants chicken.' → We ___ chicken.", answer: "want" }
+    ]
+  },
+  'months-weather': {
+    POP_QUESTIONS: [
+      { prompt: "Say it in words: '1st'", answer: "first" },
+      { prompt: "Say it in words: '2nd'", answer: "second" },
+      { prompt: "Say it in words: '3rd'", answer: "third" },
+      { prompt: "Say it in words: '5th'", answer: "fifth" },
+      { prompt: "Say it in words: '12th'", answer: "twelfth" },
+      { prompt: "Say it in words: '20th'", answer: "twentieth" },
+      { prompt: "Say it in words: '21st'", answer: "twenty-first" },
+      { prompt: "Which month comes after June?", answer: "July" },
+      { prompt: "Which month comes before October?", answer: "September" },
+      { prompt: "Which month comes after December?", answer: "January" }
+    ]
   }
 };
 

@@ -299,6 +299,107 @@ export function buildCompareIcon(type, valuePct, color){
       <rect x="22" y="${100 - h}" width="26" height="4" rx="2" fill="var(--paper)" opacity="0.7"/>
     </svg>`;
   }
+  // --- At School lesson icons (2026-11-19): classroom things and
+  // cafeteria food, paired, so `scale` only nudges the size.
+  if(type === 'pencil'){
+    const len = 34 + 6 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70"><g transform="rotate(-35 35 35)">
+      <rect x="${48 - len}" y="29" width="${len}" height="12" rx="2" fill="${color}"/>
+      <rect x="${42 - len}" y="29" width="7" height="12" rx="2" fill="var(--muted)"/>
+      <polygon points="48,29 62,35 48,41" fill="#E9C99A"/>
+      <polygon points="57,32.8 62,35 57,37.2" fill="var(--ink)"/>
+    </g></svg>`;
+  }
+  if(type === 'glue'){
+    const h = 34 + 6 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <rect x="23" y="${66 - h}" width="24" height="${h}" rx="4" fill="${color}"/>
+      <rect x="23" y="${72 - h * 0.7}" width="24" height="10" fill="var(--paper)" opacity="0.85"/>
+      <rect x="25" y="${52 - h}" width="20" height="16" rx="4" fill="var(--muted)"/>
+    </svg>`;
+  }
+  if(type === 'brush'){
+    return `<svg viewBox="0 0 70 70" width="70" height="70"><g transform="rotate(-45 35 35)">
+      <rect x="4" y="32" width="34" height="6" rx="3" fill="var(--muted)"/>
+      <rect x="36" y="30" width="9" height="10" rx="1" fill="var(--ink)" opacity="0.6"/>
+      <path d="M45 30 Q${62 + 4 * scale} 35 45 40 Z" fill="${color}"/>
+    </g></svg>`;
+  }
+  if(type === 'fish'){
+    const rx = 18 + 4 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <ellipse cx="32" cy="36" rx="${rx}" ry="${rx * 0.6}" fill="${color}"/>
+      <polygon points="${30 + rx},36 ${44 + rx},24 ${44 + rx},48" fill="${color}"/>
+      <circle cx="${32 - rx * 0.55}" cy="32" r="3" fill="var(--paper)"/>
+      <path d="M${32 - rx * 0.1} 28 Q${32 + rx * 0.15} 36 ${32 - rx * 0.1} 44" stroke="var(--paper)" stroke-width="2" fill="none" opacity="0.7"/>
+    </svg>`;
+  }
+  if(type === 'bowl'){
+    const w = 24 + 4 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M${35 - w} 34 Q35 ${34 + w * 1.4} ${35 + w} 34 Z" fill="${color}"/>
+      <ellipse cx="35" cy="34" rx="${w}" ry="5" fill="var(--rule-d)"/>
+      <path d="M26 24 q4 -5 0 -10 M35 24 q4 -5 0 -10 M44 24 q4 -5 0 -10" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if(type === 'juice'){
+    const h = 36 + 6 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <line x1="38" y1="${64 - h * 0.55}" x2="47" y2="${64 - h - 12}" stroke="var(--rule-c)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M22 ${64 - h} L48 ${64 - h} L45 64 L25 64 Z" fill="var(--paper)" stroke="var(--muted)" stroke-width="2"/>
+      <path d="M23.2 ${64 - h * 0.75} L46.8 ${64 - h * 0.75} L45 64 L25 64 Z" fill="${color}"/>
+    </svg>`;
+  }
+  // --- Months / weather / seasons lesson icons (2026-11-19).
+  if(type === 'calendar'){
+    const s = 40 + 6 * scale;
+    const x = 35 - s / 2, y = 38 - s / 2;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <rect x="${x}" y="${y}" width="${s}" height="${s}" rx="5" fill="var(--paper)" stroke="${color}" stroke-width="3"/>
+      <rect x="${x}" y="${y}" width="${s}" height="${s * 0.28}" rx="5" fill="${color}"/>
+      <rect x="${x + s * 0.22}" y="${y - 6}" width="4" height="11" rx="2" fill="var(--muted)"/>
+      <rect x="${x + s * 0.7}" y="${y - 6}" width="4" height="11" rx="2" fill="var(--muted)"/>
+      <circle cx="${x + s * 0.62}" cy="${y + s * 0.64}" r="${s * 0.14}" fill="none" stroke="var(--rule-a)" stroke-width="3"/>
+    </svg>`;
+  }
+  if(type === 'sun'){
+    const r = 12 + 3 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <circle cx="35" cy="35" r="${r}" fill="${color}"/>
+      ${[0, 45, 90, 135, 180, 225, 270, 315].map(a => {
+        const t = a * Math.PI / 180;
+        return `<line x1="${35 + Math.cos(t) * (r + 5)}" y1="${35 + Math.sin(t) * (r + 5)}" x2="${35 + Math.cos(t) * (r + 12)}" y2="${35 + Math.sin(t) * (r + 12)}" stroke="${color}" stroke-width="4" stroke-linecap="round"/>`;
+      }).join('')}
+    </svg>`;
+  }
+  if(type === 'snowflake'){
+    const l = 22 + 4 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      ${[0, 60, 120].map(a => `<g transform="rotate(${a} 35 35)" stroke="${color}" stroke-width="4" stroke-linecap="round" fill="none">
+        <line x1="35" y1="${35 - l}" x2="35" y2="${35 + l}"/>
+        <path d="M29 ${41 - l} L35 ${47 - l} L41 ${41 - l} M29 ${29 + l} L35 ${23 + l} L41 ${29 + l}"/>
+      </g>`).join('')}
+    </svg>`;
+  }
+  if(type === 'flower'){
+    const r = 8 + 2 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M35 40 V68" stroke="var(--rule-a)" stroke-width="4"/>
+      <path d="M35 58 q-12 -2 -14 -12 q12 0 14 12" fill="var(--rule-a)"/>
+      ${[0, 72, 144, 216, 288].map(a => {
+        const t = (a - 90) * Math.PI / 180;
+        return `<circle cx="${35 + Math.cos(t) * r * 1.3}" cy="${28 + Math.sin(t) * r * 1.3}" r="${r}" fill="${color}"/>`;
+      }).join('')}
+      <circle cx="35" cy="28" r="${r * 0.75}" fill="var(--rule-d)"/>
+    </svg>`;
+  }
+  if(type === 'leaf'){
+    const s = 0.85 + 0.15 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70"><g transform="translate(35 36) scale(${s}) rotate(-30)">
+      <path d="M0 -28 C22 -16 22 14 0 28 C-22 14 -22 -16 0 -28 Z" fill="${color}"/>
+      <path d="M0 -24 V34 M0 -6 L10 -14 M0 6 L-10 -2 M0 16 L10 8" stroke="var(--paper)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g></svg>`;
+  }
   return '';
 }
 

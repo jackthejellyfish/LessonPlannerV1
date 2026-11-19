@@ -1002,7 +1002,7 @@
                 <div class="pop-hud">
                   <div>
                     <span class="pop-hud-label">Shots left</span
-                    ><span class="pop-hud-num" id="hoopShotsDisplay">3</span>
+                    ><span class="pop-hud-num" id="hoopShotsDisplay">2</span>
                   </div>
                   <div>
                     <span class="pop-hud-label">Turn score</span
@@ -1100,8 +1100,8 @@
                 <canvas id="whackCanvas" class="whack-canvas"></canvas>
                 <p class="game-hint whack-hint hidden" id="whackHint">Tap the jellyfish! Not the spiky pufferfish!</p>
                 <!-- The teacher's lane picker, shown between turns only. -->
-                <div class="whack-lanes" id="whackLanes" role="group" aria-label="How many lanes">
-                  <span class="whack-lanes-label">Lanes</span>
+                <div class="game-picker" id="whackLanes" role="group" aria-label="How many lanes">
+                  <span class="game-picker-label">Lanes</span>
                   <button type="button" data-lanes="1">1</button>
                   <button type="button" data-lanes="2">2</button>
                   <button type="button" data-lanes="3">3</button>
@@ -1236,6 +1236,14 @@
                   <button class="jump-touch-btn jump-touch-jump" id="jumpJumpBtn" type="button" tabindex="-1">JUMP</button>
                 </div>
                 <button class="btn btn-primary" id="jumpBeginTurnBtn" type="button">Begin turn</button>
+                <!-- The teacher's round-length picker, shown between turns only. -->
+                <div class="game-picker" id="jumpTimes" role="group" aria-label="Seconds per turn">
+                  <span class="game-picker-label">Time</span>
+                  <button type="button" data-seconds="10">10s</button>
+                  <button type="button" data-seconds="15">15s</button>
+                  <button type="button" data-seconds="20">20s</button>
+                  <button type="button" data-seconds="30">30s</button>
+                </div>
                 <div class="game-over-banner hidden" id="jumpGameOverBanner">
                   <div class="game-over-title">Game over</div>
                   <div class="game-over-winner" id="jumpGameOverWinner"></div>

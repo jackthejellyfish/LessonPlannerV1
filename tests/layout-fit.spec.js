@@ -8,7 +8,7 @@ const { test, expect } = require('@playwright/test');
    Back/Next) had wrapped onto two lines and grown taller than the fixed
    space reserved for it, so it covered the bottom of the game.
 
-   This opens every team game with the maximum 4 teams at common laptop
+   This opens every team game with the maximum 6 teams at common laptop
    viewports (125% Windows scaling turns a 1920x1080 screen into about
    1536x730 of page) and checks that the play area sits wholly between
    the top step bar and the bottom footer bar.
@@ -42,8 +42,8 @@ for (const vp of VIEWPORTS) {
     for (const g of GAMES) {
       await page.locator('.step').nth(g.step).evaluate((el) => el.click());
       await page.click(`#${g.prefix}NewGameBtn`);
-      // Up to 4 teams: the widest footer the game can produce.
-      for (let i = 0; i < 2; i++) {
+      // Up to 6 teams: the widest footer the game can produce.
+      for (let i = 0; i < 4; i++) {
         const add = page.locator(`#${g.prefix}AddTeamBtn`);
         if (await add.isVisible() && await add.isEnabled()) await add.click();
       }
@@ -75,7 +75,7 @@ test('compact mode: every game fits above its footer at 1366x768', async ({ page
       await page.click('#compactModeBtn');
     }
     await page.click(`#${g.prefix}NewGameBtn`);
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 4; i++) {
       const add = page.locator(`#${g.prefix}AddTeamBtn`);
       if (await add.isVisible() && await add.isEnabled()) await add.click();
     }
