@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -142,7 +143,7 @@ document.querySelectorAll('#whackLanes [data-lanes]').forEach(btn => {
 ========================================================= */
 function askWhackQuestion(){
   const q = WHACK_QUESTIONS[state.whackQuestionOrder[state.whackTurnsPlayed]];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, WHACK_QUESTIONS, state.whackTurnsPlayed);
 }
 
 document.getElementById('whackBeginTurnBtn').addEventListener('click', async () => {

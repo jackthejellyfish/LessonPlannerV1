@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -122,7 +123,7 @@ function renderMazeTurnBanner(){
 ========================================================= */
 function askMazeQuestion(){
   const q = MAZE_QUESTIONS[state.mazeQuestionOrder[state.mazeTurnsPlayed]];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, MAZE_QUESTIONS, state.mazeTurnsPlayed);
 }
 
 document.getElementById('mazeBeginTurnBtn').addEventListener('click', beginMazeTurn);

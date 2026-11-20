@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { sfxImpact, sfxRisingChime, sfxSlash, sfxCombo } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -184,7 +185,7 @@ function renderFruitTurnBanner(){
 function askFruitQuestion(){
   const qIndex = state.fruitQuestionOrder[state.fruitTurnsPlayed];
   const q = FRUIT_QUESTIONS[qIndex];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, FRUIT_QUESTIONS, state.fruitTurnsPlayed);
 }
 
 function showFruitResult(){
@@ -234,19 +235,62 @@ function updateFruitParticles(k){
    penalty (same "a miss just costs you the point, nothing worse"
    spirit as every other timed mini-game here).
 ========================================================= */
+/* ---- Where a volley comes from (classroom feedback 2026-11-20) ----
+   Everything used to come up from the bottom, so a class learned to
+   wait at the bottom of the screen. Now each volley picks an edge:
+   up from the bottom (still the most common), dropped from the top,
+   thrown in from the left or right, or lobbed from a corner. A volley
+   keeps to one edge so it reads as "here they come from the left!".
+   Shapes that drop from the top fall on a lighter gravity (`g`), so
+   they hang about as long as one thrown up from the bottom. */
+const FRUIT_LAUNCH_WEIGHTS = [
+  ['bottom', 0.4], ['top', 0.2], ['left', 0.12], ['right', 0.12],
+  ['cornerBottom', 0.08], ['cornerTop', 0.08]
+];
+const FRUIT_DROP_GRAVITY = 0.42;   // x FRUIT_GRAVITY for shapes dropped from the top
+function pickFruitLaunch(){
+  let r = Math.random();
+  for(const [edge, w] of FRUIT_LAUNCH_WEIGHTS){ if((r -= w) < 0) return edge; }
+  return 'bottom';
+}
+// Start position and velocity for one shape from the given edge, in the
+// same %-of-play-area units as everything else here.
+function fruitLaunchFrom(edge){
+  const side = Math.random() < 0.5 ? -1 : 1;   // for the corners: left or right
+  switch(edge){
+    case 'top':
+      return { x: 10 + Math.random() * 80, y: -8, vx: (Math.random() - 0.5) * 16, vy: 4 + Math.random() * 10, g: FRUIT_DROP_GRAVITY };
+    case 'left':
+    case 'right': {
+      const dir = edge === 'left' ? 1 : -1;
+      return { x: edge === 'left' ? -7 : 107, y: 55 + Math.random() * 30,
+        vx: dir * (30 + Math.random() * 16), vy: -(52 + Math.random() * 20), g: 1 };
+    }
+    case 'cornerBottom':
+      return { x: side < 0 ? -5 : 105, y: 106, vx: -side * (26 + Math.random() * 12), vy: -(84 + Math.random() * 16), g: 1 };
+    case 'cornerTop':
+      return { x: side < 0 ? -6 : 106, y: -6, vx: -side * (24 + Math.random() * 12), vy: 2 + Math.random() * 6, g: FRUIT_DROP_GRAVITY };
+    default:
+      return { x: 12 + Math.random() * 76, y: 108, vx: (Math.random() - 0.5) * 34,
+        // Paired with the halved FRUIT_GRAVITY above: at the old -(110+r*40)
+        // these would now sail off the top. Lower launch speed + lower
+        // gravity = same peak height, much longer time spent near it.
+        vy: -(82 + Math.random() * 26), g: 1 };
+  }
+}
+
 function spawnFruitShape(opts = {}){
   const roll = Math.random();
   const type = opts.type || (roll < FRUIT_BOMB_CHANCE ? 'bomb'
     : roll < FRUIT_BOMB_CHANCE + FRUIT_GOLDEN_CHANCE ? 'golden'
     : FRUIT_SHAPE_TYPES[Math.floor(Math.random() * FRUIT_SHAPE_TYPES.length)]);
+  const launch = fruitLaunchFrom(opts.edge || 'bottom');
   state.fruitShapes.push({
     half: false,
-    x: opts.x ?? (12 + Math.random() * 76), y: 108,
-    vx: opts.vx ?? (Math.random() - 0.5) * 34,
-    // Paired with the halved FRUIT_GRAVITY above: at the old -(110+r*40)
-    // these would now sail off the top. Lower launch speed + lower
-    // gravity = same peak height, much longer time spent near it.
-    vy: opts.vy ?? -(82 + Math.random() * 26),
+    x: opts.x ?? launch.x, y: launch.y,
+    vx: opts.vx ?? launch.vx,
+    vy: opts.vy ?? launch.vy,
+    g: launch.g,
     rotation: Math.random() * Math.PI * 2,
     rotSpeed: type === 'mega' ? 0.8 : (Math.random() - 0.5) * 3.2,
     // Bigger shapes are easier to hit — the swipe test is a distance
@@ -349,8 +393,8 @@ function cutFruitShape(shape, canvas){
   const kick = 32;
   [-1, 1].forEach(side => {
     state.fruitShapes.push({
-      half: true, x: shape.x, y: shape.y,
-      vx: shape.vx + side * kick, vy: shape.vy - 22,
+      half: true, x: shape.x, y: shape.y, g: 1,
+      vx: shape.vx + side * kick, vy: Math.min(shape.vy, 10) - 22,
       rotation: shape.rotation, rotSpeed: shape.rotSpeed * 1.4 * side,
       radiusPct: shape.radiusPct * 0.7, type: shape.type, color: shape.color,
       alpha: 1
@@ -380,13 +424,15 @@ function testFruitCutSegment(p1, p2, canvas){
 
 function updateFruitShapes(dtSec){
   for(const s of state.fruitShapes){
-    s.vy += FRUIT_GRAVITY * dtSec;
+    s.vy += FRUIT_GRAVITY * (s.g || 1) * dtSec;
     s.x += s.vx * dtSec;
     s.y += s.vy * dtSec;
     s.rotation += s.rotSpeed * dtSec;
     if(s.half) s.alpha -= dtSec * 1.3;
   }
-  state.fruitShapes = state.fruitShapes.filter(s => s.y < 112 && (!s.half || s.alpha > 0));
+  // Gone once it falls off the bottom, or flies out past either side
+  // (a shape thrown in from one side can sail out of the other).
+  state.fruitShapes = state.fruitShapes.filter(s => s.y < 112 && s.x > -15 && s.x < 115 && (!s.half || s.alpha > 0));
 }
 
 function updateFruitTrail(){
@@ -763,7 +809,8 @@ function startFruitRound(){
       // reads as a handful launching together, which single shapes on a
       // shorter interval never achieves no matter how short it gets.
       const volley = 1 + Math.floor(Math.random() * 3);
-      for(let i = 0; i < volley; i++) spawnFruitShape();
+      const edge = pickFruitLaunch();
+      for(let i = 0; i < volley; i++) spawnFruitShape({ edge });
       nextSpawnAt = elapsedMs + (420 + Math.random() * 320);
     }
     if(fruitMegaTimes.length && elapsedMs >= fruitMegaTimes[0]){

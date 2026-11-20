@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -167,7 +168,7 @@ function renderInvLives(){
 function askInvQuestion(){
   const qIndex = state.invQuestionOrder[state.invTurnsPlayed];
   const q = INV_QUESTIONS[qIndex];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, INV_QUESTIONS, state.invTurnsPlayed);
 }
 
 function showInvResult(){

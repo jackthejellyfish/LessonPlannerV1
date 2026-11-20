@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { beep, sfxIncorrect, sfxTimeUp, sfxImpact, sfxRisingChime, sfxBalloonPop } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -112,7 +113,7 @@ function renderPopTurnBanner(){
 
 function askPopQuestion(){
   const q = POP_QUESTIONS[state.popQuestionOrder[state.popTurnsPlayed]];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, POP_QUESTIONS, state.popTurnsPlayed);
 }
 
 document.getElementById('popBeginTurnBtn').addEventListener('click', beginPopTurn);

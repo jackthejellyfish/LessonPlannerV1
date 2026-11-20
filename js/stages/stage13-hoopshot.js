@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { beep, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -413,7 +414,7 @@ function shootHoop(){
 ========================================================= */
 function askHoopQuestion(){
   const q = HOOP_QUESTIONS[state.hoopQuestionOrder[state.hoopTurnsPlayed]];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, HOOP_QUESTIONS, state.hoopTurnsPlayed);
 }
 
 document.getElementById('hoopBeginTurnBtn').addEventListener('click', async () => {

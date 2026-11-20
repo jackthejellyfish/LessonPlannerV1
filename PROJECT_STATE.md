@@ -1,7 +1,7 @@
 # Teacher Jack’s Lesson Planner — Project State
 
 > Handover summary: what the app is, how it's built, the rules that keep it
-> fast and stable, and how to change it. Current as of **v3.4 (2026-11-18)**.
+> fast and stable, and how to change it. Current as of **v3.5 (2026-11-20)**.
 > The full design history (why things are the way they are, per-game deep
 > dives, superseded decisions) is in
 > [archive/PROJECT_STATE-history.md](archive/PROJECT_STATE-history.md). It is
@@ -58,11 +58,11 @@ quiz the same language.
 | 9 | Practice questions | 4 sets: gap fill, unscramble, sentence, free writing |
 | 10 | Billiards | Team game, canvas physics |
 | 11 | Neon Arena | Team game, canvas |
-| 12 | Fruit Ninja | Team game, canvas (bombs cost 5; a mega bomb halves the score; the blade never freezes) |
+| 12 | Fruit Ninja | Team game, canvas (each volley comes from a random edge: bottom, top, left, right or a corner; bombs cost 5; a mega bomb halves the score; the blade never freezes) |
 | 13 | Hoop Shot | Team game, canvas (fixed hoop, −/+ aim dock, SHOOT) |
 | 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns) |
 | 15 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
-| 16 | Ninja Jump | Team game, canvas platformer, 10/15/20/30s (teacher picks between turns), one level per lap of turns, clearing it ends the turn; moving platforms, triple-jump power-up; ends with **Finish: choose a lesson** |
+| 16 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round; ends with **Finish: choose a lesson** |
 
 Every team game follows the same loop: a setup screen (rules plus teams and
 colours) → a team answers a question → the team plays a short timed turn →
@@ -92,6 +92,7 @@ js/canvasFloatText.js "+N" floating text on canvases
 js/hud.js             timer bars: createTimerHud(), setTimerFill()
 js/quality.js         adaptive lite mode: noteFrame(), particleCount(), isLowQuality()
 js/fpsMeter.js        on-screen meter, only when the URL has ?fps
+js/questionChoices.js multiple-choice versions of the turn questions (askTeamQuestion)
 js/timerRing.js, audio.js, particles.js, confirmDialog.js, icons.js, utils.js
 js/stages/stageN-*.js game and stage logic
 js/content/stageN-*.js lesson content (plain data, keyed by lesson id)
@@ -258,6 +259,15 @@ worst frame, and whether lite mode is on.
   and the class read a frozen blade as the game lagging. Measured with a
   scripted scribble against careful single swipes: scribble 67-117 points
   originally, 41-51 now; careful play 85-100.
+- **Ninja Jump levels and pick-ups** (2026-11-20). `LEVELS` runs easiest
+  first, each with a `diff` that colours its picker button. Pick-ups are
+  not in the maps: `golden`, `triple` and `speed` list candidate spots and
+  each round picks one (so a class can't learn them); a load-time check
+  logs an error if a spot isn't open air. Fans are map tiles: `F` blows
+  up to the first plank above it and sets the ninja down on it (the lift
+  fades over its last 1.5 tiles), `<` / `>` blow along their row. Winds
+  don't act inside an updraft (Windy Peak's wind crosses its fans). A
+  test stands the ninja on every fan and checks where it lands.
 - **Ninja Jump physics** moves by the average of the old and new vertical
   speed each frame, so jump height is identical at 20fps and 60fps. The
   levels are built on those heights (single jump 4.4 tiles, double 7.3,
@@ -288,6 +298,16 @@ worst frame, and whether lite mode is on.
 - **Teacher pickers on a play area** (`.game-picker` in `css/base.css`):
   Whack-a-Jelly's lanes and Ninja Jump's round length
   (`state.jumpSeconds`). Shown only while the play area is `.idle`.
+- **Multiple-choice turn questions** (feedback 2026-11-20). Every team
+  game except Spin the Wheel asks through `askTeamQuestion(q, bank,
+  turnIndex)` in `js/questionChoices.js`. Every other turn (2nd, 4th, ...)
+  is multiple choice when the question allows it; the first is always
+  open, which the tests rely on. Options are built from the question's
+  shape ("Which is correct? 'a / b'", "In or on?", "Is this correct?" ->
+  Yes/No, "Put the words in order" -> the prompt's chunks swapped, else
+  two similar answers from the same bank). Where that guesses wrong, give
+  the question its own `choices: [right, wrong, ...]` (three Whack-a-Jelly
+  questions do). The app marks a multiple-choice answer itself.
 - **The question is always the centre of attention** (feedback
   2026-11-18). Every game's question modal (`.modal-question` in
   `css/modals.css`) fills most of the screen over a dark backdrop, with the
@@ -331,6 +351,7 @@ npm test                                         # serial (workers: 1); serves o
 | `team-games`, `new-games` | real played turns through the result modal |
 | `quality` | lite mode off by default, forced on, auto-triggers; `?fps` meter; Billiards survives compact mode |
 | `perf`, `perf-games` | fps floors and the per-game main-thread survey at 1440p, CPU 6× slower (load `?lite=0`) |
+| `soak` (opt-in: `SOAK=1`) | plays every game for many turns with 6 teams, leaves rounds half-way, restarts; checks memory, DOM nodes and listeners stay flat |
 
 Tests run serially on purpose: running them in parallel made the game-loop
 specs flaky.

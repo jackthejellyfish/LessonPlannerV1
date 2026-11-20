@@ -243,3 +243,174 @@ test('Jelly Maze and Ninja Jump stop their game loop when you leave mid-turn', a
   }
   expect(errors).toEqual([]);
 });
+
+/* ---- Ninja Jump: levels, fans and pick-ups (2026-11-20) ---- */
+// Runs `src` in the page with J = the game's debug view and a = arg.
+async function jumpInternals(page, src, arg) {
+  return page.evaluate(async ([code, a]) => {
+    const m = await import('/js/stages/stage16-ninjajump.js');
+    const J = m.debugJumpInternals();
+    return new Function('J', 'a', code)(J, a);
+  }, [src, arg]);
+}
+
+test('Ninja Jump: the teacher can pick any level, easy ones first, and laps move on', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(15).evaluate((el) => el.click());
+  await page.click('#jumpNewGameBtn');
+  await page.click('#jumpStartBtn');
+  await page.waitForTimeout(250);
+  const buttons = page.locator('#jumpLevels [data-level]');
+  expect(await buttons.count()).toBeGreaterThanOrEqual(8);
+  await expect(buttons.nth(0)).toHaveClass(/active/);
+  await expect(buttons.nth(0)).toHaveClass(/lvl-easy/);
+  await expect(buttons.nth(1)).toHaveClass(/lvl-easy/);
+  await expect(buttons.last()).toHaveClass(/lvl-hard/);
+  await buttons.nth(2).click();
+  await expect(buttons.nth(2)).toHaveClass(/active/);
+  await page.click('#jumpBeginTurnBtn');
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  await expect(page.locator('#jumpLevels')).toBeHidden();
+  expect(await jumpInternals(page, 'return J.levelIndex;')).toBe(2);
+  await page.evaluate(async () => (await import('/js/stages/stage16-ninjajump.js')).debugCollectAllStars());
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 4000 });
+  await page.click('#jumpNextTeamBtn');
+  // Team 2 of 2: same lap, same level.
+  await expect(buttons.nth(2)).toHaveClass(/active/);
+  expect(errors).toEqual([]);
+});
+
+test('Ninja Jump: every updraft carries the ninja up onto the plank above it', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors = watchErrors(page);
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(15).evaluate((el) => el.click());
+  await page.click('#jumpNewGameBtn');
+  await page.click('#jumpStartBtn');
+  await page.waitForTimeout(250);
+  await page.click('#jumpTimes [data-seconds="30"]');
+  await page.click('#jumpBeginTurnBtn');
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  const levels = await jumpInternals(page, 'return J.levels.map((l, i) => ({ i, name: l.name, fans: l.map.some(r => r.includes("F")) }));');
+  for (const lv of levels.filter((l) => l.fans)) {
+    const fans = await jumpInternals(page, 'J.loadLevel(a); return J.updrafts.map(u => ({ ...u }));', lv.i);
+    for (const u of fans) {
+      // Stand the ninja on the fan and let go of everything.
+      await jumpInternals(page, 'J.loadLevel(a.i); J.setInput({ left: false, right: false, jumpHeld: false }); Object.assign(J.ninja, { x: a.u.x + 0.5, y: a.u.fanY, vx: 0, vy: 0 });', { i: lv.i, u });
+      await page.waitForTimeout(1800);
+      const n = await jumpInternals(page, 'return { y: J.ninja.y, ground: J.ninja.onGround, x: J.ninja.x };');
+      const plankTop = u.fanY - u.len + 0.5;
+      expect(n.ground, `${lv.name}: fan at x${u.x} should set the ninja down`).toBe(true);
+      expect(Math.abs(n.y - plankTop), `${lv.name}: fan at x${u.x} lands on row ${plankTop}`).toBeLessThan(0.05);
+    }
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Ninja Jump: pick-ups move between rounds, and the golden shuriken is worth 3', async ({ page }) => {
+  const errors = watchErrors(page);
+  await openGame(page, 15, 'jump');
+  // Every level has a golden shuriken; ones with several spots don't
+  // always put it in the same place.
+  const spread = await jumpInternals(page, `
+    return J.levels.map((l, i) => {
+      const seen = new Set();
+      for (let k = 0; k < 30; k++) { J.loadLevel(i); seen.add(J.golden.x + ',' + J.golden.y); }
+      return { name: l.name, spots: l.golden.length, seen: seen.size };
+    });`);
+  for (const s of spread) {
+    expect(s.spots, `${s.name} has golden spots`).toBeGreaterThan(0);
+    if (s.spots > 1) expect(s.seen, `${s.name}'s golden shuriken should move`).toBeGreaterThan(1);
+  }
+  // Put the ninja on the golden shuriken: +3.
+  await jumpInternals(page, 'J.loadLevel(0); Object.assign(J.ninja, { x: J.golden.x, y: J.golden.y + 0.4, vx: 0, vy: 0 });');
+  await page.waitForTimeout(120);
+  expect(await jumpInternals(page, 'return J.golden.got;')).toBe(true);
+  expect(Number(await page.locator('#jumpScoreDisplay').textContent())).toBeGreaterThanOrEqual(3);
+  expect(errors).toEqual([]);
+});
+
+test('Ninja Jump: the speed boost makes the ninja run faster, and side winds push', async ({ page }) => {
+  const errors = watchErrors(page);
+  await openGame(page, 15, 'jump');
+  const speedLevel = await jumpInternals(page, 'return J.levels.findIndex(l => l.speed);');
+  await jumpInternals(page, 'J.loadLevel(a); Object.assign(J.ninja, { x: 3.5, y: 14, vx: 0, vy: 0 }); J.setInput({ right: true });', speedLevel);
+  await page.waitForTimeout(500);
+  const normal = await jumpInternals(page, 'J.setInput({ right: false }); return Math.abs(J.ninja.vx);');
+  await jumpInternals(page, 'const pu = J.powerups.find(p => p.kind === "speed"); Object.assign(J.ninja, { x: pu.x, y: pu.y + 0.4, vx: 0, vy: 0 });');
+  await page.waitForTimeout(120);
+  await jumpInternals(page, 'Object.assign(J.ninja, { x: 3.5, y: 14, vx: 0, vy: 0 }); J.setInput({ right: true });');
+  await page.waitForTimeout(500);
+  const boosted = await jumpInternals(page, 'J.setInput({ right: false }); return Math.abs(J.ninja.vx);');
+  expect(boosted, 'boosted run speed').toBeGreaterThan(normal * 1.3);
+
+  // A ninja hanging in a wind's row drifts with it.
+  const windy = await jumpInternals(page, 'return J.levels.findIndex(l => l.map.some(r => /[<>]/.test(r)));');
+  const w = await jumpInternals(page, 'J.loadLevel(a); return { ...J.winds[0] };', windy);
+  await jumpInternals(page, 'Object.assign(J.ninja, { x: 18, y: a.y + 0.9, vx: 0, vy: -3 });', w);
+  await page.waitForTimeout(150);
+  const vx = await jumpInternals(page, 'return J.ninja.vx;');
+  expect(Math.sign(vx), 'the wind blows the ninja its way').toBe(w.dir);
+  expect(errors).toEqual([]);
+});
+
+/* ---- Multiple-choice turn questions (2026-11-20) ---- */
+test('every other turn question is multiple choice, marked by the app', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors = watchErrors(page);
+  // Whack-a-Jelly's "Which is correct?" questions always have options.
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(13).evaluate((el) => el.click());
+  await page.click('#whackNewGameBtn');
+  await page.click('#whackStartBtn');
+  await page.waitForTimeout(250);
+  // Turn 1: the usual open question.
+  await page.click('#whackBeginTurnBtn');
+  await expect(page.locator('#popCheckBtn')).toBeVisible();
+  await expect(page.locator('.mc-choice')).toHaveCount(0);
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 25000 });
+  await page.click('#whackNextTeamBtn');
+  // Turn 2: multiple choice.
+  await page.click('#whackBeginTurnBtn');
+  const options = page.locator('.mc-choice');
+  await expect(options).toHaveCount(2);
+  await expect(page.locator('#popCheckBtn')).toHaveCount(0);
+  await options.first().click();
+  await expect(page.locator('.mc-choice.is-correct')).toHaveCount(1);
+  await expect(page.locator('#popMcVerdict')).toHaveText(/Correct|Not quite/);
+  await expect(options.first()).toBeDisabled();
+  await page.click('#popMcContinueBtn');
+  await expect(page.locator('#popQuestionOverlay')).toHaveClass(/hidden/);
+  await expect(page.locator('#whackPlayArea')).not.toHaveClass(/idle/); // the round runs
+  expect(errors).toEqual([]);
+});
+
+/* ---- Fruit Ninja launches from every edge (2026-11-20) ---- */
+test('Fruit Ninja: fruit comes from the bottom, the top and the sides', async ({ page }) => {
+  test.setTimeout(40000);
+  const errors = watchErrors(page);
+  await openGame(page, 11, 'fruit');
+  const seen = new Set();
+  for (let i = 0; i < 50; i++) {
+    const shapes = await page.evaluate(async () => (await import('/js/state.js')).state.fruitShapes.map((s) => ({ x: s.x, y: s.y, vy: s.vy, half: s.half })));
+    for (const s of shapes) {
+      if (s.half) continue;
+      if (s.y < 0 && s.vy > 0) seen.add('top');
+      else if (s.x < 0) seen.add('left');
+      else if (s.x > 100) seen.add('right');
+      else if (s.y > 100 && s.vy < 0) seen.add('bottom');
+    }
+    if (seen.size >= 4) break;
+    await page.waitForTimeout(200);
+  }
+  expect([...seen].sort()).toEqual(['bottom', 'left', 'right', 'top']);
+  expect(errors).toEqual([]);
+});

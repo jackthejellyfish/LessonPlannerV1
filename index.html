@@ -23,6 +23,7 @@
          downloaded: about four network round trips before the app can
          start. A test keeps this list in step with the files in js/. -->
     <link rel="modulepreload" href="js/audio.js" />
+    <link rel="modulepreload" href="js/questionChoices.js" />
     <link rel="modulepreload" href="js/canvasEffects.js" />
     <link rel="modulepreload" href="js/canvasFloatText.js" />
     <link rel="modulepreload" href="js/canvasGame.js" />
@@ -1236,7 +1237,12 @@
                   <button class="jump-touch-btn jump-touch-jump" id="jumpJumpBtn" type="button" tabindex="-1">JUMP</button>
                 </div>
                 <button class="btn btn-primary" id="jumpBeginTurnBtn" type="button">Begin turn</button>
-                <!-- The teacher's round-length picker, shown between turns only. -->
+                <!-- The teacher's level picker (buttons added by the stage
+                     module, one per level) and round-length picker, shown
+                     between turns only. -->
+                <div class="game-picker jump-level-picker" id="jumpLevels" role="group" aria-label="Level">
+                  <span class="game-picker-label">Level</span>
+                </div>
                 <div class="game-picker" id="jumpTimes" role="group" aria-label="Seconds per turn">
                   <span class="game-picker-label">Time</span>
                   <button type="button" data-seconds="10">10s</button>

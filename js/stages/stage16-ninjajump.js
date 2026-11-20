@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -74,16 +75,48 @@ const TIME_BONUS_PER_SEC = 1;   // per whole second left when the level is clear
 const CLEAR_SHOW_MS = 1300;     // the "LEVEL CLEAR!" moment before the result screen
 const SPIKE_PENALTY = 1;
 const POWERUP_COLOR = '#B983FF';
+const GOLDEN_POINTS = 3;        // the golden shuriken: worth three stars
+const GOLDEN_RADIUS = 0.5;
+const GOLDEN_COLOR = '#FFC83D';
+const SPEED_COLOR = '#4BE38A';
+const SPEED_MS = 6000;          // how long the speed boost lasts
+const SPEED_MULT = 1.5;         // run speed while boosted
+// Fans. An updraft lifts harder than gravity pulls (even falling
+// gravity, so it works without holding jump), up to a top speed, and
+// fades out over its last 1.5 tiles so the ninja settles on the plank
+// above instead of shooting past it. Side winds push, but a child
+// running against one still gets through.
+const FAN_LIFT = 150;
+const FAN_MAX_UP = 11;
+const FAN_FADE = 1.5;
+const WIND_PUSH = 32;
+const WIND_MAX_SPEED = RUN_SPEED * 1.5;
+const FAN_TILES = 'F<>';
+function isSolid(ch){ return ch === '#' || ch === 'F' || ch === '<' || ch === '>'; }
 
 /* ---- Levels ----
    #  stone block (solid)
    =  wooden plank: jump up through it, land on top
    ^  spikes (back to the start)
    S  spring (always a full-height launch, held jump or not)
+   F  fan blowing UP (a solid block): its updraft carries the ninja up
+      to the first plank above it and drops them onto it
+   <  >  fan on a wall blowing left / right along its row (a solid block)
    *  ninja star
-   T  triple-jump power-up
    P  where the ninja starts
    Every row is exactly 36 characters (checked at load).
+
+   `diff` is 'easy', 'medium' or 'hard' (the colour of the level's
+   button on the teacher's level picker). The list runs easiest first.
+
+   Pick-ups are NOT in the map: each level lists a few candidate spots
+   ([x, y] tiles) and every round picks one at random, so a class can't
+   just learn where they are (feedback 2026-11-20):
+   - `golden`: the golden shuriken, worth 3 stars, always somewhere
+     hard (high up, over spikes, in a gap). Every level has one.
+     It isn't needed to clear the level.
+   - `triple`: the triple-jump power-up (some levels).
+   - `speed`: the speed boost (some levels).
 
    `movers` are moving platforms (one-way, like planks, and they carry
    the ninja): x/y is the left end and top at one end of the trip, w the
@@ -95,16 +128,17 @@ const POWERUP_COLOR = '#B983FF';
    spring 9.9; a running jump clears about 5.9 tiles across.
    - a plank at most 4 rows above where you stand is a single jump,
      and at most 6 rows is a double jump, with at most 3 tiles across;
-   - anything harder has a moving platform that goes there, and
-     every moving platform ends its trip flush with the ledge it
-     serves (same height, no gap) so a child can just walk off it;
+   - anything harder has a moving platform or an updraft that goes
+     there, and every moving platform ends its trip flush with the
+     ledge it serves (same height, no gap) so a child can just walk
+     off it;
    - 8 stars per level;
-   - the triple-jump power-up sits somewhere risky or hard to reach
-     (high above a ledge, or right over a spike pit): it's a prize.
-     */
+   - the easy levels need nothing harder than a double jump, and the
+     fans in Lantern Bridge do the climbing for you.
+   */
 const LEVELS = [
-  { name: 'Dojo Garden', sky: ['#2B1E4A', '#E8796B'], map: [
-    '.........................T..........',
+  { name: 'Dojo Garden', diff: 'easy', sky: ['#2B1E4A', '#E8796B'], map: [
+    '....................................',
     '....................................',
     '....................................',
     '....................................',
@@ -123,9 +157,54 @@ const LEVELS = [
   ], movers: [
     // Glides along row 8 between the left ledge and the middle.
     { x: 8, y: 8, w: 3, dx: 12, dy: 0, period: 9, phase: 0 }
-  ]},
-  { name: 'Spring Valley', sky: ['#14324A', '#5FB3A8'], moon: [0.52, 0.13], map: [
-    '..................T.................',
+  ],
+  triple: [[25, 0], [2, 2], [34, 3]],
+  golden: [[8, 1], [0, 4], [28, 1]] },
+
+  { name: 'Bamboo Steps', diff: 'easy', sky: ['#173B2E', '#8FC97A'], moon: [0.18, 0.16], map: [
+    '....................................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '................====................',
+    '....................................',
+    '...........*..............*.........',
+    '..........======........======......',
+    '....................................',
+    '....................................',
+    '....======..........======..........',
+    '....................................',
+    '.P....*....*....*....*....*....*....',
+    '####################################',
+    '####################################'
+  ],
+  speed: [[8, 10], [22, 10], [13, 7], [34, 13]],
+  golden: [[17, 0], [34, 3], [1, 6]] },
+
+  { name: 'Lantern Bridge', diff: 'easy', sky: ['#1B2440', '#C77D5B'], map: [
+    '....................................',
+    '....................................',
+    '...*....*...............*....*......',
+    '..=========............=========....',
+    '....................................',
+    '....................................',
+    '....................................',
+    '..............*....*................',
+    '.............========...............',
+    '....................................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '.P....*.....................*.......',
+    '#########F######F#######F###########',
+    '####################################'
+  ],
+  speed: [[12, 13], [31, 13], [17, 7]],
+  golden: [[18, 0], [35, 7], [0, 7]] },
+
+  { name: 'Spring Valley', diff: 'medium', sky: ['#14324A', '#5FB3A8'], moon: [0.52, 0.13], map: [
+    '....................................',
     '....................................',
     '.......*....................*.......',
     '......===..................===......',
@@ -146,8 +225,12 @@ const LEVELS = [
     { x: 14, y: 12.5, w: 2, dx: 0, dy: -5.5, period: 5, phase: 0 },
     // A lift on the right, up to the high right ledge.
     { x: 25, y: 12.5, w: 2, dx: 0, dy: -9.5, period: 7, phase: 0.5 }
-  ]},
-  { name: 'Spike Temple', sky: ['#1E1430', '#B5543C'], map: [
+  ],
+  triple: [[18, 0], [2, 0], [33, 0]],
+  speed: [[8, 13], [20, 13], [28, 13]],
+  golden: [[4, 0], [30, 0]] },
+
+  { name: 'Spike Temple', diff: 'medium', sky: ['#1E1430', '#B5543C'], map: [
     '....................................',
     '....................................',
     '....................................',
@@ -158,7 +241,7 @@ const LEVELS = [
     '.....===....................===.....',
     '....................................',
     '...........*............*...........',
-    '..........===......T...===..........',
+    '..........===..........===..........',
     '....................................',
     '....................................',
     '.P.....^^^^^..*..^^^^^..*..^^^^^....',
@@ -169,9 +252,12 @@ const LEVELS = [
     { x: 6, y: 11, w: 2, dx: 5, dy: 0, period: 4.4, phase: 0 },
     { x: 16, y: 11, w: 2, dx: 5, dy: 0, period: 4.8, phase: 0.5 },
     { x: 26, y: 11, w: 2, dx: 5, dy: 0, period: 4.6, phase: 0.25 }
-  ]},
-  { name: 'Rooftop Run', sky: ['#0E1630', '#3E4F8C'], map: [
-    '..................................T.',
+  ],
+  triple: [[19, 10], [8, 9], [29, 9]],
+  golden: [[0, 2], [35, 2], [9, 12], [29, 12]] },
+
+  { name: 'Rooftop Run', diff: 'medium', sky: ['#0E1630', '#3E4F8C'], map: [
+    '....................................',
     '....................................',
     '................*..*................',
     '...............======...............',
@@ -193,12 +279,68 @@ const LEVELS = [
     { x: 12, y: 11, w: 3, dx: 0, dy: -8, period: 5.5, phase: 0 },
     // Slides between the right tower and the high right ledge.
     { x: 21, y: 6, w: 3, dx: 4, dy: 0, period: 4, phase: 0 }
-  ]}
+  ],
+  triple: [[34, 0], [6, 12], [20, 12]],
+  speed: [[3, 11], [17, 11], [31, 11]],
+  golden: [[0, 0], [13, 13], [27, 13]] },
+
+  { name: 'Windy Peak', diff: 'hard', sky: ['#1A2238', '#7A8FB8'], moon: [0.5, 0.12], map: [
+    '....................................',
+    '....................................',
+    '....................................',
+    '..*.........*..........*.........*..',
+    '.====.....=====......=====.....====.',
+    '....................................',
+    '....................................',
+    '...................................<',
+    '......*......................*......',
+    '.....====...................====....',
+    '....................................',
+    '....................................',
+    '....................................',
+    '.P..............*..*................',
+    '#####^^^^###F##########F###^^^^#####',
+    '####################################'
+  ],
+  golden: [[7, 12], [28, 12], [17, 0]] },
+
+  { name: 'Storm Tower', diff: 'hard', sky: ['#120E24', '#5B3F7A'], moon: [0.86, 0.14], map: [
+    '....................................',
+    '...............*..*.................',
+    '..............======................',
+    '....................................',
+    '>...................................',
+    '...*.........................*......',
+    '..====......................====....',
+    '....................................',
+    '....................................',
+    '.........*...............*..........',
+    '........====............====........',
+    '....................................',
+    '.................*..................',
+    '.P..........*.......................',
+    '####F########^^^^^^^^^########F#####',
+    '####################################'
+  ], movers: [
+    // A lift from the low left ledge up to the top ledge.
+    { x: 12, y: 10, w: 2, dx: 0, dy: -8, period: 6, phase: 0 },
+    // A ferry across the spike pit, level with the floor.
+    { x: 13, y: 14, w: 2, dx: 7, dy: 0, period: 5, phase: 0.5 }
+  ],
+  triple: [[35, 0], [0, 1], [19, 11]],
+  speed: [[10, 13], [26, 13]],
+  golden: [[14, 12], [21, 12], [35, 3]] }
 ];
 LEVELS.forEach((lv, i) => {
   if(lv.map.length !== ROWS || lv.map.some(r => r.length !== COLS)){
     console.error(`Ninja Jump level ${i + 1} is not ${COLS}x${ROWS}`);
+    return;
   }
+  // Every pick-up spot must be open air in the map (not a star, block
+  // or plank), or a pick-up could appear inside a wall.
+  ['golden', 'triple', 'speed'].forEach(k => (lv[k] || []).forEach(([x, y]) => {
+    if(!lv.map[y] || lv.map[y][x] !== '.') console.error(`Ninja Jump level ${i + 1}: ${k} spot ${x},${y} is not open air`);
+  }));
 });
 
 /* =========================================================
@@ -212,17 +354,20 @@ renderGameIntro('jumpSetup', {
   steps: [
     'One team answers a question.',
     'Run with A / D or the arrow keys. Jump with SPACE (or W / up). Press jump again in the air to double jump!',
-    'Collect every ninja star before the time runs out to clear the level and finish your turn. The teacher picks the time.'
+    'Collect every ninja star before the time runs out to clear the level and finish your turn. The teacher picks the time and the level.'
   ],
   scoring: [
     { swatch: '<span class="jump-legend-swatch star"></span>', label: 'Ninja star', points: '+1' },
     { swatch: '<span class="jump-legend-swatch clear">&#10003;</span>', label: 'Clear the level', points: '+5', tone: 'bonus' },
     { swatch: '<span class="jump-legend-swatch clock">+1</span>', label: 'Every second left when you clear it', points: '+1', tone: 'bonus' },
+    { swatch: '<span class="jump-legend-swatch golden"></span>', label: 'Golden shuriken (somewhere hard!)', points: '+3', tone: 'bonus' },
     { swatch: '<span class="jump-legend-swatch triple">3</span>', label: 'Power-up &mdash; triple jump!', points: '', tone: 'bonus' },
+    { swatch: '<span class="jump-legend-swatch speed">&raquo;</span>', label: 'Speed boost &mdash; run faster!', points: '', tone: 'bonus' },
+    { swatch: '<span class="jump-legend-swatch fan"></span>', label: 'Fan &mdash; rides you up, or blows you sideways', points: '', tone: 'bonus' },
     { swatch: '<span class="jump-legend-swatch spring"></span>', label: 'Spring &mdash; super jump!', points: '', tone: 'bonus' },
     { swatch: '<span class="jump-legend-swatch spikes"></span>', label: 'Spikes &mdash; back to the start', points: '&minus;1', tone: 'bad' }
   ],
-  tip: 'Hold jump for a big leap, tap it for a small hop. Ride the moving platforms to reach the high ledges! On a touch board, use the arrow and JUMP buttons.'
+  tip: 'Hold jump for a big leap, tap it for a small hop. Ride the moving platforms and the fans to reach the high ledges! The power-ups move every turn. On a touch board, use the arrow and JUMP buttons.'
 });
 
 export function renderJumpTeamInputs(count){
@@ -236,12 +381,14 @@ document.getElementById('jumpStartBtn').addEventListener('click', () => {
   state.jumpCurrentTeam = 0;
   state.jumpTurnsPlayed = 0;
   state.jumpQuestionOrder = shuffle(JUMP_QUESTIONS.map((_, i) => i));
+  state.jumpLevel = 0;
 
   showGameScreen('jump');
   renderJumpScoreboard();
   renderJumpTurnBanner();
   syncTimePicker();
-  loadLevel(0);
+  syncLevelPicker();
+  loadLevel(state.jumpLevel);
   resizeJumpCanvas();
 });
 
@@ -261,6 +408,30 @@ document.querySelectorAll('#jumpTimes [data-seconds]').forEach(btn => {
   });
 });
 
+/* ---- The teacher's level picker (shown between turns) ----
+   One button per level, coloured by difficulty. Each lap of turns moves
+   on to the next level by itself; picking one here changes the level
+   for the next turn, and the laps carry on from there. The easy levels
+   are first, for a class still finding the controls. */
+const levelPicker = document.getElementById('jumpLevels');
+levelPicker.insertAdjacentHTML('beforeend', LEVELS.map((lv, i) =>
+  `<button type="button" class="lvl-${lv.diff}" data-level="${i}" title="${lv.name} (${lv.diff})">${i + 1}</button>`).join(''));
+function syncLevelPicker(){
+  levelPicker.querySelectorAll('[data-level]').forEach(btn => {
+    const on = Number(btn.dataset.level) === state.jumpLevel;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+levelPicker.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-level]');
+  if(!btn || state.jumpRoundActive) return;
+  state.jumpLevel = Number(btn.dataset.level);
+  syncLevelPicker();
+  loadLevel(state.jumpLevel);
+  renderJumpCanvas();
+});
+
 function renderJumpScoreboard(){
   renderTeamScoreboard('jumpTeamList', state.jumpTeams, state.jumpCurrentTeam);
 }
@@ -273,7 +444,7 @@ function renderJumpTurnBanner(){
 ========================================================= */
 function askJumpQuestion(){
   const q = JUMP_QUESTIONS[state.jumpQuestionOrder[state.jumpTurnsPlayed]];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, JUMP_QUESTIONS, state.jumpTurnsPlayed);
 }
 
 document.getElementById('jumpBeginTurnBtn').addEventListener('click', beginJumpTurn);
@@ -303,8 +474,12 @@ let grid = [];            // rows of single-character strings
 let stars = [];           // { x, y, got, phase }
 let springs = [];         // { x, y, firedAt }
 let movers = [];          // moving platforms, see LEVELS
-let powerups = [];        // { x, y, got, phase } - the triple jump
+let powerups = [];        // { x, y, got, phase, kind: 'triple' | 'speed' }
+let golden = null;        // { x, y, got, phase } - the golden shuriken
+let updrafts = [];        // { x, fanY, len } - one per upward fan tile
+let winds = [];           // { y, x0, x1, dir } - one per side fan
 let tripleJump = false;   // collected this round
+let speedUntil = 0;       // the speed boost runs until this time
 let clearedAt = 0;        // when the level was cleared (ends the round)
 let roundEndsAt = 0;
 let spawn = { x: 1.5, y: 14 };
@@ -322,7 +497,10 @@ function loadLevel(i){
   stars = [];
   springs = [];
   powerups = [];
+  updrafts = [];
+  winds = [];
   tripleJump = false;
+  speedUntil = 0;
   movers = (lv.movers || []).map(m => ({ ...m, x0: m.x, y0: m.y, prevY: m.y, ddx: 0 }));
   stepMovers(performance.now());
   movers.forEach(m => { m.prevY = m.y; m.ddx = 0; });
@@ -330,11 +508,39 @@ function loadLevel(i){
     for(let x = 0; x < COLS; x++){
       const ch = grid[y][x];
       if(ch === '*'){ stars.push({ x: x + 0.5, y: y + 0.5, got: false, phase: Math.random() * 6 }); grid[y][x] = '.'; }
-      else if(ch === 'T'){ powerups.push({ x: x + 0.5, y: y + 0.45, got: false, phase: Math.random() * 6 }); grid[y][x] = '.'; }
       else if(ch === 'S'){ springs.push({ x, y, firedAt: -1e9 }); }
       else if(ch === 'P'){ spawn = { x: x + 0.5, y: y + 1 }; grid[y][x] = '.'; }
     }
   }
+  // Fans, once the grid is final. An updraft rises from its fan to the
+  // first plank above (and sets the ninja down on it), or stops short
+  // of a stone block; a side wind blows along its row to the next wall.
+  for(let y = 0; y < ROWS; y++){
+    for(let x = 0; x < COLS; x++){
+      const ch = grid[y][x];
+      if(ch === 'F'){
+        let len = y - 1;
+        for(let r = y - 1; r >= 0; r--){
+          if(grid[r][x] === '='){ len = y - r + 0.5; break; }
+          if(isSolid(grid[r][x])){ len = y - r - 1.5; break; }
+        }
+        updrafts.push({ x, fanY: y, len: Math.max(1, len) });
+      } else if(ch === '<' || ch === '>'){
+        const dir = ch === '>' ? 1 : -1;
+        let end = x + dir;
+        while(end >= 0 && end < COLS && !isSolid(grid[y][end])) end += dir;
+        winds.push({ y, dir, x0: Math.min(x, end) + 1, x1: Math.max(x, end) });
+      }
+    }
+  }
+  // The pick-ups go somewhere different every round (see LEVELS).
+  const pick = (spots) => spots && spots.length ? spots[Math.floor(Math.random() * spots.length)] : null;
+  const g = pick(lv.golden);
+  golden = g ? { x: g[0] + 0.5, y: g[1] + 0.5, got: false, phase: Math.random() * 6 } : null;
+  const t = pick(lv.triple);
+  if(t) powerups.push({ x: t[0] + 0.5, y: t[1] + 0.45, got: false, phase: Math.random() * 6, kind: 'triple' });
+  const sp = pick(lv.speed);
+  if(sp) powerups.push({ x: sp[0] + 0.5, y: sp[1] + 0.45, got: false, phase: Math.random() * 6, kind: 'speed' });
   sceneryKey = '';
   resetNinja();
   jumpBannerText = lv.name;
@@ -449,7 +655,7 @@ function overlapsTile(left, top, right, bottom, test){
 
 function moveX(dx){
   ninja.x += dx;
-  const hit = overlapsTile(ninja.x - PLAYER_W / 2, ninja.y - PLAYER_H, ninja.x + PLAYER_W / 2, ninja.y, ch => ch === '#');
+  const hit = overlapsTile(ninja.x - PLAYER_W / 2, ninja.y - PLAYER_H, ninja.x + PLAYER_W / 2, ninja.y, isSolid);
   if(hit){
     ninja.x = dx > 0 ? hit.tx - PLAYER_W / 2 - 1e-4 : hit.tx + 1 + PLAYER_W / 2 + 1e-4;
     ninja.vx = 0;
@@ -463,7 +669,7 @@ function moveY(dy){
   if(dy > 0){
     // Landing on stone, or on a plank the feet were above a moment ago.
     const hit = overlapsTile(left, ninja.y - PLAYER_H, right, ninja.y, (ch, tx, ty) =>
-      ch === '#' || (ch === '=' && prevFeet <= ty + 1e-3));
+      isSolid(ch) || (ch === '=' && prevFeet <= ty + 1e-3));
     if(hit){
       ninja.y = hit.ty;
       land();
@@ -482,7 +688,7 @@ function moveY(dy){
       }
     }
   } else if(dy < 0){
-    const hit = overlapsTile(left, ninja.y - PLAYER_H, right, ninja.y, ch => ch === '#');
+    const hit = overlapsTile(left, ninja.y - PLAYER_H, right, ninja.y, isSolid);
     if(hit){
       ninja.y = hit.ty + 1 + PLAYER_H;
       ninja.vy = 0; // bonk
@@ -504,6 +710,27 @@ function land(){
 
 function maxAirJumps(){ return tripleJump ? 2 : 1; }
 
+// Upward push from any updraft the ninja's middle is in: full strength
+// low down, fading to nothing over the top FAN_FADE tiles of its column.
+function updraftLift(){
+  for(const u of updrafts){
+    if(ninja.x < u.x - 0.15 || ninja.x > u.x + 1.15) continue;
+    const d = u.fanY - ninja.y;             // feet height above the fan
+    if(d < -0.01 || d > u.len) continue;
+    return FAN_LIFT * Math.max(0, Math.min(1, (u.len - d) / FAN_FADE));
+  }
+  return 0;
+}
+// -1, 0 or 1: the side wind the ninja's body is in.
+function windAt(){
+  for(const w of winds){
+    if(ninja.y - PLAYER_H >= w.y + 1 || ninja.y <= w.y - 0.1) continue;
+    if(ninja.x < w.x0 || ninja.x > w.x1) continue;
+    return w.dir;
+  }
+  return 0;
+}
+
 function stepNinja(dtSec, now){
   // Ride a moving platform: carried sideways with it (walls still stop
   // the ninja) and kept standing on its top as it rises or sinks.
@@ -518,16 +745,29 @@ function stepNinja(dtSec, now){
   }
   const frozen = now < ninja.frozenUntil;
   const dir = frozen ? 0 : (input.right ? 1 : 0) - (input.left ? 1 : 0);
+  const fast = now < speedUntil;
+  const runSpeed = fast ? RUN_SPEED * SPEED_MULT : RUN_SPEED;
 
   // Run: accelerate toward the target speed, with friction when idle.
-  const accel = ninja.onGround ? RUN_ACCEL : AIR_ACCEL;
+  const accel = (ninja.onGround ? RUN_ACCEL : AIR_ACCEL) * (fast ? 1.4 : 1);
   if(dir !== 0){
     ninja.vx += dir * accel * dtSec;
-    ninja.vx = Math.max(-RUN_SPEED, Math.min(RUN_SPEED, ninja.vx));
+    ninja.vx = Math.max(-runSpeed, Math.min(runSpeed, ninja.vx));
     ninja.face = dir;
   } else {
     const f = (ninja.onGround ? GROUND_FRICTION : AIR_FRICTION) * dtSec;
     ninja.vx = Math.abs(ninja.vx) <= f ? 0 : ninja.vx - Math.sign(ninja.vx) * f;
+  }
+  // Side winds push the ninja along their row (after friction, so a
+  // wind still nudges a ninja standing still). Not inside an updraft,
+  // though: Windy Peak's wind crosses its fan columns, and blowing a
+  // child out of the column half-way up felt like the fan was broken.
+  const wind = updraftLift() > 0 ? 0 : windAt();
+  if(wind){
+    ninja.vx = Math.max(-WIND_MAX_SPEED, Math.min(WIND_MAX_SPEED, ninja.vx + wind * WIND_PUSH * dtSec));
+  }
+  if(fast && ninja.onGround && Math.abs(ninja.vx) > RUN_SPEED * 0.8 && Math.random() < 0.5){
+    spawnJumpParticles(ninja.x - Math.sign(ninja.vx) * 0.3, ninja.y - 0.3, SPEED_COLOR, 1, 0.02);
   }
 
   // Jump: buffered presses, coyote time, then the double jump.
@@ -558,8 +798,11 @@ function stepNinja(dtSec, now){
   // Lower gravity while rising with jump held = variable jump height.
   if(ninja.vy >= 0) ninja.springBoost = false;
   const g = (ninja.vy < 0 && (input.jumpHeld || ninja.springBoost)) ? GRAVITY : GRAVITY * FALL_GRAVITY_MULT;
+  // An updraft pushes up against gravity, up to its top speed.
+  const lift = ninja.vy > -FAN_MAX_UP ? updraftLift() : 0;
   const vyBefore = ninja.vy;
-  ninja.vy = Math.min(MAX_FALL, ninja.vy + g * dtSec);
+  ninja.vy = Math.min(MAX_FALL, ninja.vy + (g - lift) * dtSec);
+  if(lift > 0 && ninja.vy < 0 && ninja.onGround){ ninja.onGround = false; ninja.platform = null; }
 
   // Moved by the AVERAGE of the old and new speed: exact under constant
   // gravity, so a jump reaches the same height at 20fps as at 60fps.
@@ -612,6 +855,11 @@ function checkThings(now){
     if(Math.hypot(cx - pu.x, cy - pu.y) < 0.5) collectPowerup(pu, now);
   }
 
+  if(golden && !golden.got){
+    const cx = Math.max(left, Math.min(golden.x, right)), cy = Math.max(top, Math.min(golden.y, bottom));
+    if(Math.hypot(cx - golden.x, cy - golden.y) < GOLDEN_RADIUS) collectGolden(now);
+  }
+
   if(now >= ninja.blinkUntil){
     const spike = overlapsTile(left + 0.12, top, right - 0.12, bottom - 0.02, (ch, tx, ty) => ch === '^' && bottom > ty + 0.5);
     if(spike) hurt(now);
@@ -631,13 +879,35 @@ function collectStar(st){
 
 function collectPowerup(pu, now){
   pu.got = true;
+  const L = layout(jumpCanvasResizer.getCanvas());
+  if(pu.kind === 'speed'){
+    speedUntil = now + SPEED_MS;
+    spawnJumpParticles(pu.x, pu.y, SPEED_COLOR, 18, 0.14);
+    spawnFloatText(jumpFloatTexts, L.ox + pu.x * L.s, L.oy + (pu.y - 0.6) * L.s, 'SPEED BOOST!', SPEED_COLOR, -0.9);
+    sfxRisingChime([660, 990, 1320]);
+    jumpBannerText = 'SPEED BOOST!';
+    jumpBannerUntil = now + 1100;
+    return;
+  }
   tripleJump = true;
   // If it's grabbed mid-air, the third jump is available straight away.
-  const L = layout(jumpCanvasResizer.getCanvas());
   spawnJumpParticles(pu.x, pu.y, POWERUP_COLOR, 18, 0.14);
   spawnFloatText(jumpFloatTexts, L.ox + pu.x * L.s, L.oy + (pu.y - 0.6) * L.s, 'TRIPLE JUMP!', POWERUP_COLOR, -0.9);
   sfxRisingChime([784, 988, 1175]);
   jumpBannerText = 'TRIPLE JUMP!';
+  jumpBannerUntil = now + 1100;
+}
+
+// The golden shuriken: worth three stars, not needed for the clear.
+function collectGolden(now){
+  golden.got = true;
+  addJumpScore(GOLDEN_POINTS);
+  const L = layout(jumpCanvasResizer.getCanvas());
+  spawnJumpParticles(golden.x, golden.y, GOLDEN_COLOR, 20, 0.15);
+  spawnFloatText(jumpFloatTexts, L.ox + golden.x * L.s, L.oy + (golden.y - 0.6) * L.s, `GOLDEN! +${GOLDEN_POINTS}`, GOLDEN_COLOR, -0.9);
+  sfxRisingChime([1046, 1318, 1568, 2093]);
+  triggerShake(jumpShake, 3);
+  jumpBannerText = 'GOLDEN SHURIKEN!';
   jumpBannerUntil = now + 1100;
 }
 
@@ -676,8 +946,15 @@ export function debugJumpInternals(){
     get ninja(){ return ninja; },
     get movers(){ return movers; },
     get levelIndex(){ return levelIndex; },
+    get golden(){ return golden; },
+    get powerups(){ return powerups; },
+    get updrafts(){ return updrafts; },
+    get winds(){ return winds; },
+    levelCount: LEVELS.length,
+    levels: LEVELS,
     loadLevel,
-    setTriple(on){ tripleJump = on; }
+    setTriple(on){ tripleJump = on; },
+    setInput(next){ Object.assign(input, next); }
   };
 }
 
@@ -796,10 +1073,12 @@ function drawScenery(canvas){
         ctx.fillRect(X, Y + s * 0.5, s + 0.5, 1);
         ctx.fillRect(X + ((y % 2) ? s * 0.5 : 0), Y, 1, s * 0.5);
         // A grassy lip on any block with open air above it.
-        if(tileAt(x, y - 1) !== '#'){
+        if(!isSolid(tileAt(x, y - 1))){
           ctx.fillStyle = '#6FBF73';
           ctx.fillRect(X, Y, s + 0.5, s * 0.16);
         }
+      } else if(FAN_TILES.includes(ch)){
+        drawFanHousing(ctx, X, Y, s, ch);
       } else if(ch === '='){
         ctx.fillStyle = '#B07A4A';
         ctx.fillRect(X, Y, s + 0.5, s * 0.26);
@@ -840,11 +1119,74 @@ function drawScenery(canvas){
   return sceneryLayer;
 }
 
-function drawStar(ctx, x, y, r, angle){
+// A fan's metal box: drawn once into the scenery. The spinning blades
+// and the moving air are drawn each frame (drawFans).
+function drawFanHousing(ctx, X, Y, s, ch){
+  ctx.fillStyle = '#5B6375';
+  ctx.fillRect(X, Y, s + 0.5, s + 0.5);
+  ctx.fillStyle = '#2A2F3A';
+  const pad = s * 0.12;
+  ctx.fillRect(X + pad, Y + pad, s - pad * 2, s - pad * 2);
+  // Grille bars on the side the air comes out of.
+  ctx.fillStyle = '#9AA3B2';
+  if(ch === 'F'){
+    for(let i = 0; i < 3; i++) ctx.fillRect(X + s * (0.2 + i * 0.25), Y, s * 0.08, s * 0.18);
+  } else {
+    const gx = ch === '>' ? X + s * 0.82 : X;
+    for(let i = 0; i < 3; i++) ctx.fillRect(gx, Y + s * (0.2 + i * 0.25), s * 0.18, s * 0.08);
+  }
+}
+
+// Spinning blades in each fan, and streaks of air moving through each
+// updraft and wind. A handful of plain rectangles: cheap on a weak PC.
+function drawFans(ctx, L, now){
+  if(!updrafts.length && !winds.length) return;
+  const { s, ox, oy } = L;
+  const spin = now / 70;
+  ctx.fillStyle = '#C9D3DF';
+  const blades = (cx, cy) => {
+    const a = Math.cos(spin), b = Math.sin(spin), r = s * 0.32, t = s * 0.07;
+    ctx.beginPath();
+    ctx.moveTo(cx + a * r - b * t, cy + b * r + a * t);
+    ctx.lineTo(cx + a * r + b * t, cy + b * r - a * t);
+    ctx.lineTo(cx - a * r + b * t, cy - b * r - a * t);
+    ctx.lineTo(cx - a * r - b * t, cy - b * r + a * t);
+    ctx.closePath();
+    ctx.moveTo(cx - b * r - a * t, cy + a * r - b * t);
+    ctx.lineTo(cx - b * r + a * t, cy + a * r + b * t);
+    ctx.lineTo(cx + b * r + a * t, cy - a * r + b * t);
+    ctx.lineTo(cx + b * r - a * t, cy - a * r - b * t);
+    ctx.closePath();
+    ctx.fill();
+  };
+  for(const u of updrafts) blades(ox + (u.x + 0.5) * s, oy + (u.fanY + 0.5) * s);
+  for(const w of winds) blades(ox + (w.dir > 0 ? w.x0 - 0.5 : w.x1 + 0.5) * s, oy + (w.y + 0.5) * s);
+
+  ctx.fillStyle = 'rgba(220,240,255,0.32)';
+  for(const u of updrafts){
+    for(let i = 0; i < 4; i++){
+      const t = ((now / 650 + i / 4 + u.x * 0.37) % 1);
+      const y = oy + (u.fanY - t * u.len) * s;
+      const x = ox + (u.x + 0.2 + ((i * 0.29) % 0.6)) * s;
+      ctx.fillRect(x, y - s * 0.5, Math.max(1.5, s * 0.06), s * 0.5);
+    }
+  }
+  for(const w of winds){
+    const span = w.x1 - w.x0;
+    for(let i = 0; i < 6; i++){
+      const t = ((now / 900 + i / 6 + w.y * 0.31) % 1);
+      const x = ox + (w.dir > 0 ? w.x0 + t * span : w.x1 - t * span) * s;
+      const y = oy + (w.y + 0.2 + ((i * 0.23) % 0.6)) * s;
+      ctx.fillRect(x - s * 0.4, y, s * 0.8, Math.max(1.5, s * 0.06));
+    }
+  }
+}
+
+function drawStar(ctx, x, y, r, angle, fill = '#DDE5F0', hub = '#5A6478'){
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
-  ctx.fillStyle = '#DDE5F0';
+  ctx.fillStyle = fill;
   ctx.beginPath();
   for(let i = 0; i < 8; i++){
     const rad = i % 2 === 0 ? r : r * 0.32;
@@ -854,7 +1196,7 @@ function drawStar(ctx, x, y, r, angle){
   }
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#5A6478';
+  ctx.fillStyle = hub;
   ctx.beginPath();
   ctx.arc(0, 0, r * 0.18, 0, Math.PI * 2);
   ctx.fill();
@@ -898,8 +1240,9 @@ function drawPowerup(ctx, L, pu, now){
   const { s, ox, oy } = L;
   const x = ox + pu.x * s, y = oy + pu.y * s + Math.sin(now / 260 + pu.phase) * s * 0.1;
   const r = s * 0.42;
-  drawGlow(ctx, x, y, s * 1.1, POWERUP_COLOR, 0.55 + 0.2 * Math.sin(now / 180), 1.4);
-  ctx.fillStyle = POWERUP_COLOR;
+  const color = pu.kind === 'speed' ? SPEED_COLOR : POWERUP_COLOR;
+  drawGlow(ctx, x, y, s * 1.1, color, 0.55 + 0.2 * Math.sin(now / 180), 1.4);
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
@@ -907,6 +1250,17 @@ function drawPowerup(ctx, L, pu, now){
   ctx.lineWidth = Math.max(1.5, s * 0.07);
   ctx.lineJoin = 'round';
   ctx.beginPath();
+  if(pu.kind === 'speed'){
+    // Two chevrons pointing forward: "fast".
+    for(let i = 0; i < 2; i++){
+      const cx = x + r * (-0.22 + i * 0.36);
+      ctx.moveTo(cx - r * 0.16, y - r * 0.4);
+      ctx.lineTo(cx + r * 0.2, y);
+      ctx.lineTo(cx - r * 0.16, y + r * 0.4);
+    }
+    ctx.stroke();
+    return;
+  }
   for(let i = 0; i < 3; i++){
     const cy = y + r * (0.42 - i * 0.36);
     ctx.moveTo(x - r * 0.42, cy + r * 0.14);
@@ -927,6 +1281,11 @@ function drawNinja(ctx, L, now, color){
   // over the head per air jump still left - so the class can see "two
   // more jumps!" at a glance.
   if(tripleJump) drawGlow(ctx, x, feet - h * 0.6, h * 1.3, POWERUP_COLOR, 0.45, 1.6);
+  // The speed boost: a green aura that flickers in its last second.
+  const boostLeft = speedUntil - now;
+  if(boostLeft > 0 && (boostLeft > 1000 || Math.floor(now / 120) % 2 === 0)){
+    drawGlow(ctx, x, feet - h * 0.5, h * 1.2, SPEED_COLOR, 0.5, 1.6);
+  }
   if(!ninja.onGround){
     const left = maxAirJumps() - ninja.airJumps;
     ctx.fillStyle = tripleJump ? POWERUP_COLOR : '#FFFFFF';
@@ -1009,6 +1368,7 @@ function renderJumpCanvas(){
   ctx.drawImage(drawScenery(canvas), 0, 0);
 
   for(const sp of springs) drawSpring(ctx, ox + sp.x * s, oy + sp.y * s, s, now, sp.firedAt);
+  drawFans(ctx, L, now);
   for(const m of movers) drawMover(ctx, L, m);
   for(const pu of powerups) if(!pu.got) drawPowerup(ctx, L, pu, now);
 
@@ -1017,6 +1377,12 @@ function renderJumpCanvas(){
     const bob = Math.sin(now / 300 + st.phase) * s * 0.08;
     drawGlow(ctx, ox + st.x * s, oy + st.y * s + bob, s * 0.7, '#BFD7FF', 0.35, 1.6);
     drawStar(ctx, ox + st.x * s, oy + st.y * s + bob, s * 0.36, now / 260 + st.phase);
+  }
+  if(golden && !golden.got){
+    const bob = Math.sin(now / 300 + golden.phase) * s * 0.08;
+    const gx = ox + golden.x * s, gy = oy + golden.y * s + bob;
+    drawGlow(ctx, gx, gy, s * 1.1, GOLDEN_COLOR, 0.5 + 0.15 * Math.sin(now / 200), 1.5);
+    drawStar(ctx, gx, gy, s * 0.48, now / 200 + golden.phase, GOLDEN_COLOR, '#8A5A00');
   }
 
   if(ninja){
@@ -1070,9 +1436,9 @@ function startJumpRound(){
   document.getElementById('jumpHint').classList.remove('hidden');
   resizeJumpCanvas();
   // Every team in the same lap of turns plays the same level (fair), and
-  // each lap moves on to the next level (variety).
-  const lap = Math.floor(state.jumpTurnsPlayed / Math.max(1, state.jumpTeams.length));
-  loadLevel(lap);
+  // each lap moves on to the next level (see finishJumpRound) unless the
+  // teacher picks another. The pick-ups move every round.
+  loadLevel(state.jumpLevel);
 
   const start = performance.now();
   roundEndsAt = start + JUMP_ROUND_SECONDS * 1000;
@@ -1136,6 +1502,13 @@ function finishJumpRound(){
       endJumpGame();
     } else {
       state.jumpCurrentTeam = (state.jumpCurrentTeam + 1) % state.jumpTeams.length;
+      // A new lap of turns: on to the next level.
+      if(state.jumpCurrentTeam === 0){
+        state.jumpLevel = (state.jumpLevel + 1) % LEVELS.length;
+        syncLevelPicker();
+      }
+      loadLevel(state.jumpLevel);
+      renderJumpCanvas();
       renderJumpScoreboard();
       renderJumpTurnBanner();
       document.getElementById('jumpBeginTurnBtn').disabled = false;

@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -240,7 +241,7 @@ function renderNeonLives(){
 function askNeonQuestion(){
   const qIndex = state.neonQuestionOrder[state.neonTurnsPlayed];
   const q = NEON_QUESTIONS[qIndex];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, NEON_QUESTIONS, state.neonTurnsPlayed);
 }
 
 function showNeonResult(){

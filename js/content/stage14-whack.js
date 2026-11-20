@@ -33,7 +33,7 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'He should go / should goes to the doctor.'", answer: "should go" },
       { prompt: "Which is correct? 'She shouldn't stay / shouldn't stays up late.'", answer: "shouldn't stay" },
       { prompt: "Which is correct? 'With a fever you should / shouldn't go to school.'", answer: "shouldn't" },
-      { prompt: "Which is correct? 'With a sore throat, drink hot tea / eat cold ice cream.'", answer: "drink hot tea" },
+      { prompt: "Which is correct? 'With a sore throat, drink hot tea / eat cold ice cream.'", answer: "drink hot tea", choices: ["drink hot tea", "eat cold ice cream"] },
       { prompt: "Which is correct? 'You should / shouldn't wash your hands.'", answer: "should" },
       { prompt: "Which is correct? 'With a toothache, see a dentist / see a mechanic.'", answer: "see a dentist" },
       { prompt: "Which is correct? 'They should / shoulds take some medicine.'", answer: "should" },
@@ -45,7 +45,7 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'He is the tallest / the most tall boy.'", answer: "the tallest" },
       { prompt: "Which is correct? 'That was the baddest / the worst day.'", answer: "the worst" },
       { prompt: "Which is correct? 'She is the goodest / the best singer.'", answer: "the best" },
-      { prompt: "Which is correct? 'It is the most beautiful / the beautifulest city.'", answer: "the most beautiful" },
+      { prompt: "Which is correct? 'It is the most beautiful / the beautifulest city.'", answer: "the most beautiful", choices: ["the most beautiful", "the beautifulest"] },
       { prompt: "Which is correct? 'Today is the hottest / the hotest day.'", answer: "the hottest" },
       { prompt: "Which is correct? 'This is the easiest / the most easy question.'", answer: "the easiest" },
       { prompt: "Which is correct? 'He is the happiest / the happyest person here.'", answer: "the happiest" },
@@ -65,7 +65,7 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'We won't forget / won't forgets.'", answer: "won't forget" },
       { prompt: "Which is correct? 'She will not / not will come.'", answer: "will not" },
       { prompt: "Which is correct? 'They will be / will are happy.'", answer: "will be" },
-      { prompt: "Which is correct? 'I'll / I will's see you later.'", answer: "I'll" }
+      { prompt: "Which is correct? 'I'll / I will's see you later.'", answer: "I'll", choices: ["I'll", "I will's"] }
     ]
   },
   'present-perfect': {

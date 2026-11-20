@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { beep } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -273,7 +274,7 @@ function loadBilliardsRack(){
 function askBilliardsQuestion(){
   const qIndex = state.billiardsQuestionOrder[state.billiardsTurnsPlayed];
   const q = BILLIARDS_QUESTIONS[qIndex];
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true });
+  return askTeamQuestion(q, BILLIARDS_QUESTIONS, state.billiardsTurnsPlayed);
 }
 
 document.getElementById('billiardsBeginTurnBtn').addEventListener('click', beginBilliardsTurn);

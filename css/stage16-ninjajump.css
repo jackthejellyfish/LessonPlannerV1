@@ -26,6 +26,20 @@
     background:#B983FF; color:#fff; box-shadow:0 0 10px rgba(185,131,255,0.8);
     font-family:var(--font-display); font-weight:900; font-size:15px;
   }
+  .jump-legend-swatch.golden{
+    width:30px; height:30px;
+    background: radial-gradient(circle, #8A5A00 0 14%, #FFC83D 15%);
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+  }
+  .jump-legend-swatch.speed{
+    width:28px; height:28px; border-radius:50%;
+    background:#4BE38A; color:#fff; font-weight:900; font-size:20px; line-height:1;
+  }
+  .jump-legend-swatch.fan{
+    width:26px; height:26px; border-radius:4px; background:#2A2F3A; border:3px solid #5B6375;
+    background-image: linear-gradient(45deg, transparent 42%, #C9D3DF 42% 58%, transparent 58%),
+                      linear-gradient(-45deg, transparent 42%, #C9D3DF 42% 58%, transparent 58%);
+  }
   .jump-legend-swatch.spring{
     width:26px; height:24px; position:relative;
     background: repeating-linear-gradient(170deg, #9AA3B2 0 3px, transparent 3px 7px);
@@ -44,6 +58,18 @@
   .inv-play-area:not(.idle) #jumpBeginTurnBtn{ display:none; }
 
   .jump-hint{ color:#FFE7B8; }
+
+  /* The level picker sits just above the time picker. Buttons are
+     coloured by difficulty: green easy, amber medium, red hard. */
+  .game-picker.jump-level-picker{
+    bottom:calc(clamp(14px,3vh,30px) + clamp(36px,5vh,48px) + 22px);
+  }
+  .jump-level-picker button.lvl-easy{ border-color:rgba(124,255,178,0.7); }
+  .jump-level-picker button.lvl-medium{ border-color:rgba(255,200,61,0.75); }
+  .jump-level-picker button.lvl-hard{ border-color:rgba(255,107,107,0.8); }
+  .jump-level-picker button.lvl-easy.active{ background:#7CFFB2; border-color:#7CFFB2; color:#0B3F2A; }
+  .jump-level-picker button.lvl-medium.active{ background:#FFC83D; border-color:#FFC83D; color:#4A3300; }
+  .jump-level-picker button.lvl-hard.active{ background:#FF6B6B; border-color:#FF6B6B; color:#4A0A0A; }
 
   /* ---- Touch buttons ----
      For an interactive board with no keyboard in reach. Shown only while
