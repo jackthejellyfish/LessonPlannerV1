@@ -54,8 +54,6 @@ const HOVER_MS = 1000;
 const HOVER_MS_GOLDEN = 650;
 const SPAWN_GAP_MIN_MS = 180;
 const SPAWN_GAP_MAX_MS = 380;
-const BOMB_CHANCE = 0.1;
-const GOLDEN_CHANCE = 0.13;
 const JELLY_COLORS = ['#FF8FD8', '#7FE8FF', '#B9A5E8', '#9CFFB8'];
 const GOLD = '#FFD45E';
 const PUFFER = '#FFB03B';
@@ -279,19 +277,50 @@ let whackShake = createShakeState();
 // Drifting specks of "marine snow" - positions in world units, wrapped.
 const specks = Array.from({ length: 28 }, () => ({ x: Math.random(), y: Math.random() * 100, s: 0.2 + Math.random() * 0.35, v: 0.6 + Math.random() * 1.2 }));
 
+/* ---- Fair lanes (feedback 2026-11-22) ----
+   Each lane is one student, so every lane gets the same deal. Picking a
+   random free hole across the whole board was fair only on average: in a
+   15-second round one lane could get half the jellies of its neighbour
+   (a class noticed lane 4 of 4 "barely had any"). Now:
+   - the next jelly goes to the lane that has had the fewest so far (ties
+     broken at random), and no lane gets more than one ahead of another;
+   - each lane may have the same number out at once;
+   - every lane draws the SAME sequence of jelly / golden / puffer, so
+     each student meets the same number of goldens and bombs. */
+let laneSpawns = [];   // jellies (of any kind) dealt to each lane this round
+let kindDeck = [];     // the shared kind sequence: lane's nth creature = kindDeck[n]
+const KIND_DECK = ['puffer', 'puffer', 'golden', 'golden', 'jelly', 'jelly', 'jelly', 'jelly',
+  'jelly', 'jelly', 'jelly', 'jelly', 'jelly', 'jelly', 'jelly', 'jelly']; // 12.5% each
+function resetLaneDealer(){
+  laneSpawns = Array.from({ length: 5 }, () => 0);
+  // No bomb as anyone's very first creature: a jelly opens every lane.
+  kindDeck = ['jelly'].concat(shuffle(KIND_DECK));
+}
+function kindFor(n){ return kindDeck[n % kindDeck.length] || 'jelly'; }
+
 // One creature per hole until it has fully gone back down.
 function spawnCreature(now, W){
-  const out = creatures.filter(c => c.state === 'rise' || c.state === 'hover').length;
-  if(out >= maxOut()) return;
+  const out = creatures.filter(c => c.state === 'rise' || c.state === 'hover');
+  if(out.length >= maxOut()) return;
+  const n = lanes();
+  const perLane = Math.ceil(maxOut() / n);
   const busy = new Set(creatures.map(c => `${c.lane}:${c.row}`));
-  const free = [];
-  for(let lane = 0; lane < lanes(); lane++) for(let row = 0; row < ROWS; row++){
-    if(!busy.has(`${lane}:${row}`)) free.push({ lane, row });
+  const counts = laneSpawns.slice(0, n);
+  const fewest = Math.min(...counts);
+  const open = [];
+  for(let lane = 0; lane < n; lane++){
+    if(counts[lane] > fewest) continue; // let the others catch up first
+    if(out.filter(c => c.lane === lane).length >= perLane) continue;
+    const rows = [];
+    for(let row = 0; row < ROWS; row++) if(!busy.has(`${lane}:${row}`)) rows.push(row);
+    if(rows.length) open.push({ lane, rows });
   }
-  if(!free.length) return;
-  const { lane, row } = free[Math.floor(Math.random() * free.length)];
-  const roll = Math.random();
-  const kind = roll < BOMB_CHANCE ? 'puffer' : roll < BOMB_CHANCE + GOLDEN_CHANCE ? 'golden' : 'jelly';
+  if(!open.length) return;
+  const pick = open[Math.floor(Math.random() * open.length)];
+  const lane = pick.lane;
+  const row = pick.rows[Math.floor(Math.random() * pick.rows.length)];
+  const kind = kindFor(laneSpawns[lane]);
+  laneSpawns[lane]++;
   const r = creatureSize(W) * (kind === 'puffer' ? 0.85 : 1);
   const mouth = ROW_MOUTH_Y[row];
   creatures.push({
@@ -425,6 +454,12 @@ export function debugWhackTargets(){
   const W = worldW(canvas);
   return creatures.filter(c => c.kind !== 'puffer' && (c.state === 'hover' || c.state === 'rise') && c.y - c.r * 0.4 < c.mouth)
     .map(c => ({ x: c.x / W, y: (c.y - c.r * 0.4) / 100, lane: c.lane, row: c.row }));
+}
+
+// For the automated tests only: how many creatures each lane has been
+// dealt this round, and the kinds in the shared sequence.
+export function debugWhackLanes(){
+  return { spawns: laneSpawns.slice(0, lanes()), deck: kindDeck.slice() };
 }
 
 /* =========================================================
@@ -645,6 +680,7 @@ function startWhackRound(){
   state.whackScore = 0;
   creatures = []; bubbles = []; whackFloatTexts = [];
   whackShake = createShakeState();
+  resetLaneDealer();
 
   document.getElementById('whackScoreDisplay').textContent = '0';
   document.getElementById('whackTimeDisplay').textContent = String(WHACK_ROUND_SECONDS);

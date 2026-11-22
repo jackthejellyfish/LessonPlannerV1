@@ -21,7 +21,7 @@ const GAMES = [
   { step: 5, prefix: 'pop' }, { step: 6, prefix: 'inv' }, { step: 7, prefix: 'wheel' },
   { step: 9, prefix: 'billiards' }, { step: 10, prefix: 'neon' }, { step: 11, prefix: 'fruit' },
   { step: 12, prefix: 'hoop' }, { step: 13, prefix: 'whack' }, { step: 14, prefix: 'maze' },
-  { step: 15, prefix: 'jump' }
+  { step: 15, prefix: 'jump' }, { step: 16, prefix: 'zombie' }
 ];
 const TURNS = Number(process.env.SOAK_TURNS || 3);
 

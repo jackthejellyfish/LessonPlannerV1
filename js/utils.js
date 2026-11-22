@@ -7,13 +7,57 @@ export function escapeHtml(str){
   return div.innerHTML;
 }
 
-export function shuffle(array){
+export function shuffle(array, rand = Math.random){
   const arr = array.slice();
   for(let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+// A repeatable random number source (mulberry32) seeded from a string, so
+// the same sentence always scrambles the same way: the worksheet on the
+// board and the printed copy on the desks match, even after a refresh.
+export function seededRandom(seedText){
+  let h = 1779033703 ^ seedText.length;
+  for(let i = 0; i < seedText.length; i++){
+    h = Math.imul(h ^ seedText.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  let a = h >>> 0;
+  return function(){
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Word chips for an "unscramble" task. A plain shuffle can land on the
+// right order (or nearly), which just hands students the answer
+// (feedback 2026-11-22), so this keeps shuffling until the words read
+// differently, the sentence's first word is not first, and at least half
+// the words have moved. `textOf` reads an item's word (chips can be
+// objects); compared as text so swapping two identical words ("the" and
+// "the") doesn't count as scrambled.
+export function scramble(items, { textOf = (x) => x, rand = Math.random } = {}){
+  const words = items.map(textOf);
+  if(new Set(words).size < 2) return items.slice();
+  const target = words.join(' ');
+  const need = Math.ceil(items.length / 2);
+  let best = null, bestScore = -1;
+  for(let tries = 0; tries < 60; tries++){
+    const arr = shuffle(items, rand);
+    const got = arr.map(textOf);
+    if(got.join(' ') === target) continue;
+    const moved = got.filter((w, i) => w !== words[i]).length;
+    const firstMoved = items.length < 3 || got[0] !== words[0];
+    if(moved >= need && firstMoved) return arr;
+    const score = moved + (firstMoved ? items.length : 0);
+    if(score > bestScore){ best = arr; bestScore = score; }
+  }
+  return best || items.slice().reverse();
 }
 
 // Shared "warm-up question" modal — used by every team-based game (Ball

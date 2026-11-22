@@ -288,6 +288,12 @@ async function beginBilliardsTurn(){
 }
 
 function finishBilliardsTurn(){
+  // The last frame stays on screen; nothing moves until the next turn.
+  dragging = false;
+  stopBilliardsLoop();
+  state.billiardsParticles = []; billiardsFloatTexts = []; billiardsShockwaves = [];
+  billiardsShake = createShakeState();
+  safeRenderBilliards();
   const team = state.billiardsTeams[state.billiardsCurrentTeam];
   const total = state.billiardsTurnScore;
   team.total += total;
@@ -358,6 +364,10 @@ function updateBilliardsParticles(k){
 const billiardsCanvasResizer = createCanvasResizer('billiardsCanvas', 'billiardsPlayArea', (canvas) => {
   remapBilliardsToCanvas(canvas);
   invalidateBilliards();
+  // Repaint now, not on the loop's next frame: between turns no loop runs,
+  // and a resize wipes the canvas, which left the dark frame behind it
+  // showing as a "black screen" (2026-11-22).
+  safeRenderBilliards();
 });
 
 /* ---- Keeping the rack on the table through a resize ----
@@ -609,7 +619,7 @@ function billiardsPhysicsStep(dtSec, bounds, pockets, pocketR, friction){
       // top-down rotation axis (real topspin wouldn't visibly rotate from
       // directly above), but a deliberate stylization so a moving ball
       // visibly *rolls* instead of sliding as a flat, static disc.
-      ball.angle = (ball.angle || 0) + (speed / ball.r) * dtSec;
+      ball.angle = (ball.angle || 0) + (speed / Math.max(1, ball.r)) * dtSec;
     }
     ball.x += ball.vx * dtSec;
     ball.y += ball.vy * dtSec;
@@ -677,6 +687,8 @@ function updateBilliardsPhysics(dt){
   const restThreshold = tableScale * REST_SPEED_FACTOR;
   const pockets = billiardsPockets(canvas);
   const pocketR = tableScale * (POCKET_RADIUS_PCT / 100);
+  if(!(tableScale > 0)) return; // the play area is hidden or zero-sized
+  for(const b of state.billiardsBalls) if(!b.pocketed) repairBall(b, bounds);
 
   // Sub-stepped (6 smaller passes instead of 1 big one) so a fast-moving ball
   // can't tunnel straight through another ball between frames without a
@@ -701,24 +713,42 @@ function updateBilliardsPhysics(dt){
   }
 }
 
+// Exactly one loop, from Begin turn until the turn's result. It used to
+// keep running after the turn ended (only leaving the stage stopped it),
+// so every turn started ANOTHER loop on top: by the fifth turn five loops
+// each ran the physics every frame and the balls flew five times too fast.
 function startBilliardsRound(){
+  stopBilliardsLoop();
   state.billiardsRoundActive = true;
   let lastTime = performance.now();
   function tick(now){
+    state.billiardsRoundRAF = null;
     const dt = Math.min(50, now - lastTime);
     noteFrame();
     lastTime = now;
-    updateBilliardsPhysics(dt);
+    try {
+      updateBilliardsPhysics(dt);
+    } catch(err){
+      if(!billiardsRenderErrorLogged){ billiardsRenderErrorLogged = true; console.warn('Billiards physics step skipped:', err); }
+    }
     if(!billiardsSceneIsStill()) billiardsDirtyFrames = 2;
     if(billiardsDirtyFrames > 0){
       billiardsDirtyFrames--;
-      renderBilliardsCanvas();
+      safeRenderBilliards();
     }
     if(state.billiardsRoundActive){
       state.billiardsRoundRAF = requestAnimationFrame(tick);
     }
   }
   state.billiardsRoundRAF = requestAnimationFrame(tick);
+}
+
+// Stops the loop but leaves the table as it is (the balls where they
+// stopped), unlike cancelBilliardsRound which clears everything.
+function stopBilliardsLoop(){
+  if(state.billiardsRoundRAF) cancelAnimationFrame(state.billiardsRoundRAF);
+  state.billiardsRoundRAF = null;
+  state.billiardsRoundActive = false;
 }
 
 export function cancelBilliardsRound(){
@@ -737,8 +767,8 @@ export function cancelBilliardsRound(){
   if(playArea) playArea.classList.add('idle');
   const hint = document.getElementById('billiardsHint');
   if(hint) hint.classList.add('hidden');
-  const canvas = billiardsCanvasResizer.getCanvas();
-  if(canvas){ const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  // Show the empty table rather than a cleared (dark) canvas.
+  safeRenderBilliards();
   const beginBtn = document.getElementById('billiardsBeginTurnBtn');
   if(beginBtn) beginBtn.disabled = false;
 }
@@ -757,7 +787,7 @@ function drawBilliardsPowerMeter(ctx, canvas, power){
   ctx.save();
   ctx.fillStyle = 'rgba(20,20,30,0.28)';
   ctx.beginPath();
-  ctx.roundRect(x, y, barW, barH, barH / 2);
+  roundRectPath(ctx, x, y, barW, barH, barH / 2);
   ctx.fill();
 
   const fillColor = power < 0.5 ? '#5C9C7C' : power < 0.8 ? '#C97A3D' : '#C1665C';
@@ -765,7 +795,7 @@ function drawBilliardsPowerMeter(ctx, canvas, power){
   // No shadowBlur glow: it re-blurred the bar on every pointer move.
   ctx.fillStyle = fillColor;
   ctx.beginPath();
-  ctx.roundRect(x, y, fillW, barH, barH / 2);
+  roundRectPath(ctx, x, y, fillW, barH, barH / 2);
   ctx.fill();
   ctx.restore();
 
@@ -780,6 +810,45 @@ function drawBilliardsPowerMeter(ctx, canvas, power){
 /* =========================================================
    RENDERING
 ========================================================= */
+// ctx.roundRect is missing from older browsers (Chrome before 99, Safari
+// before 16), which school PCs and iPads still run. Billiards was the only
+// game using it, and there it threw on the very first frame, so the table
+// never drew at all. This draws the same path either way.
+function roundRectPath(ctx, x, y, w, h, r){
+  if(typeof ctx.roundRect === 'function'){ ctx.roundRect(x, y, w, h, r); return; }
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// One bad frame must never end the game: an exception thrown inside the
+// animation loop used to stop it for good, so the shot never finished and
+// the table froze or went blank. Log it once and carry on.
+let billiardsRenderErrorLogged = false;
+function safeRenderBilliards(){
+  try {
+    renderBilliardsCanvas();
+  } catch(err){
+    if(!billiardsRenderErrorLogged){ billiardsRenderErrorLogged = true; console.warn('Billiards frame skipped:', err); }
+  }
+}
+
+// A ball whose numbers went bad (NaN or Infinity, e.g. from a zero-sized
+// table) is put back somewhere sane instead of poisoning every
+// collision it touches.
+function repairBall(ball, bounds){
+  const ok = (v) => Number.isFinite(v);
+  if(ok(ball.x) && ok(ball.y) && ok(ball.vx) && ok(ball.vy) && ok(ball.r) && ball.r > 0) return;
+  const w = bounds.right - bounds.left;
+  ball.r = ok(ball.r) && ball.r > 0 ? ball.r : Math.max(1, w * (BALL_RADIUS_PCT / 100));
+  ball.x = ok(ball.x) ? Math.min(bounds.right - ball.r, Math.max(bounds.left + ball.r, ball.x)) : (bounds.left + bounds.right) / 2;
+  ball.y = ok(ball.y) ? Math.min(bounds.bottom - ball.r, Math.max(bounds.top + ball.r, ball.y)) : (bounds.top + bounds.bottom) / 2;
+  ball.vx = 0; ball.vy = 0; ball.angle = 0;
+}
 /* The table itself (background, rails, felt gradient, pockets) never
    changes between resizes, but was rebuilt, gradient included, on every
    frame. It is drawn once into an offscreen layer and blitted. */
@@ -803,7 +872,7 @@ function getBilliardsTableLayer(canvas){
 
   ctx.fillStyle = '#FF9F7A';
   ctx.beginPath();
-  ctx.roundRect(bounds.left - railThickness, bounds.top - railThickness,
+  roundRectPath(ctx, bounds.left - railThickness, bounds.top - railThickness,
     (bounds.right - bounds.left) + railThickness * 2, (bounds.bottom - bounds.top) + railThickness * 2, railRadius);
   ctx.fill();
 
@@ -811,7 +880,7 @@ function getBilliardsTableLayer(canvas){
   felt.addColorStop(0, '#BDEEDD'); felt.addColorStop(1, '#8FDCC4');
   ctx.fillStyle = felt;
   ctx.beginPath();
-  ctx.roundRect(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, railRadius * 0.5);
+  roundRectPath(ctx, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, railRadius * 0.5);
   ctx.fill();
 
   const pocketR = tableScale * (POCKET_RADIUS_PCT / 100);

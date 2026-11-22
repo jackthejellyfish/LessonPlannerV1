@@ -114,7 +114,11 @@
     background:var(--paper); border-radius:16px; padding:clamp(18px,3vh,32px);
     text-align:center;
   }
-  .aim-example-svg{ width:70%; height:auto; margin:0 auto 16px; display:block; }
+  /* Sized by HEIGHT, inside a box no wider than 70%: the icons have
+     different shapes, and at width:70% a tall one (the Health lesson's
+     thermometer, 40x70) grew so tall it pushed its sentence out of the
+     card (2026-11-22). Every icon now gets the same height. */
+  .aim-example-svg{ width:auto; max-width:70%; height:clamp(64px,13vh,140px); margin:0 auto 16px; display:block; }
 
   /* ---- Stepper ---- */
   /* overflow-x:auto is a safety net, not the primary fix — .step below

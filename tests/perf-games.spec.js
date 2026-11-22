@@ -104,6 +104,7 @@ const GAMES = [
   { name: 'Whack-a-Jelly', step: 13, prefix: 'whack' },
   { name: 'Jelly Maze',    step: 14, prefix: 'maze' },
   { name: 'Ninja Jump',    step: 15, prefix: 'jump' },
+  { name: 'Zombie Dash',   step: 16, prefix: 'zombie' },
 ];
 
 test.describe('at a 4K classroom-panel resolution', () => {

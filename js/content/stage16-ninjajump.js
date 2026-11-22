@@ -70,7 +70,7 @@ const LESSON_CONTENT = {
       { prompt: "Put the words in order: we / that film / seen / have / already", answer: "We have already seen that film." },
       { prompt: "Put the words in order: just / it / stopped / has / raining", answer: "It has just stopped raining." },
       { prompt: "Put the words in order: haven't / I / my lunch / eaten / yet", answer: "I haven't eaten my lunch yet." },
-      { prompt: "Put the words in order: has / the bus / arrived / ?", answer: "Has the bus arrived?" },
+      { prompt: "Put the words in order: arrived / the bus / has / ?", answer: "Has the bus arrived?" },
       { prompt: "Put the words in order: you / how many / have / countries / visited / ?", answer: "How many countries have you visited?" }
     ]
   },

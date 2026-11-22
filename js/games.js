@@ -30,6 +30,7 @@ import { cancelHoopRound, renderHoopTeamInputs, ensureHoopLayout } from './stage
 import { cancelWhackRound, renderWhackTeamInputs, ensureWhackLayout } from './stages/stage14-whack.js';
 import { cancelMazeRound, renderMazeTeamInputs, ensureMazeLayout } from './stages/stage15-maze.js';
 import { cancelJumpRound, renderJumpTeamInputs, ensureJumpLayout } from './stages/stage16-ninjajump.js';
+import { cancelZombieRound, renderZombieTeamInputs, ensureZombieLayout } from './stages/stage17-zombies.js';
 
 export const GAMES = [
   { stage: 6,  prefix: 'pop',       ensureLayout: resizePopCanvas,       cancelRound: cancelPopRound,       renderTeamInputs: renderPopTeamInputs },
@@ -41,7 +42,8 @@ export const GAMES = [
   { stage: 13, prefix: 'hoop',      ensureLayout: ensureHoopLayout,      cancelRound: cancelHoopRound,      renderTeamInputs: renderHoopTeamInputs },
   { stage: 14, prefix: 'whack',     ensureLayout: ensureWhackLayout,     cancelRound: cancelWhackRound,     renderTeamInputs: renderWhackTeamInputs },
   { stage: 15, prefix: 'maze',      ensureLayout: ensureMazeLayout,      cancelRound: cancelMazeRound,      renderTeamInputs: renderMazeTeamInputs },
-  { stage: 16, prefix: 'jump',      ensureLayout: ensureJumpLayout,      cancelRound: cancelJumpRound,      renderTeamInputs: renderJumpTeamInputs }
+  { stage: 16, prefix: 'jump',      ensureLayout: ensureJumpLayout,      cancelRound: cancelJumpRound,      renderTeamInputs: renderJumpTeamInputs },
+  { stage: 17, prefix: 'zombie',    ensureLayout: ensureZombieLayout,    cancelRound: cancelZombieRound,    renderTeamInputs: renderZombieTeamInputs }
 ];
 
 export function gameForStage(num){

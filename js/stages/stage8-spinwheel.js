@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle, showQuestionModal } from '../utils.js';
-import { beep } from '../audio.js';
+import { beep, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { WHEEL_QUESTIONS, WHEEL_COLORS } from '../content/stage8-spinwheel.js';
@@ -27,8 +27,26 @@ import { particleCount } from '../quality.js';
 ========================================================= */
 const SEG_COUNT = WHEEL_QUESTIONS.length;
 const SEG_ANGLE = (Math.PI * 2) / SEG_COUNT;
-const SPIN_DURATION_MS = 4200;
+const SPIN_DURATION_MS = 4600;
 const SPIN_EXTRA_TURNS = 6;
+
+/* ---- The fun bits (added 2026-11-22: "add some fun dynamic element") ----
+   - Pegs on the rim and a flapper pointer that clicks against them and
+     wobbles, so the wheel feels physical as it slows down.
+   - A suspense finish: the wheel creeps over the line into the next
+     slice, hangs there, then rocks back onto its real slice.
+   - Two BONUS slices (a gold star) per game. Landing on one rolls a
+     twist before the question: DOUBLE or TRIPLE points, or STEAL (a
+     right answer takes the slice's points from the team in the lead).
+     The twist only pays out on a correct answer, like the slice itself. */
+const BONUS_SLICES = 2;
+const OVERSHOOT = 0.62;        // how far past its slice the wheel creeps, in slices
+const SETTLE_SHARE = 0.2;      // the last 20% of the spin is the rock back
+const TWISTS = [
+  { id: 'double', label: 'DOUBLE POINTS', ask: 'Double points!', color: '#49D6A0' },
+  { id: 'triple', label: 'TRIPLE POINTS', ask: 'Triple points!', color: '#FFD23F' },
+  { id: 'steal', label: 'STEAL!', ask: 'Steal points from the leader!', color: '#FF6B8B' }
+];
 
 let wheelRowColors = [];
 
@@ -58,7 +76,11 @@ document.getElementById('wheelStartBtn').addEventListener('click', () => {
   state.wheelTurnsPlayed = 0;
   state.wheelQuestionOrder = shuffle(WHEEL_QUESTIONS.map((_, i) => i));
   state.wheelUsedSegments = new Array(SEG_COUNT).fill(false);
+  // Two bonus slices, never the first question's (the first spin is a
+  // plain one, so the class learns the game before the twists turn up).
+  bonusSlices = new Set(shuffle(state.wheelQuestionOrder.slice(1)).slice(0, BONUS_SLICES));
   currentWheelAngle = 0;
+  flap = 0; flapVel = 0; twistBanner = null;
 
   showGameScreen('wheel');
   resizeWheelCanvas();
@@ -79,7 +101,9 @@ function renderWheelTurnBanner(){
 /* =========================================================
    AUDIO
 ========================================================= */
-function sfxTick(){ if(state.muted) return; beep(700, 0.03, 'square', 0.08); }
+function sfxTick(){ if(state.muted) return; beep(700 + Math.random() * 80, 0.03, 'square', 0.08); }
+function sfxTwistRoll(){ if(state.muted) return; beep(1040, 0.04, 'triangle', 0.08); }
+function sfxTwistLand(){ if(state.muted) return; sfxRisingChime([660, 880, 1100, 1320, 1760], { duration: 0.12, volume: 0.15, stagger: 0.06 }); }
 function sfxLand(points){
   if(state.muted) return;
   const notes = points >= 25 ? [660, 880, 1100, 1320] : points >= 15 ? [660, 880, 1046] : [520, 660];
@@ -137,8 +161,41 @@ export function ensureWheelLayout(){
 let currentWheelAngle = 0;
 let landingFlash = 0; // 0-1, decays after landing — brightens the wheel rim briefly
 const wheelShake = createShakeState();
-
+let bonusSlices = new Set();
+// The flapper: its angle (radians, + = tip swung left) and spin speed.
+// A peg passing the top kicks it; a spring pulls it back.
+let flap = 0, flapVel = 0;
+// The twist roll drawn over the wheel: { twist, settled, at }.
+let twistBanner = null;
 function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+// The spin's shape: ease out to a point just PAST the target slice
+// (over the line into the next one), hang, then rock back onto the target.
+function spinProgress(t, start, target){
+  const over = target + OVERSHOOT * SEG_ANGLE;
+  const split = 1 - SETTLE_SHARE;
+  if(t < split) return start + (over - start) * easeOutCubic(t / split);
+  const u = (t - split) / SETTLE_SHARE;
+  // A short hang, then an ease-in-out fall back.
+  const back = u < 0.25 ? 0 : (1 - Math.cos(Math.PI * (u - 0.25) / 0.75)) / 2;
+  return over - (over - target) * back;
+}
+
+// Which peg is under the pointer: pegs sit on slice boundaries, which
+// pass the top when the angle is a half slice past a whole one.
+function pegIndex(angle){ return Math.floor(angle / SEG_ANGLE + 0.5); }
+
+function kickFlapper(direction){
+  // The peg drags the tip the way the rim is moving (right when the
+  // wheel turns forward, which swings the tip to negative angles).
+  flapVel += -direction * 0.55;
+}
+function stepFlapper(){
+  // A stiff spring with damping, stepped per rendered frame.
+  flapVel += -flap * 0.28;
+  flapVel *= 0.72;
+  flap = Math.max(-0.6, Math.min(0.6, flap + flapVel));
+}
 
 // Segment `index`'s center sits at local angle (-90° + index*SEG_ANGLE)
 // before rotation (see renderWheelCanvas) — this solves for how far
@@ -159,17 +216,22 @@ function spinWheelTo(index){
     const startAngle = currentWheelAngle;
     const targetAngle = computeTargetAngle(startAngle, index);
     const startTime = performance.now();
-    let prevCrossCount = 0;
+    let prevPeg = pegIndex(startAngle);
     state.wheelRoundActive = true;
 
     function frame(now){
       const t = Math.min(1, (now - startTime) / SPIN_DURATION_MS);
-      const eased = easeOutCubic(t);
-      currentWheelAngle = startAngle + (targetAngle - startAngle) * eased;
+      currentWheelAngle = spinProgress(t, startAngle, targetAngle);
 
-      const traveled = currentWheelAngle - startAngle;
-      const crossCount = Math.floor(traveled / SEG_ANGLE);
-      if(crossCount > prevCrossCount){ sfxTick(); prevCrossCount = crossCount; }
+      // Every peg that passed the pointer since the last frame clicks
+      // and kicks the flapper (forwards, or backwards on the rock back).
+      const peg = pegIndex(currentWheelAngle);
+      if(peg !== prevPeg){
+        sfxTick();
+        kickFlapper(Math.sign(peg - prevPeg));
+        prevPeg = peg;
+      }
+      stepFlapper();
 
       updateWheelParticles();
       renderWheelCanvas();
@@ -205,6 +267,7 @@ function landOnSegment(index, resolve){
 
   const settleStart = performance.now();
   function settleFrame(now){
+    stepFlapper();
     updateWheelParticles();
     renderWheelCanvas();
     if(now - settleStart < 550){
@@ -216,11 +279,56 @@ function landOnSegment(index, resolve){
   state.wheelRoundRAF = requestAnimationFrame(settleFrame);
 }
 
+// Rolls the twist on a bonus slice: the banner flicks through the
+// twists, slowing down, and settles on one. STEAL needs another team
+// with points to steal from, so it's left out until one has some.
+function rollTwist(){
+  const others = state.wheelTeams.filter((_, i) => i !== state.wheelCurrentTeam);
+  const canSteal = others.some(t => t.total > 0);
+  const pool = TWISTS.filter(t => t.id !== 'steal' || canSteal);
+  const result = pool[Math.floor(Math.random() * pool.length)];
+  return new Promise(resolve => {
+    const start = performance.now();
+    const ROLL_MS = 1500, HOLD_MS = 900;
+    let shown = Math.floor(Math.random() * pool.length);
+    let nextFlipAt = start;
+    function frame(now){
+      const el = now - start;
+      if(el < ROLL_MS){
+        if(now >= nextFlipAt){
+          shown = (shown + 1) % pool.length;
+          sfxTwistRoll();
+          // Flicks slow down as the roll runs out.
+          nextFlipAt = now + 60 + 220 * Math.pow(el / ROLL_MS, 2);
+        }
+        twistBanner = { twist: pool[shown], settled: false, at: now };
+      } else if(!twistBanner || !twistBanner.settled){
+        twistBanner = { twist: result, settled: true, at: now };
+        sfxTwistLand();
+        const canvas = wheelCanvasResizer.getCanvas();
+        spawnWheelConfetti(canvas.width / 2, canvas.height / 2, 30);
+        triggerShake(wheelShake, 5);
+      }
+      stepFlapper();
+      updateWheelParticles();
+      renderWheelCanvas();
+      if(el < ROLL_MS + HOLD_MS){
+        state.wheelRoundRAF = requestAnimationFrame(frame);
+      } else {
+        state.wheelRoundRAF = null;
+        resolve(result);
+      }
+    }
+    state.wheelRoundRAF = requestAnimationFrame(frame);
+  });
+}
+
 export function cancelWheelRound(){
   if(state.wheelRoundRAF) cancelAnimationFrame(state.wheelRoundRAF);
   state.wheelRoundRAF = null;
   state.wheelRoundActive = false;
   state.wheelParticles = [];
+  twistBanner = null; flap = 0; flapVel = 0;
   const beginBtn = document.getElementById('wheelBeginTurnBtn');
   if(beginBtn) beginBtn.disabled = false;
 }
@@ -239,17 +347,35 @@ async function beginWheelTurn(){
   await spinWheelTo(qIndex);
 
   const q = WHEEL_QUESTIONS[qIndex];
-  const correct = await showQuestionModal(q.prompt, q.answer, { showFollowup: true });
-  const points = correct ? q.points : 0;
-  finishWheelTurn(qIndex, points);
+  const twist = bonusSlices.has(qIndex) ? await rollTwist() : null;
+  const prompt = twist ? `${twist.ask} ${q.prompt}` : q.prompt;
+  const correct = await showQuestionModal(prompt, q.answer, { showFollowup: true });
+  twistBanner = null;
+  renderWheelCanvas();
+  finishWheelTurn(qIndex, correct ? q.points : 0, twist);
 }
 
-function finishWheelTurn(qIndex, points){
+function finishWheelTurn(qIndex, points, twist = null){
   state.wheelUsedSegments[qIndex] = true;
   const team = state.wheelTeams[state.wheelCurrentTeam];
+  let label = `+${points}`;
+  if(points > 0 && twist && twist.id === 'steal'){
+    // From the team in the lead (not counting this one), up to what it has.
+    const victim = state.wheelTeams
+      .filter(t => t !== team)
+      .reduce((best, t) => (!best || t.total > best.total ? t : best), null);
+    const taken = victim ? Math.min(points, victim.total) : 0;
+    if(victim) victim.total -= taken;
+    points += taken;
+    label = taken > 0 ? `+${points} (stole ${taken})` : `+${points}`;
+  } else if(points > 0 && twist){
+    const mult = twist.id === 'triple' ? 3 : 2;
+    points *= mult;
+    label = `+${points} (\u00d7${mult})`;
+  }
   team.total += points;
   state.wheelTurnsPlayed++;
-  document.getElementById('wheelLastSpinDisplay').textContent = `+${points}`;
+  document.getElementById('wheelLastSpinDisplay').textContent = label;
   renderWheelScoreboard();
   document.getElementById('wheelPlayArea').classList.add('idle');
 
@@ -306,7 +432,7 @@ let wheelFaceKey = '';
 function getWheelFace(radius){
   const pad = Math.ceil(radius * 0.06) + 4;          // room for the rim stroke
   const size = Math.ceil(radius * 2) + pad * 2;
-  const key = `${size}|${WHEEL_QUESTIONS.map(q => q.points).join(',')}`;
+  const key = `${size}|${WHEEL_QUESTIONS.map(q => q.points).join(',')}|${[...bonusSlices].join(',')}`;
   if(wheelFace && wheelFaceKey === key) return wheelFace;
 
   const face = wheelFace && wheelFace.width === size ? wheelFace : document.createElement('canvas');
@@ -345,7 +471,23 @@ function getWheelFace(radius){
     fx.strokeText(String(WHEEL_QUESTIONS[i].points), 0, 0);
     fx.fillStyle = '#ffffff';
     fx.fillText(String(WHEEL_QUESTIONS[i].points), 0, 0);
+    // A bonus slice carries a gold star nearer the hub.
+    if(bonusSlices.has(i)){
+      fx.translate(0, radius * 0.27);
+      drawStar(fx, radius * 0.085, '#FFD23F', 'rgba(0,0,0,0.45)', Math.max(2, radius * 0.014));
+    }
     fx.restore();
+  }
+
+  // Pegs on every slice boundary, just inside the rim.
+  fx.fillStyle = '#FFF4D6';
+  fx.strokeStyle = 'rgba(0,0,0,0.3)';
+  fx.lineWidth = Math.max(1, radius * 0.008);
+  for(let i = 0; i < SEG_COUNT; i++){
+    const a = -Math.PI / 2 + (i - 0.5) * SEG_ANGLE;
+    fx.beginPath();
+    fx.arc(Math.cos(a) * radius * 0.94, Math.sin(a) * radius * 0.94, Math.max(3, radius * 0.028), 0, Math.PI * 2);
+    fx.fill(); fx.stroke();
   }
 
   // Rim, drawn into the face so it rotates with the wheel's own seams.
@@ -362,6 +504,44 @@ function getWheelFace(radius){
   wheelFace = face;
   wheelFaceKey = key;
   return face;
+}
+
+function drawStar(ctx, r, fill, stroke, lineWidth){
+  ctx.beginPath();
+  for(let k = 0; k < 10; k++){
+    const rr = k % 2 ? r * 0.45 : r;
+    const a = -Math.PI / 2 + k * Math.PI / 5;
+    if(k) ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    else ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+  }
+  ctx.closePath();
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = lineWidth; ctx.strokeStyle = stroke; ctx.stroke();
+  ctx.fillStyle = fill; ctx.fill();
+}
+
+// The twist banner across the middle of the wheel.
+function drawTwistBanner(ctx, cx, cy, radius, now){
+  const { twist, settled, at } = twistBanner;
+  const pop = settled ? 1 + 0.25 * Math.max(0, 1 - (now - at) / 250) : 1;
+  const w = radius * 1.9, h = radius * 0.42;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(pop, pop);
+  ctx.fillStyle = '#16132F';
+  ctx.strokeStyle = twist.color;
+  ctx.lineWidth = Math.max(3, radius * 0.025);
+  ctx.beginPath();
+  ctx.rect(-w / 2, -h / 2, w, h);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#FFF4D6';
+  ctx.font = `800 ${radius * 0.075}px Bricolage Grotesque, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('BONUS!', 0, -h * 0.26);
+  ctx.fillStyle = twist.color;
+  ctx.font = `800 ${radius * 0.15}px Bricolage Grotesque, sans-serif`;
+  ctx.fillText(twist.label, 0, h * 0.14);
+  ctx.restore();
 }
 
 function renderWheelCanvas(){
@@ -401,8 +581,12 @@ function renderWheelCanvas(){
   // Pointer — fixed at the top, outside the wheel's own rotation. Drawn
   // larger and with a light outline so it reads clearly against
   // whichever of the ten segment colours happens to be underneath it.
+  // It hangs from a pivot at its top and flaps as pegs hit it.
   ctx.save();
   const pw = radius * 0.095, ptop = cy - radius - radius * 0.1;
+  ctx.translate(cx, ptop);
+  ctx.rotate(flap);
+  ctx.translate(-cx, -ptop);
   ctx.beginPath();
   ctx.moveTo(cx - pw, ptop);
   ctx.lineTo(cx + pw, ptop);
@@ -414,7 +598,11 @@ function renderWheelCanvas(){
   ctx.lineWidth = Math.max(2, radius * 0.022);
   ctx.strokeStyle = '#FFF4D6';
   ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, ptop, pw * 0.35, 0, Math.PI * 2);
+  ctx.fillStyle = '#FFF4D6'; ctx.fill();
   ctx.restore();
+
+  if(twistBanner) drawTwistBanner(ctx, cx, cy, radius, performance.now());
 
   // Confetti. No per-particle shadow: a landing can put dozens on
   // screen in the one frame that can least afford them.
@@ -429,6 +617,9 @@ function renderWheelCanvas(){
 
   ctx.restore(); // closes the outer save()/applyShake() from the top of this function
 }
+
+// For the automated tests only: make these slices the bonus ones.
+export function debugSetWheelBonus(indices){ bonusSlices = new Set(indices); wheelFaceKey = ''; renderWheelCanvas(); }
 
 /* =========================================================
    TEAM MANAGEMENT

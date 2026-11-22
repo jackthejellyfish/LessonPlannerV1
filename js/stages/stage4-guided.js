@@ -1,6 +1,6 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, escapeHtml } from '../utils.js';
+import { scramble, escapeHtml } from '../utils.js';
 import { sfxCorrect, sfxIncorrect, sfxCountdownTick, sfxTimeUp } from '../audio.js';
 import { burstFromElement } from '../particles.js';
 import { setTimerRing, TIMER_RING_CIRCUMFERENCE } from '../timerRing.js';
@@ -12,7 +12,7 @@ import { SEMI_ITEMS } from '../content/stage4-guided.js';
    order. Reliable to auto-check because it's a fixed word
    order, unlike free-typed text. Now also timed and scored.
 ========================================================= */
-export const SEMI_TIME_LIMIT = 30; // seconds per guided-practice sentence
+export const SEMI_TIME_LIMIT = 20; // seconds per guided-practice sentence (was 30, cut 2026-11-22)
 
 export function startSemiTimer(){
   cancelSemiTimer();
@@ -59,7 +59,7 @@ function bumpSemiScore(){
 
 export function loadSemiItem(){
   const item = SEMI_ITEMS[state.semiIndex];
-  state.semiBank = shuffle(item.chips.map((text, i) => ({ text, id: i })));
+  state.semiBank = scramble(item.chips.map((text, i) => ({ text, id: i })), { textOf: (c) => c.text });
   state.semiAnswer = [];
   state.semiChecked = false;
   document.getElementById('semiCounter').textContent = `Sentence ${state.semiIndex + 1} of ${SEMI_ITEMS.length}`;
@@ -109,11 +109,11 @@ export function renderSemi(){
 }
 
 // Clear puts the words back in the bank and nothing else. It used to
-// reload the whole sentence, which also restarted the 30-second timer -
+// reload the whole sentence, which also restarted the sentence timer -
 // so Clear doubled as a free "more time" button.
 document.getElementById('semiReset').addEventListener('click', () => {
   if(state.semiChecked) return;
-  state.semiBank = shuffle(SEMI_ITEMS[state.semiIndex].chips.map((text, i) => ({ text, id: i })));
+  state.semiBank = scramble(SEMI_ITEMS[state.semiIndex].chips.map((text, i) => ({ text, id: i })), { textOf: (c) => c.text });
   state.semiAnswer = [];
   document.getElementById('semiFeedback').textContent = '';
   document.getElementById('semiFeedback').className = 'semi-feedback';

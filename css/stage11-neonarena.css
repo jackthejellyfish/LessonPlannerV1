@@ -62,3 +62,6 @@
 
   /* Layout comes from the shared .game-hint (css/base.css). */
   .neon-hint{ color:#E7FFC2; }
+  /* A held finger steers and fires; don't let the browser pan instead
+     (that cancels the pointer and drops the trigger mid-round). */
+  #neonPlayArea:not(.idle){ touch-action:none; }

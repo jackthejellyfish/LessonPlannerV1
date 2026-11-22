@@ -37,6 +37,7 @@
     <link rel="modulepreload" href="js/content/stage14-whack.js" />
     <link rel="modulepreload" href="js/content/stage15-maze.js" />
     <link rel="modulepreload" href="js/content/stage16-ninjajump.js" />
+    <link rel="modulepreload" href="js/content/stage17-zombies.js" />
     <link rel="modulepreload" href="js/content/stage2-rules.js" />
     <link rel="modulepreload" href="js/content/stage3-controlled.js" />
     <link rel="modulepreload" href="js/content/stage4-guided.js" />
@@ -63,6 +64,7 @@
     <link rel="modulepreload" href="js/stages/stage14-whack.js" />
     <link rel="modulepreload" href="js/stages/stage15-maze.js" />
     <link rel="modulepreload" href="js/stages/stage16-ninjajump.js" />
+    <link rel="modulepreload" href="js/stages/stage17-zombies.js" />
     <link rel="modulepreload" href="js/stages/stage2-rules.js" />
     <link rel="modulepreload" href="js/stages/stage3-controlled.js" />
     <link rel="modulepreload" href="js/stages/stage4-guided.js" />
@@ -97,6 +99,7 @@
     <link rel="stylesheet" href="css/stage14-whack.css" />
     <link rel="stylesheet" href="css/stage15-maze.css" />
     <link rel="stylesheet" href="css/stage16-ninjajump.css" />
+    <link rel="stylesheet" href="css/stage17-zombies.css" />
     <link rel="stylesheet" href="css/fullscreen-game.css" />
     <link rel="stylesheet" href="css/print.css" />
   </head>
@@ -660,39 +663,23 @@
         </div>
       </section>
 
-      <!-- STAGE 9: PRACTICE QUESTIONS + WORKSHEET -->
+      <!-- STAGE 9: PRACTICE QUESTIONS (the worksheet, on the board) -->
       <section class="stage hidden" id="stage9">
         <h2>Practice questions</h2>
         <div class="stage-body">
-          <div class="qs-layout">
-            <div class="qs-controls">
-              <div class="qs-set-tabs" id="qsSetTabs"></div>
-              <div class="qs-progress-row">
-                <div class="progress-track">
-                  <div class="progress-fill" id="qsProgressFill"></div>
-                </div>
-                <span class="score" id="qsScore"></span>
-              </div>
-            </div>
-            <div class="qs-question-area" id="qsQuestionArea"></div>
-            <div class="qs-actions">
-              <button class="btn btn-ghost" id="qsCheckBtn" type="button">
-                Check answers
-              </button>
-              <button
-                class="btn btn-primary hidden"
-                id="qsNextBtn"
-                type="button"
-              >
-                Next section →
-              </button>
-            </div>
-            <div class="qs-feedback hidden" id="qsFeedback"></div>
-          </div>
+          <!-- The printed worksheet's sections side by side on one screen.
+               The class works on paper; the teacher taps a question (or a
+               section's Show button) to reveal its answer. Free writing is
+               on the printed sheet only. Built by renderQsBoard() in
+               js/stages/stage9-questions.js. -->
+          <div class="ws-board" id="qsQuestionArea"></div>
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="qsBackBtn">← Back</button>
           <div class="footer-actions">
+            <button class="btn btn-ghost" id="qsRevealAllBtn" type="button">
+              Show all answers
+            </button>
             <button class="btn btn-ghost" id="qsPrintBtn" type="button">
               Print worksheet
             </button>
@@ -852,7 +839,7 @@
               <div id="neonPlayArea" class="inv-play-area idle">
                 <canvas id="neonCanvas" class="inv-canvas"></canvas>
                 <p class="game-hint neon-hint hidden" id="neonHint">
-                  Move: WASD or arrow keys · Click or tap to shoot
+                  Move: WASD or arrow keys · Hold the mouse (or SPACE) to shoot
                 </p>
                 <button
                   class="btn btn-primary"
@@ -1264,7 +1251,70 @@
           <button class="btn btn-ghost" id="jumpBackBtn">← Back</button>
           <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
-            <button class="btn btn-primary" id="jumpFinishBtn" type="button">Finish: choose a lesson ✓</button>
+            <button class="btn btn-primary" id="jumpNextStageBtn" type="button">Next: Zombie Dash →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 17: ZOMBIE DASH -->
+      <section class="stage hidden" id="stage17">
+        <h2>Zombie Dash</h2>
+        <div class="stage-body">
+          <div id="zombieSetup"></div>
+
+          <div id="zombieGame" class="hidden pop-game-layout">
+            <div class="pop-sidebar">
+              <ul class="pop-team-list" id="zombieTeamList"></ul>
+              <div class="pop-turn-box">
+                <span id="zombieTurnBanner"></span>
+                <div class="pop-sidebar-actions">
+                  <button class="pop-sidebar-reset" id="zombieResetScoresBtn" type="button">Reset scores</button>
+                  <button class="pop-sidebar-reset" id="zombieChangeTeamsBtn" type="button">Change teams</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pop-main">
+              <div class="pop-hud-card">
+                <div class="pop-hud">
+                  <div>
+                    <span class="pop-hud-label">Time left</span
+                    ><span class="pop-hud-num" id="zombieTimeDisplay">--</span>
+                  </div>
+                  <div>
+                    <span class="pop-hud-label">Score</span
+                    ><span class="pop-hud-num" id="zombieScoreDisplay">0</span>
+                  </div>
+                </div>
+                <div class="timer-bar-track">
+                  <div class="timer-bar-fill" id="zombieTimerFill"></div>
+                </div>
+              </div>
+
+              <div id="zombiePlayArea" class="inv-play-area idle">
+                <canvas id="zombieCanvas" class="inv-canvas"></canvas>
+                <p class="game-hint zombie-hint hidden" id="zombieHint">Move: WASD or arrow keys &middot; or hold on the board where you want Pip to go</p>
+                <button class="btn btn-primary" id="zombieBeginTurnBtn" type="button">Begin turn</button>
+                <!-- The teacher's level picker (buttons added by the stage
+                     module, one per level), shown between turns only. -->
+                <div class="game-picker zombie-level-picker" id="zombieLevels" role="group" aria-label="Level">
+                  <span class="game-picker-label">Level</span>
+                </div>
+                <div class="game-over-banner hidden" id="zombieGameOverBanner">
+                  <div class="game-over-title">Game over</div>
+                  <div class="game-over-winner" id="zombieGameOverWinner"></div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary hidden" id="zombiePlayAgainBtn" type="button">Play again</button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="zombieBackBtn">← Back</button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="zombieFinishBtn" type="button">Finish: choose a lesson ✓</button>
           </div>
         </div>
       </section>

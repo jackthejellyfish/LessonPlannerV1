@@ -48,12 +48,15 @@ import { applyLesson as applyStage13Content } from './content/stage13-hoopshot.j
 import { applyLesson as applyStage14Content } from './content/stage14-whack.js';
 import { applyLesson as applyStage15Content } from './content/stage15-maze.js';
 import { applyLesson as applyStage16Content } from './content/stage16-ninjajump.js';
+// Zombie Dash's review mix reads the other games' banks, so it is
+// applied LAST, once they hold the new lesson.
+import { applyLesson as applyStage17Content } from './content/stage17-zombies.js';
 
 const CONTENT_APPLIERS = [
   applyStage1Content, applyStage2Content, applyStage3Content, applyStage4Content, applyStage5Content,
   applyStage6Content, applyStage7Content, applyStage8Content, applyStage9Content, applyStage10Content,
   applyStage11Content, applyStage12Content, applyStage13Content, applyStage14Content,
-  applyStage15Content, applyStage16Content
+  applyStage15Content, applyStage16Content, applyStage17Content
 ];
 
 function applyLessonContent(id){
@@ -232,7 +235,7 @@ document.getElementById('changeLessonBtn').addEventListener('click', async () =>
 
 // The last stage's "Finish" — the end of the lesson, so no warning about
 // discarding scores; the game is over by the time anyone presses it.
-document.getElementById('jumpFinishBtn').addEventListener('click', showLessonSelect);
+document.getElementById('zombieFinishBtn').addEventListener('click', showLessonSelect);
 
 /* =========================================================
    INIT

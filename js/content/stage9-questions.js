@@ -14,7 +14,7 @@ const LESSON_CONTENT = {
           {prompt:"Summer is ___ than spring. (hot)", answer:"hotter"},
           {prompt:"This exercise is ___ than the last. (easy)", answer:"easier"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["My","sister","is","taller","than","me","."],answer:"My sister is taller than me ."},
           {chips:["The","red","car","is","faster","than","the","blue","one","."],answer:"The red car is faster than the blue one ."},
@@ -48,7 +48,7 @@ const LESSON_CONTENT = {
           {prompt:"They're tired, but it's a school night. They ___ stay up late. (shouldn't)", answer:"shouldn't"},
           {prompt:"We've got sore throats. We ___ drink some hot tea. (should)", answer:"should"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["He","should","take","some","medicine","."],answer:"He should take some medicine ."},
           {chips:["She","shouldn't","eat","too","much","."],answer:"She shouldn't eat too much ."},
@@ -82,7 +82,7 @@ const LESSON_CONTENT = {
           {prompt:"My bag is ___ than yours. (heavy)", answer:"heavier"},
           {prompt:"She is ___ student in the class. (good)", answer:"the best"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["My","sister","is","taller","than","me","."],answer:"My sister is taller than me ."},
           {chips:["Everest","is","the","tallest","mountain","."],answer:"Everest is the tallest mountain ."},
@@ -116,7 +116,7 @@ const LESSON_CONTENT = {
           {prompt:"She ___ be twelve next birthday. (will)", answer:"will"},
           {prompt:"It\u2019s freezing outside. You ___ need a coat. (will)", answer:"will"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["I","will","call","you","tomorrow","."],answer:"I will call you tomorrow ."},
           {chips:["She","won't","be","late","again","."],answer:"She won't be late again ."},
@@ -150,7 +150,7 @@ const LESSON_CONTENT = {
           {prompt:"My brother ___ broken his arm. (has)", answer:"has"},
           {prompt:"___ you ever ridden a horse? (Have)", answer:"Have"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["I","have","visited","Japan","twice","."],answer:"I have visited Japan twice ."},
           {chips:["She","has","finished","her","homework","."],answer:"She has finished her homework ."},
@@ -184,7 +184,7 @@ const LESSON_CONTENT = {
           {prompt:"The haunted house was ___. (scary / scared)", answer:"scary"},
           {prompt:"The film was great. I was ___. (amazing / amazed)", answer:"amazed"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["What","did","you","do","at","the","park","?"],answer:"What did you do at the park ?"},
           {chips:["I","saw","a","parade","."],answer:"I saw a parade ."},
@@ -218,7 +218,7 @@ const LESSON_CONTENT = {
           {prompt:"Sam hasn’t got any money. He ___ buy the tickets. (will / won’t)", answer:"won’t"},
           {prompt:"Will you bring games? — Yes, I ___.", answer:"will"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["What","will","you","do","for","the","party","?"],answer:"What will you do for the party ?"},
           {chips:["Who","will","set","the","table","?"],answer:"Who will set the table ?"},
@@ -252,7 +252,7 @@ const LESSON_CONTENT = {
           {prompt:"What ___ you want? — I want soup.", answer:"do"},
           {prompt:"What ___ Tom got? — He’s got a stapler.", answer:"has"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["What","have","you","got","?"],answer:"What have you got ?"},
           {chips:["She's","got","a","paintbrush","."],answer:"She's got a paintbrush ."},
@@ -286,7 +286,7 @@ const LESSON_CONTENT = {
           {prompt:"There’s a lot of sun today. It’s ___.", answer:"sunny"},
           {prompt:"It’s cold and snowy in ___.", answer:"winter"},
         ]},
-      { label:"Unscramble", type:"scramble", desc:"Click the words in the correct order to build each sentence.",
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
         questions:[
           {chips:["When's","your","birthday","?"],answer:"When's your birthday ?"},
           {chips:["It's","on","the","fifth","of","May","."],answer:"It's on the fifth of May ."},

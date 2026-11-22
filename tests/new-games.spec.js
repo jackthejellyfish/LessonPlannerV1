@@ -32,6 +32,87 @@ function watchErrors(page) {
   return errors;
 }
 
+test('Spin the Wheel: a bonus slice rolls a twist, and a right answer pays it out', async ({ page }) => {
+  test.setTimeout(40000);
+  const errors = watchErrors(page);
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(7).evaluate((el) => el.click());
+  await page.click('#wheelNewGameBtn');
+  await page.click('#wheelStartBtn');
+  await page.waitForTimeout(250);
+  // Every slice a bonus one, so the first spin lands on a twist.
+  await page.evaluate(async () => (await import('/js/stages/stage8-spinwheel.js')).debugSetWheelBonus([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]));
+  await page.click('#wheelBeginTurnBtn');
+  // The spin, then the twist roll, then the question.
+  await expect(page.locator('#popQuestionOverlay')).not.toHaveClass(/hidden/, { timeout: 12000 });
+  const prompt = await page.locator('.modal-q-text').textContent();
+  // Nobody has points yet, so it can't be a steal.
+  const mult = prompt.startsWith('Double points!') ? 2 : prompt.startsWith('Triple points!') ? 3 : 0;
+  expect(mult, `prompt was: ${prompt}`).toBeGreaterThan(0);
+  const slicePoints = await page.evaluate(async () => {
+    const { state } = await import('/js/state.js');
+    const { WHEEL_QUESTIONS } = await import('/js/content/stage8-spinwheel.js');
+    return WHEEL_QUESTIONS[state.wheelQuestionOrder[0]].points;
+  });
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/);
+  const total = await page.evaluate(async () => (await import('/js/state.js')).state.wheelTeams[0].total);
+  expect(total).toBe(slicePoints * mult);
+  expect(errors).toEqual([]);
+});
+
+test('Zombie Dash: zombies climb out, sweets and ball bonks score, and laps move the level on', async ({ page }) => {
+  test.setTimeout(90000);
+  const errors = watchErrors(page);
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(16).evaluate((el) => el.click());
+  await page.click('#zombieNewGameBtn');
+  await page.click('#zombieStartBtn');
+  await page.waitForTimeout(250);
+  // The level picker shows between turns, one button per level.
+  await expect(page.locator('#zombieLevels')).toBeVisible();
+  const levels = await page.locator('#zombieLevels [data-level]').count();
+  expect(levels).toBe(6);
+  await expect(page.locator('#zombieLevels [data-level="0"]')).toHaveClass(/active/);
+
+  const internals = () => page.evaluate(async () => (await import('/js/stages/stage17-zombies.js')).debugZombieInternals());
+  await page.click('#zombieBeginTurnBtn');
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  await expect(page.locator('#zombieLevels')).toBeHidden();
+
+  // Walk about with the keyboard, then grab a sweet.
+  await page.keyboard.down('d'); await page.waitForTimeout(400); await page.keyboard.up('d');
+  const moved = await internals();
+  expect(moved.player.x, 'Pip walks right').toBeGreaterThan(82);
+  expect(await page.evaluate(async () => (await import('/js/stages/stage17-zombies.js')).debugZombieGrabCandy())).toBe(true);
+  await page.waitForTimeout(150);
+  const afterCandy = Number(await page.locator('#zombieScoreDisplay').textContent());
+  expect(afterCandy, 'a sweet scores').toBeGreaterThan(0);
+
+  // By now (~2.5s in) the level's zombies have climbed out; bonk one.
+  await page.waitForTimeout(1400);
+  expect((await internals()).zombies).toBe(2);
+  expect(await page.evaluate(async () => (await import('/js/stages/stage17-zombies.js')).debugZombieBonk())).toBe(true);
+  await page.waitForTimeout(250);
+  expect(Number(await page.locator('#zombieScoreDisplay').textContent()), 'a ball bonk scores +2').toBeGreaterThanOrEqual(afterCandy + 2);
+
+  // Two teams: after both have played, the next lap is level 2.
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 25000 });
+  await page.click('#zombieNextTeamBtn');
+  await page.click('#zombieBeginTurnBtn');
+  if (await page.locator('#popCheckBtn').isVisible()) { await page.click('#popCheckBtn'); await page.click('#popCorrectBtn'); }
+  else { await page.locator('.mc-choice').first().click(); await page.click('#popMcContinueBtn'); }
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 25000 });
+  await page.click('#zombieNextTeamBtn');
+  await expect(page.locator('#zombieLevels [data-level="1"]')).toHaveClass(/active/);
+  expect((await internals()).level).toBe(1);
+  expect(errors).toEqual([]);
+});
+
 test('Hoop Shot: angle and power are set directly, then SHOOT fires; two shots end the turn', async ({ page }) => {
   const errors = watchErrors(page);
   await openGame(page, 12, 'hoop');
@@ -106,6 +187,37 @@ test('Whack-a-Jelly: jellyfish swim up and tapping them scores; the teacher can 
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 20000 });
   await page.click('#whackNextTeamBtn');
   await expect(page.locator('#whackLanes')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('Whack-a-Jelly: every lane gets the same number of jellies, even when one lane bops fast', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors = watchErrors(page);
+  await page.goto('/index.html');
+  await page.locator('.lesson-card').nth(0).click();
+  await page.locator('.step').nth(13).evaluate((el) => el.click());
+  await page.click('#whackNewGameBtn');
+  await page.click('#whackStartBtn');
+  await page.waitForTimeout(250);
+  await page.click('#whackLanes [data-lanes="4"]');
+  await page.click('#whackBeginTurnBtn');
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+
+  // Only lane 0 plays (and plays fast); the other three never tap.
+  const box = await page.locator('#whackCanvas').boundingBox();
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(150);
+    const targets = await page.evaluate(async () => (await import('/js/stages/stage14-whack.js')).debugWhackTargets());
+    const mine = targets.find((t) => t.lane === 0);
+    if (mine) await page.mouse.click(box.x + mine.x * box.width, box.y + mine.y * box.height);
+  }
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 20000 });
+  const { spawns, deck } = await page.evaluate(async () => (await import('/js/stages/stage14-whack.js')).debugWhackLanes());
+  expect(spawns.length).toBe(4);
+  expect(Math.min(...spawns), 'every lane gets plenty').toBeGreaterThan(5);
+  expect(Math.max(...spawns) - Math.min(...spawns), `lanes dealt ${spawns}`).toBeLessThanOrEqual(1);
+  expect(deck[0], 'a jelly opens every lane').toBe('jelly');
   expect(errors).toEqual([]);
 });
 

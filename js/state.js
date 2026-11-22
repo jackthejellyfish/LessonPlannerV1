@@ -31,7 +31,7 @@ function createState(lessonId, muted){
     semiChecked: false,
     semiTimerRAF: null,
     semiStarted: false, // becomes true the first time the learner actually reaches stage 4
-    qsStarted: false,   // Stage 9 worksheet set up for this lesson (keeps typed answers on revisits)
+    qsStarted: false,   // Stage 9 worksheet set up for this lesson (keeps revealed answers on revisits)
     popTeams: [],
     popCurrentTeam: 0,
     popQuestionOrder: [],  // shuffled indices into POP_QUESTIONS, one consumed per turn
@@ -87,15 +87,15 @@ function createState(lessonId, muted){
     neonLives: 3,
     neonRoundActive: false,
     neonRoundRAF: null,
-    neonPlayer: { x: 50, y: 50 },
+    neonPlayer: { x: 95, y: 55 },  // world units: the arena is 100 tall, worldW wide
     neonBullets: [],
     neonShrapnel: [],          // Nova Bomb's flying shrapnel — see triggerNeonNovaBomb
     neonEnemies: [],
     neonPickups: [],
     neonParticles: [],
-    neonPowerActive: false,    // Power Core pickup — bigger/more forgiving bullets, rest of round
-    neonOverdriveActive: false,// Overdrive pickup — faster bullets, rest of round
-    neonSpreadActive: false,   // Spread Core pickup — 5-pellet fan shot, rest of round
+    neonPowerUntil: 0,         // Power Core pickup — piercing, double-damage shots until this time (ms)
+    neonOverdriveUntil: 0,     // Overdrive pickup — faster fire and faster bolts until this time
+    neonSpreadUntil: 0,        // Spread Core pickup — 5-bolt fan until this time
     neonLastShotAt: 0,
     neonInvulnUntil: 0,        // brief invulnerability window after a life is lost
     neonBossSpawnedThisRound: false,
@@ -146,6 +146,14 @@ function createState(lessonId, muted){
     jumpRoundRAF: null,
     jumpLevel: 0,         // which level is up next (0-based); laps move it on, the teacher can pick
     jumpSeconds: 10,      // round length, the teacher's choice (10/15/20/30)
+    zombieTeams: [],
+    zombieCurrentTeam: 0,
+    zombieQuestionOrder: [],
+    zombieTurnsPlayed: 0,
+    zombieScore: 0,
+    zombieRoundActive: false,
+    zombieRoundRAF: null,
+    zombieLevel: 0,       // which level is up next (0-based); laps move it on, the teacher can pick
     muted
   };
 }

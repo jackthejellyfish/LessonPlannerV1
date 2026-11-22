@@ -1,7 +1,7 @@
 # Teacher Jack’s Lesson Planner — Project State
 
 > Handover summary: what the app is, how it's built, the rules that keep it
-> fast and stable, and how to change it. Current as of **v3.5 (2026-11-20)**.
+> fast and stable, and how to change it. Current as of **v3.6 (2026-11-22)**.
 > The full design history (why things are the way they are, per-game deep
 > dives, superseded decisions) is in
 > [archive/PROJECT_STATE-history.md](archive/PROJECT_STATE-history.md). It is
@@ -13,7 +13,7 @@
 
 An interactive ESL lesson, run by a teacher on a classroom screen (projector
 or large board). Students don't use their own devices. The teacher picks a
-lesson, then steps through 16 stages: teaching first, then team games that
+lesson, then steps through 17 stages: teaching first, then team games that
 quiz the same language.
 
 - **Branding:** "Teacher Jack’s Lesson Planner", with Jack the jellyfish
@@ -43,26 +43,27 @@ quiz the same language.
 | `at-school` | At School: I’ve Got… / I Want… (have got / has got and want / wants, from the Unit 2 textbook pages) |
 | `months-weather` | Months, Weather and Seasons (in + month, on + date, ordinals, It’s + weather, the seasons) |
 
-### Stages (16), from `js/stepper.js`
+### Stages (17), from `js/stepper.js`
 
 | # | Stage | Kind |
 |---|---|---|
 | 1 | Aim | Lesson objective and 3 example sentences with icons |
 | 2 | Learn | Rule cards and visual demos (one at a time) |
 | 3 | Controlled | Multiple choice |
-| 4 | Guided | Word-order sentence building |
+| 4 | Guided | Word-order sentence building, 20s a sentence |
 | 5 | Free practice | Two slides: **1** the task, **2** your turn (timer, starters, word bank) |
 | 6 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |
 | 7 | Star Defender | Team game, canvas shooter |
-| 8 | Spin the Wheel | Team game |
-| 9 | Practice questions | 4 sets: gap fill, unscramble, sentence, free writing |
+| 8 | Spin the Wheel | Team game: pegs and a flapping pointer, a creep-over-the-line finish, two ★ bonus slices a game (Double / Triple / Steal) |
+| 9 | Practice questions | The worksheet on the board: gap fill, unscramble and sentences side by side on one screen; tap a question (or a section's Show) to reveal its answer. Free writing is on the printed sheet only |
 | 10 | Billiards | Team game, canvas physics |
-| 11 | Neon Arena | Team game, canvas |
+| 11 | Neon Arena | Team game, canvas: hold to fire, timed power-ups (10s) that turn up often |
 | 12 | Fruit Ninja | Team game, canvas (each volley comes from a random edge: bottom, top, left, right or a corner; bombs cost 5; a mega bomb halves the score; the blade never freezes) |
 | 13 | Hoop Shot | Team game, canvas (fixed hoop, −/+ aim dock, SHOOT) |
-| 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns) |
+| 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns); every lane gets the same deal |
 | 15 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
-| 16 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round; ends with **Finish: choose a lesson** |
+| 16 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round |
+| 17 | Zombie Dash | Team game, canvas, top-down, for young classes: Pip collects sweets while goofy zombies shuffle after them; beach balls to kick (a fast one bonks a zombie, +2), Cure Potion / Super Sneakers / Bubble Blast, 6 levels (teacher picks; each lap moves on). Questions are a review mix from the other games. Ends with **Finish: choose a lesson** |
 
 Every team game follows the same loop: a setup screen (rules plus teams and
 colours) → a team answers a question → the team plays a short timed turn →
@@ -125,7 +126,7 @@ archive/              original single-file app, and the full history doc
   otherwise the array can capture `undefined`.
 - **Id prefix convention.** Each game uses one prefix (`pop`, `inv`, `wheel`,
   `billiards`, `neon`, `fruit`, `hoop`, `whack`, `maze`, `jump`) for all its ids:
-  `popSetup`, `popGame`, `popTurnBanner`, `popTeamInputs`, and so on. The
+  `popSetup`, `popGame`, `popTurnBanner`, `popTeamInputs`, and so on (`zombie` for Stage 17). The
   shared helpers (`readTeamsFromSetup`, `showGameScreen`, `renderTurnBanner`)
   depend on this.
 - **Content vs logic.** Each content file in `js/content/` holds a
@@ -322,6 +323,39 @@ worst frame, and whether lite mode is on.
 - **Hover lifts need room.** A button that lifts or scales on hover inside
   an `overflow:hidden`/`auto` box gets its top sliced off. The step bar and
   the Stage 9 tabs have a few px of padding for this.
+- **World units, not percentages** (Neon Arena, 2026-11-22). Neon kept
+  x and y as separate percentages of width and height, so on a 2:1
+  board everything moved, aimed and collided twice as far sideways
+  ("feels squashed"). It now uses the Balloon Pop / Whack scheme: the
+  arena is 100 units tall and `worldW` wide. Zombie Dash goes further:
+  a fixed 160x90 field, scaled to fit and centred.
+- **Sharper buffers cost frames.** Neon Arena and Zombie Dash raise the
+  shared 820px buffer cap to 1024 (`maxBufferWidth`). Measured on Neon at
+  2560x1440, CPU 6x: 820px 57fps, 1024px 55fps, 1280px 40fps. Don't go
+  past 1024 for an action game.
+- **One game loop per round** (Billiards, 2026-11-22, "black screen
+  crash"). Billiards never stopped its loop at the end of a turn, so
+  every turn stacked another one (5 turns = 5x physics speed), and
+  between turns nothing repainted after a resize. It now stops at the
+  turn's end, repaints on resize, and survives a bad frame. It was also
+  the only game using `ctx.roundRect`, which older Chrome/Safari lack;
+  use `roundRectPath()` (or arcTo) for rounded shapes.
+- **Fair lanes** (Whack-a-Jelly, 2026-11-22). Each lane is a student,
+  so the next jelly goes to the lane that has had the fewest (never more
+  than one ahead), and every lane draws the same jelly / golden / puffer
+  sequence. Random free holes were fair only on average.
+- **Scrambles must be scrambled.** Use `scramble()` from `js/utils.js`,
+  never `shuffle()`, for unscramble tasks: it guarantees the words don't
+  come out in (or nearly in) the right order. Stage 9 seeds it with
+  `seededRandom(answer)` so the board and the printed sheet match.
+- **Zombie Dash's questions** come from the other games' banks
+  (`js/content/stage17-zombies.js`, applied LAST in `main.js`), so a new
+  lesson needs no block for it. `bankOf(q)` gives multiple-choice turns
+  like-for-like wrong options.
+- **The turn-result screen** is a grid of equal cards (one column per
+  team, 3 + 3 for five or six), a "+N this turn" tag on the team that
+  just played and "In the lead" on the leader. `teamGameFlow.js` works
+  out the turn's points from the last total it showed.
 - **Billiards** uses a deliberately spread layout, not a real rack. A tight
   rack absorbs the cue ball's energy and nothing gets pocketed.
 - **No emoji anywhere** (UI, text or comments). Use monochrome symbols
@@ -331,8 +365,8 @@ worst frame, and whether lite mode is on.
   `setTimeout` to move on after an answer; leaving the stage inside that
   ~1s let it fire, and question 2's countdown beeped behind Guided practice.
   Keep the id and clear it in the stage's cancel function.
-- **Stage 9 is set up once per lesson** (`state.qsStarted`), so students'
-  answers survive moving to another stage and back.
+- **Stage 9 is set up once per lesson** (`state.qsStarted`), so answers
+  already revealed stay revealed when you move to another stage and back.
 
 ---
 
@@ -365,7 +399,6 @@ specs flaky.
   after a deploy.
 - `color-mix()` (team tints) needs a 2023+ browser. Older browsers fall back
   to untinted cards.
-- Stage 9's answers are lost on a page refresh, and when switching between
-  its section tabs (each tab re-renders its section fresh).
+- Stage 9's revealed answers are lost on a page refresh.
 - Ideas not started: a teacher settings panel (edit questions, round
   lengths), more question sets, and tuning after classroom testing.

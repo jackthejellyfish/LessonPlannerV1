@@ -8,12 +8,12 @@ const { test, expect } = require('@playwright/test');
 // clicked via locator.evaluate(el => el.click()) to bypass Playwright's
 // visibility gate rather than treating that as a bug.
 //
-// .wrap (stepper + all 16 stages) stays hidden behind the lesson-select
+// .wrap (stepper + all 17 stages) stays hidden behind the lesson-select
 // screen (js/lessons.js) until a lesson card is picked — every test clicks
 // the first card right after goto() purely to get past that gate; which
 // lesson is picked doesn't matter for these structural assertions.
 
-test('all 16 stages are reachable with zero console/page errors', async ({ page }) => {
+test('all 17 stages are reachable with zero console/page errors', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`PAGEERROR: ${e.message}`));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`); });
@@ -22,9 +22,9 @@ test('all 16 stages are reachable with zero console/page errors', async ({ page 
   await page.click('.lesson-card >> nth=0');
 
   const steps = page.locator('.step');
-  await expect(steps).toHaveCount(16);
+  await expect(steps).toHaveCount(17);
 
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 17; i++) {
     await steps.nth(i).evaluate((el) => el.click());
     await page.waitForTimeout(150);
   }
@@ -85,20 +85,35 @@ test('stage 6 Balloon Pop starts a round without errors', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('stage 9 practice questions has 4 tabs', async ({ page }) => {
+test('stage 9 shows the worksheet on one screen and reveals answers on tap', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(8).evaluate((el) => el.click());
   await page.waitForTimeout(200);
-  await expect(page.locator('.qs-tab')).toHaveCount(4);
+  // Gap fill, unscramble and sentences; free writing is on paper only.
+  await expect(page.locator('.ws-col')).toHaveCount(3);
+  await expect(page.locator('.ws-item')).toHaveCount(15);
+  // Everything fits without scrolling at 1280x720.
+  const fits = await page.$eval('#qsQuestionArea', (el) => el.scrollHeight <= el.clientHeight + 1);
+  expect(fits).toBe(true);
+  // Answers start hidden; a tap shows one, a section button shows five.
+  await expect(page.locator('.ws-item.revealed')).toHaveCount(0);
+  await page.locator('.ws-item').first().click();
+  await expect(page.locator('.ws-item.revealed')).toHaveCount(1);
+  await page.locator('.ws-col-reveal').nth(1).click();
+  await expect(page.locator('.ws-item.revealed')).toHaveCount(6);
+  await page.click('#qsRevealAllBtn');
+  await expect(page.locator('.ws-item.revealed')).toHaveCount(15);
+  await expect(page.locator('#qsRevealAllBtn')).toHaveText(/Hide all/);
 });
 
 test('the last stage has a Finish button that returns to the lesson picker', async ({ page }) => {
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
   const steps = page.locator('.step');
-  await steps.nth(15).evaluate((el) => el.click());
-  await page.locator('#jumpFinishBtn').evaluate((el) => el.click());
+  await steps.nth(16).evaluate((el) => el.click());
+  await page.locator('#zombieFinishBtn').evaluate((el) => el.click());
   await expect(page.locator('#lessonSelect')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wrap')).toHaveClass(/hidden/);
 });
@@ -215,14 +230,14 @@ test('opening the lesson picker stops a running stage 3 countdown', async ({ pag
   expect(await page.textContent('#mcTimerNum')).toBe(before);
 });
 
-test('the stage 9 worksheet keeps typed answers when you leave and come back', async ({ page }) => {
+test('the stage 9 worksheet keeps revealed answers when you leave and come back', async ({ page }) => {
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
   await page.locator('.step').nth(8).evaluate((el) => el.click());
-  await page.fill('.qs-gap >> nth=0', 'longer');
+  await page.locator('.ws-item').nth(2).click();
   await page.locator('.step').nth(7).evaluate((el) => el.click());
   await page.locator('.step').nth(8).evaluate((el) => el.click());
-  await expect(page.locator('.qs-gap').first()).toHaveValue('longer');
+  await expect(page.locator('.ws-item').nth(2)).toHaveClass(/revealed/);
 });
 
 test('stage 5 countdown pauses when you leave, and Start works again after time is up', async ({ page }) => {

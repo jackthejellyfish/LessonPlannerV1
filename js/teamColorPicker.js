@@ -227,15 +227,33 @@ export function renderTeamScoreboard(containerId, teams, currentIndex){
 // it — deliberately the reverse order of the sidebar scoreboard, which
 // leads with the name. The team that just played gets the highlighted/
 // glowing treatment so it's obvious whose result this was.
-export function renderResultStandings(teams, currentIndex){
+// The turn-result scoreboard (reworked 2026-11-22: equal cards in a
+// centred grid sized to the team count, so the modal hugs its contents).
+// `turnPoints` is what the team that just played scored this turn (shown
+// as a small tag on its card); the leader gets a tag of its own.
+export function renderResultStandings(teams, currentIndex, turnPoints = null){
+  const top = Math.max(...teams.map(t => t.total));
+  const leaders = teams.filter(t => t.total === top).length;
+  const showLead = top > 0 && leaders < teams.length;
+  const cols = teams.length <= 4 ? teams.length : 3;
   return `
-    <div class="result-standings">
-      ${teams.map((t, i) => `
-        <div class="result-pill${i === currentIndex ? ' active' : ''}" style="--tc:${t.color}">
+    <div class="result-standings" style="--cols:${cols}">
+      ${teams.map((t, i) => {
+        const active = i === currentIndex;
+        const tag = active
+          ? `<span class="result-pill-tag">${turnPoints > 0 ? `+${turnPoints} this turn` : 'Just played'}</span>`
+          : '';
+        // Every card keeps the lead line's space (hidden when not leading)
+        // so the scores and names in a row line up.
+        const lead = `<span class="result-pill-lead${showLead && t.total === top ? '' : ' is-empty'}" aria-hidden="${!(showLead && t.total === top)}">&#9733; In the lead</span>`;
+        return `
+        <div class="result-pill${active ? ' active' : ''}" style="--tc:${t.color}">
+          ${tag}
           <span class="result-pill-score">${t.total}</span>
           <span class="result-pill-name"><span class="result-pill-dot" style="background:${t.color}"></span>${escapeHtml(t.name)}</span>
-        </div>
-      `).join('')}
+          ${lead}
+        </div>`;
+      }).join('')}
     </div>
   `;
 }

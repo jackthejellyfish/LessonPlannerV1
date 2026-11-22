@@ -67,13 +67,25 @@ export function renderTurnBanner(prefix, team, turnNumber, totalTurns, noun = 'q
     `<strong>${escapeHtml(team.name)}</strong>'s turn — ${noun} ${turnNumber} of ${totalTurns}`;
 }
 
+// Each team's total the last time the scoreboard showed, so the card of
+// the team that just played can say what it scored this turn without
+// every game having to pass its own turn score in. A total that went DOWN
+// since then means the scores were reset, so it counts from zero.
+const lastShownTotal = new WeakMap();
+
 export function showTurnResultModal(nextBtnId, { teams, currentTeamIndex } = {}){
   return new Promise(resolve => {
     const modalBody = document.getElementById('popResultBody');
     const currentTeam = teams ? teams[currentTeamIndex] : null;
+    let turnPoints = null;
+    if(currentTeam){
+      const before = lastShownTotal.get(currentTeam);
+      turnPoints = before == null || before > currentTeam.total ? currentTeam.total : currentTeam.total - before;
+    }
+    if(teams) teams.forEach(t => lastShownTotal.set(t, t.total));
     modalBody.style.setProperty('--tc', currentTeam ? currentTeam.color : '');
     modalBody.innerHTML = `
-      ${teams ? renderResultStandings(teams, currentTeamIndex) : ''}
+      ${teams ? `<p class="result-title">Scores</p>${renderResultStandings(teams, currentTeamIndex, turnPoints)}` : ''}
       <div class="modal-actions">
         <button class="btn btn-primary" id="${nextBtnId}" type="button">Continue</button>
       </div>
@@ -139,7 +151,7 @@ export function finishTeamGame({ prefix, teams, hasTimerHud = false, setPlayArea
 export function wireTeamManagementButtons({ prefix, getTeams, renderScoreboard, cancelRound, beforePlayAgain, afterPlayAgain }){
   document.getElementById(`${prefix}ResetScoresBtn`).addEventListener('click', async () => {
     if(!await confirmDialog('Reset all team scores to 0?', { confirmLabel: 'Reset', danger: true })) return;
-    getTeams().forEach(t => t.total = 0);
+    getTeams().forEach(t => { t.total = 0; lastShownTotal.delete(t); });
     renderScoreboard();
   });
 

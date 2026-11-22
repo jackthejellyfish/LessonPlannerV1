@@ -25,6 +25,7 @@ const GAMES = [
   { step: 13, prefix: 'whack' },
   { step: 14, prefix: 'maze' },
   { step: 15, prefix: 'jump' },
+  { step: 16, prefix: 'zombie' },
 ];
 
 const VIEWPORTS = [

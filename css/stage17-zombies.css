@@ -1,0 +1,59 @@
+  /* ---- Zombie Dash (Stage 17) ----
+     Reuses .inv-play-area/.inv-canvas like every canvas game. Only the
+     legend swatches, the hint colour, the Begin-turn placement and the
+     level picker's difficulty colours are stage-specific. */
+  .zombie-legend-swatch{ display:flex; align-items:center; justify-content:center; position:relative; }
+  .zombie-legend-swatch.candy{
+    width:16px; height:16px; border-radius:50%; background:#FF5FA2; margin:0 8px;
+    box-shadow:-9px 0 0 -4px #FF5FA2, 9px 0 0 -4px #FF5FA2;
+  }
+  .zombie-legend-swatch.golden{
+    width:24px; height:24px; background:#FFD23F;
+    clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+  .zombie-legend-swatch.ball{
+    width:24px; height:24px; border-radius:50%;
+    background:conic-gradient(#FF5F6D 0 25%, #fff 0 33%, #4DA3FF 0 58%, #fff 0 66%, #FFD23F 0 91%, #fff 0);
+    box-shadow:0 2px 5px rgba(0,0,0,0.25);
+  }
+  .zombie-legend-swatch.potion{
+    width:18px; height:18px; border-radius:50%; background:#FF8FD8; margin-top:6px;
+  }
+  .zombie-legend-swatch.potion::before{
+    content:''; position:absolute; top:-7px; left:6px; width:6px; height:8px; border-radius:2px; background:#FF8FD8;
+  }
+  .zombie-legend-swatch.sneakers{
+    width:26px; height:12px; border-radius:6px 8px 4px 4px; background:#5FC8FF; border-bottom:3px solid #fff;
+  }
+  .zombie-legend-swatch.bubble{
+    width:24px; height:24px; border-radius:50%; border:2px solid #7FD8F5; background:rgba(159,232,255,0.35);
+  }
+  .zombie-legend-swatch.zombie{
+    width:26px; height:26px; border-radius:50%; background:#86D06F;
+  }
+  .zombie-legend-swatch.zombie::before,
+  .zombie-legend-swatch.zombie::after{
+    content:''; position:absolute; top:7px; border-radius:50%; background:#fff;
+    box-shadow:inset 2px 1px 0 2px #1E2433;
+  }
+  .zombie-legend-swatch.zombie::before{ left:4px; width:9px; height:9px; }
+  .zombie-legend-swatch.zombie::after{ right:5px; width:7px; height:7px; }
+
+  #zombiePlayArea #zombieBeginTurnBtn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:23; font-size:clamp(15px,2vh,18px); padding:clamp(10px,1.6vh,16px) clamp(20px,3vw,32px);
+  }
+  .inv-play-area:not(.idle) #zombieBeginTurnBtn{ display:none; }
+
+  /* Holding a finger on the board steers Pip: the page must not scroll
+     or zoom underneath it. */
+  #zombieCanvas{ cursor:pointer; touch-action:none; }
+  .zombie-hint{ color:#FFF4C2; }
+
+  /* Level buttons coloured by difficulty, as in Ninja Jump. */
+  .zombie-level-picker button.lvl-easy{ border-color:rgba(124,255,178,0.7); }
+  .zombie-level-picker button.lvl-medium{ border-color:rgba(255,200,61,0.75); }
+  .zombie-level-picker button.lvl-hard{ border-color:rgba(255,107,107,0.8); }
+  .zombie-level-picker button.lvl-easy.active{ background:#7CFFB2; border-color:#7CFFB2; color:#0B3F2A; }
+  .zombie-level-picker button.lvl-medium.active{ background:#FFC83D; border-color:#FFC83D; color:#4A3300; }
+  .zombie-level-picker button.lvl-hard.active{ background:#FF6B6B; border-color:#FF6B6B; color:#4A0A0A; }

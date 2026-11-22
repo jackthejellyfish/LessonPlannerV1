@@ -61,67 +61,76 @@
      result modal body now (plus the Continue button) — per feedback
      that a "Turn result" tag + a big +N number on top felt cluttered,
      the team scores themselves are the whole point of this screen. */
-  /* Sized against the viewport rather than fixed px: on a classroom
-     display the old fixed 48px padding and 18px gaps left the pills
-     crowding each other and the modal edge, which is what made this
-     screen read as squished. The active pill also scales to 1.06 and
-     carries an 18px glow, so it needs gap to grow INTO or it overlaps
-     its neighbour. */
+  /* Reworked 2026-11-22 ("spacing / use of space seems off"): the modal
+     was a fixed 1080px wide whatever the team count, and the cards grew
+     to fill it unevenly, with the active one scaled up so it no longer
+     matched its neighbours. Now every card is the same size, the grid
+     has as many columns as teams (3 + 3 for five or six), and the modal
+     hugs the grid. */
   #popResultBody{
-    max-width:min(1080px, 92vw);
-    padding:clamp(32px,5vh,64px) clamp(30px,4vw,68px);
+    width:auto; max-width:94vw;
+    padding:clamp(22px,3.6vh,44px) clamp(24px,3.4vw,56px) clamp(24px,4vh,48px);
+  }
+  .result-title{
+    margin:0 0 clamp(18px,3.2vh,34px);
+    font-family:var(--font-display); font-weight:800; letter-spacing:0.08em; text-transform:uppercase;
+    font-size:clamp(15px,2.2vh,24px); color:var(--muted);
   }
   .result-standings{
-    display:flex; flex-wrap:wrap; justify-content:center;
-    gap:clamp(18px,2.4vw,34px);
-    margin:clamp(6px,1.4vh,14px) 0 clamp(28px,4.5vh,52px);
+    --pill-w:clamp(150px, 19vw, 300px);
+    display:grid; grid-template-columns:repeat(var(--cols, 2), var(--pill-w));
+    justify-content:center;
+    gap:clamp(16px,2.2vw,32px) clamp(14px,2vw,30px);
+    margin:0 auto clamp(24px,4vh,44px);
   }
-  /* Score-first, name-second — the reverse of the sidebar scoreboard's
-     order, on purpose: this is a celebratory reveal, so the big exciting
-     number leads and the "whose score is this" label follows underneath.
-     Sized up and given a bolder border/tint per feedback that the pills
-     needed to be "much more visible" — a bigger, sturdier card instead
-     of a slim horizontal chip. flex-grow (capped by max-width) instead of
-     a fixed min-width — per further feedback that with only 2-3 teams the
-     pills stayed small and cramped in the middle of a wide modal, leaving
-     dead space at either side; growing to actually fill the row (still
-     wrapping to a new row once there's no space left for more) makes a
-     2-team result feel as substantial as an 8-team one. */
   .result-pill{
+    position:relative;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:clamp(8px,1.4vh,16px);
-    flex:1 1 200px; max-width:340px; min-height:clamp(150px,22vh,220px);
-    padding:clamp(26px,4vh,42px) clamp(22px,2.4vw,34px);
-    border-radius:26px;
-    border:5px solid var(--tc, var(--line));
-    background:color-mix(in srgb, var(--tc, var(--line)) 20%, var(--surface));
+    gap:clamp(6px,1.2vh,12px);
+    min-height:clamp(130px,21vh,230px);
+    padding:clamp(22px,3.6vh,38px) clamp(14px,1.6vw,24px) clamp(18px,3vh,30px);
+    border-radius:24px;
+    border:4px solid var(--tc, var(--line));
+    background:color-mix(in srgb, var(--tc, var(--line)) 12%, var(--surface));
     animation: resultPillIn 0.4s cubic-bezier(.34,1.56,.64,1) backwards;
   }
-  .result-pill:nth-child(1){ animation-delay:0.16s; }
-  .result-pill:nth-child(2){ animation-delay:0.23s; }
-  .result-pill:nth-child(3){ animation-delay:0.30s; }
-  .result-pill:nth-child(4){ animation-delay:0.37s; }
-  .result-pill:nth-child(5){ animation-delay:0.44s; }
-  .result-pill:nth-child(6){ animation-delay:0.51s; }
+  .result-pill:nth-child(1){ animation-delay:0.12s; }
+  .result-pill:nth-child(2){ animation-delay:0.18s; }
+  .result-pill:nth-child(3){ animation-delay:0.24s; }
+  .result-pill:nth-child(4){ animation-delay:0.30s; }
+  .result-pill:nth-child(5){ animation-delay:0.36s; }
+  .result-pill:nth-child(6){ animation-delay:0.42s; }
+  /* The team that just played: a stronger tint and a lift, no scale, so
+     it still lines up with the others. */
   .result-pill.active{
-    box-shadow:0 0 0 3px var(--tc, var(--primary)), 0 0 18px color-mix(in srgb, var(--tc, var(--primary)) 55%, transparent);
-    transform:scale(1.06);
+    background:color-mix(in srgb, var(--tc, var(--primary)) 26%, var(--surface));
+    box-shadow:0 12px 28px color-mix(in srgb, var(--tc, var(--primary)) 35%, transparent);
+    transform:translateY(-6px);
   }
   .result-pill-score{
-    font-family:var(--font-display); font-weight:800; font-size:clamp(40px, 8vh, 72px); line-height:1.1;
+    font-family:var(--font-display); font-weight:800; font-size:clamp(44px, 9vh, 88px); line-height:1;
     color:var(--tc, var(--primary));
   }
   .result-pill-name{
-    display:flex; align-items:center; gap:9px;
-    font-weight:700; font-size:clamp(17px,2.4vh,23px); color:var(--ink);
+    display:flex; align-items:center; justify-content:center; gap:9px; max-width:100%;
+    font-weight:700; font-size:clamp(16px,2.3vh,24px); color:var(--ink);
+    overflow-wrap:anywhere;
   }
-  .result-pill-dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0;
+  .result-pill-dot{ width:12px; height:12px; border-radius:50%; flex-shrink:0;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.6); }
-  .result-pill-lead{
-    font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;
+  /* Sits on the card's top border, like a label on a folder. */
+  .result-pill-tag{
+    position:absolute; top:0; left:50%; transform:translate(-50%,-55%);
+    white-space:nowrap;
+    font-weight:800; font-size:clamp(12px,1.7vh,17px);
     color:#fff; background:var(--tc, var(--primary));
-    padding:3px 7px; border-radius:6px;
+    padding:clamp(3px,0.6vh,6px) clamp(10px,1vw,16px); border-radius:999px;
   }
+  .result-pill-lead{
+    font-size:clamp(11px,1.5vh,15px); font-weight:800; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--tc, var(--primary));
+  }
+  .result-pill-lead.is-empty{ visibility:hidden; }
   @keyframes resultPillIn{
     0%{ transform:scale(0.7) translateY(6px); opacity:0; }
     100%{ transform:scale(1) translateY(0); opacity:1; }
@@ -257,5 +266,4 @@
     .mc-choices, .mc-choices.mc-three{ grid-template-columns:1fr; }
   }
 
-  /* Five or six teams: three per row (3 + 3) rather than 4 + 2. */
-  .result-standings:has(> :nth-child(5)) .result-pill{ flex:1 1 28%; max-width:31%; }
+  /* Five or six teams go 3 + 3: renderResultStandings() sets --cols. */
