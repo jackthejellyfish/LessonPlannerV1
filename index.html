@@ -209,20 +209,21 @@
       <section class="stage hidden" id="stage3">
         <h2>Controlled practice</h2>
         <div class="stage-body">
-          <!-- One slim bar: where we are, the time left, the score
-               (reworked 2026-11-22; these were a stacked tower above the
-               question). -->
+          <!-- Timer on top, then where we are ("Question 3 of 10"), then
+               the score, all centred above the question. -->
           <div class="practice-bar">
-            <span id="mcCounter" class="progress-counter"></span>
-            <div class="progress-track">
-              <div class="progress-fill" id="mcProgressFill"></div>
-            </div>
             <div class="timer-circle">
               <svg viewBox="0 0 44 44">
                 <circle class="timer-track" cx="22" cy="22" r="18"></circle>
                 <circle class="timer-arc" id="mcTimerArc" cx="22" cy="22" r="18"></circle>
               </svg>
               <span class="timer-circle-num" id="mcTimerNum"></span>
+            </div>
+            <div class="practice-progress">
+              <span id="mcCounter" class="progress-counter"></span>
+              <div class="progress-track">
+                <div class="progress-fill" id="mcProgressFill"></div>
+              </div>
             </div>
             <span class="score" id="mcScore"></span>
           </div>
@@ -246,20 +247,21 @@
       <section class="stage hidden" id="stage4">
         <h2>Guided practice</h2>
         <div class="stage-body">
-          <!-- One slim bar: where we are, the time left, the score
-               (reworked 2026-11-22; these were a stacked tower above the
-               question). -->
+          <!-- Timer on top, then where we are ("Question 3 of 10"), then
+               the score, all centred above the question. -->
           <div class="practice-bar">
-            <span id="semiCounter" class="progress-counter"></span>
-            <div class="progress-track">
-              <div class="progress-fill" id="semiProgressFill"></div>
-            </div>
             <div class="timer-circle">
               <svg viewBox="0 0 44 44">
                 <circle class="timer-track" cx="22" cy="22" r="18"></circle>
                 <circle class="timer-arc" id="semiTimerArc" cx="22" cy="22" r="18"></circle>
               </svg>
               <span class="timer-circle-num" id="semiTimerNum"></span>
+            </div>
+            <div class="practice-progress">
+              <span id="semiCounter" class="progress-counter"></span>
+              <div class="progress-track">
+                <div class="progress-fill" id="semiProgressFill"></div>
+              </div>
             </div>
             <span class="score" id="semiScoreDisplay"></span>
           </div>
@@ -303,10 +305,13 @@
             </section>
 
             <section class="free-slide hidden" id="freeSlideGo">
+              <!-- Kept deliberately simple (2026-11-22: "an overwhelming
+                   amount of things going on"): the task in one line, the
+                   timer, and three sentence starters. The word bank is one
+                   tap away instead of always on screen. -->
               <div class="free-go">
-                <div class="free-go-main">
-                  <p class="free-go-task" id="freeGoTask"></p>
-                  <ol class="free-go-steps" id="freeGoSteps"></ol>
+                <p class="free-go-task" id="freeGoTask"></p>
+                <div class="free-go-row">
                   <div class="stopwatch" id="stopwatch">
                     <div class="stopwatch-display">
                       <input
@@ -360,15 +365,17 @@
                       </button>
                     </div>
                   </div>
-                </div>
-                <div class="free-go-help">
-                  <div class="free-card" id="sentenceStartersCard">
-                    <h3>Sentence starters</h3>
-                    <div class="scaffold-list" id="scaffoldList"></div>
-                  </div>
-                  <div class="free-card" id="wordBankCard">
-                    <h3>Word bank</h3>
-                    <div class="word-bank-row" id="wordBank"></div>
+                  <div class="free-help">
+                    <div class="free-help-tabs" role="tablist">
+                      <button class="free-help-tab active" id="freeShowStarters" type="button" role="tab" aria-selected="true">Sentence starters</button>
+                      <button class="free-help-tab" id="freeShowWords" type="button" role="tab" aria-selected="false">Word bank</button>
+                    </div>
+                    <div class="free-help-panel" id="sentenceStartersCard">
+                      <div class="scaffold-list" id="scaffoldList"></div>
+                    </div>
+                    <div class="free-help-panel hidden" id="wordBankCard">
+                      <div class="word-bank-row" id="wordBank"></div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -49,9 +49,9 @@ quiz the same language.
 |---|---|---|
 | 1 | Aim | Lesson objective and 3 example sentences with icons |
 | 2 | Learn | Rule cards and visual demos (one at a time; the ← dots → slide nav sits in the footer) |
-| 3 | Controlled | Multiple choice, under one slim practice bar (progress, timer ring, score) |
+| 3 | Controlled | Multiple choice; a thin progress line, then a big timer and score centred above the question |
 | 4 | Guided | Word-order sentence building, 20s a sentence (same practice bar) |
-| 5 | Free practice | Two slides: **1** the task, **2** your turn (timer, starters, word bank) |
+| 5 | Free practice | Two slides: **1** the task (steps + example), **2** your turn: the task in one line, a big timer and three big sentence starters, with the word bank a tab away |
 | 6 | Running dictation | How-to slide; **Print sentences** gives six big sentences on one A4 page to cut out; the teacher reveals them one by one so pairs can check (`js/stages/dictation.js`, content `js/content/dictation.js`) |
 | 7 | Class survey | How-to slide with a filled-in example row; **Print survey** gives the handout (same questions, empty rows, no example) (`js/stages/survey.js`, content `js/content/survey.js`) |
 | 8 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |

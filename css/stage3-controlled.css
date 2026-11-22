@@ -1,23 +1,19 @@
   /* ---- Controlled practice (Stage 2) ---- */
   /* ---- The practice bar (Stages 3 and 4), reworked 2026-11-22 ----
-     One slim rounded bar: "Question 3 of 10", the progress line, the
-     timer ring and the score. They used to be a stacked tower (a big
-     ring, a score pill, then the progress line) that pushed the
-     question halfway down the screen. The ring is still the boldest
-     thing in the bar, since it's what the class watches. */
+     A centred column above the question: the timer on top, then the
+     progress line ("Question 3 of 10"), then the score, big. */
   .practice-bar{
-    display:flex; align-items:center; gap:clamp(12px,1.6vw,22px);
-    width:100%; max-width:980px; margin:0 auto clamp(18px,3.4vh,40px); flex-shrink:0;
-    padding:clamp(6px,1vh,10px) clamp(8px,1vw,12px) clamp(6px,1vh,10px) clamp(16px,2vw,26px);
-    background:var(--paper); border-radius:999px;
+    display:flex; flex-direction:column; align-items:center; gap:clamp(6px,1.1vh,12px);
+    width:100%; max-width:760px; margin:0 auto clamp(8px,1.8vh,26px); flex-shrink:0;
   }
-  .practice-bar .progress-counter{ font-weight:700; color:var(--ink); font-size:clamp(14px,1.9vh,18px); }
+  .practice-progress{ display:flex; align-items:center; gap:clamp(10px,1.4vw,18px); width:100%; }
+  .practice-bar .progress-counter{ font-weight:700; color:var(--muted); font-size:clamp(13px,1.8vh,17px); }
   .practice-bar .progress-track{ margin:0; height:8px; }
-  .practice-bar .timer-circle{ width:clamp(54px,8.5vh,84px); height:clamp(54px,8.5vh,84px); flex-shrink:0; }
-  .practice-bar .timer-circle-num{ font-size:clamp(20px,3.4vh,32px); font-weight:800; }
+  .practice-bar .timer-circle{ width:clamp(56px,9vh,104px); height:clamp(56px,9vh,104px); flex-shrink:0; }
+  .practice-bar .timer-circle-num{ font-size:clamp(22px,3.7vh,42px); font-weight:800; }
   .practice-bar .score{
-    font-size:clamp(16px,2.4vh,22px); padding:clamp(6px,1vh,10px) clamp(14px,1.6vw,22px);
-    background:var(--surface); white-space:nowrap;
+    font-size:clamp(26px,4.9vh,56px); line-height:1.1; white-space:nowrap;
+    padding:clamp(4px,0.8vh,10px) clamp(22px,2.6vw,38px); border-radius:999px;
   }
   /* Last five seconds: the ring is already red (setTimerRing adds
      .urgent); the number goes red too and the ring pulses once a

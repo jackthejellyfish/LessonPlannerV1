@@ -57,7 +57,7 @@ export const LESSONS = [
     printRulesSubtitle: 'Talking about the future with will and won\u2019t',
     printWorksheetTitle: 'Will & Won\u2019t \u2014 Practice Worksheet',
     printFooter: 'Will & Won\u2019t \u2014 Teacher Jack\u2019s Lesson Planner',
-    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+    mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
   },
   {
     id: 'present-perfect',
@@ -69,7 +69,7 @@ export const LESSONS = [
     printRulesSubtitle: 'Talking about experience with have/has + past participle',
     printWorksheetTitle: 'Present Perfect \u2014 Practice Worksheet',
     printFooter: 'Present Perfect \u2014 Teacher Jack\u2019s Lesson Planner',
-    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+    mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
   },
   {
     id: 'amusement-park',
@@ -81,7 +81,7 @@ export const LESSONS = [
     printRulesSubtitle: 'Past simple (regular and irregular) and -ing / -ed adjectives',
     printWorksheetTitle: 'At the Amusement Park — Practice Worksheet',
     printFooter: 'At the Amusement Park — Teacher Jack\u2019s Lesson Planner',
-    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+    mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
   },
   {
     id: 'party-fun',
@@ -93,7 +93,7 @@ export const LESSONS = [
     printRulesSubtitle: 'Future plans with will: positive, negative, Wh- and Yes/No questions',
     printWorksheetTitle: 'Party Fun: Who Will…? — Practice Worksheet',
     printFooter: 'Party Fun: Who Will…? — Teacher Jack\u2019s Lesson Planner',
-    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+    mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
   },
   {
     // From the Unit 2 "At School" pages: In the Classroom (have got /
@@ -107,7 +107,7 @@ export const LESSONS = [
     printRulesSubtitle: 'have got / has got and want / wants: statements and questions',
     printWorksheetTitle: 'At School — Practice Worksheet',
     printFooter: 'At School: I’ve Got… / I Want… — Teacher Jack\u2019s Lesson Planner',
-    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+    mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
   },
   {
     id: 'months-weather',
@@ -119,7 +119,7 @@ export const LESSONS = [
     printRulesSubtitle: 'Months and dates (in / on), weather words and the four seasons',
     printWorksheetTitle: 'Months, Weather and Seasons — Practice Worksheet',
     printFooter: 'Months, Weather and Seasons — Teacher Jack\u2019s Lesson Planner',
-    mcQuestionTemplate: (word) => `Choose the correct answer: ${word}`
+    mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
   }
 ];
 

@@ -10,9 +10,8 @@ import { WORD_BANK, SCAFFOLD_FRAMES, FREE_TASK } from '../content/stage5-free.js
    Two slides, one at a time, same idea as Stage 2:
      1. The task  — what to do, big, with an example exchange. Sized
                     to fit the stage without scrolling.
-     2. Your turn — the timer and the task restated on the left, the
-                    sentence starters and word bank (smaller) on the
-                    right.
+     2. Your turn — the task in one line, a big timer, and three
+                    sentence starters; the word bank is a tab away.
    This replaced a single page that put the timer, the task, five
    sentence frames and a 14-chip word bank on screen at once, with the
    word bank styled as the most prominent thing — per feedback, the
@@ -46,7 +45,6 @@ function renderFreeTask(){
     </div>
   `;
   document.getElementById('freeGoTask').textContent = headline;
-  document.getElementById('freeGoSteps').innerHTML = steps.map(step => `<li>${escapeHtml(step)}</li>`).join('');
 }
 
 function wordBankChips(){
@@ -63,11 +61,27 @@ export function renderWordBank(){
   renderFreeSlide();
 }
 
+// Three starters, big: enough to get going without a wall of text.
+const STARTERS_SHOWN = 3;
 export function renderScaffoldList(){
-  document.getElementById('scaffoldList').innerHTML = SCAFFOLD_FRAMES.map(frame => `
+  document.getElementById('scaffoldList').innerHTML = SCAFFOLD_FRAMES.slice(0, STARTERS_SHOWN).map(frame => `
     <div class="frame">${frame}</div>
   `).join('');
+  showHelp('starters');
 }
+
+// Sentence starters or word bank: one at a time.
+function showHelp(which){
+  const words = which === 'words';
+  document.getElementById('sentenceStartersCard').classList.toggle('hidden', words);
+  document.getElementById('wordBankCard').classList.toggle('hidden', !words);
+  document.getElementById('freeShowStarters').classList.toggle('active', !words);
+  document.getElementById('freeShowWords').classList.toggle('active', words);
+  document.getElementById('freeShowStarters').setAttribute('aria-selected', String(!words));
+  document.getElementById('freeShowWords').setAttribute('aria-selected', String(words));
+}
+document.getElementById('freeShowStarters').addEventListener('click', () => showHelp('starters'));
+document.getElementById('freeShowWords').addEventListener('click', () => showHelp('words'));
 
 export function renderFreeSlide(){
   const index = Math.max(0, Math.min(state.freeIndex || 0, FREE_SLIDES.length - 1));

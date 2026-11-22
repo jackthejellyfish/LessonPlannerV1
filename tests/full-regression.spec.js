@@ -134,8 +134,11 @@ test('stage 5 shows the task first, then the timer with the useful language', as
 
   await page.click('#freeNextSlideBtn');
   await expect(page.locator('#stopwatch')).toBeVisible();
-  await expect(page.locator('#scaffoldList .frame')).toHaveCount(5);
+  await expect(page.locator('#scaffoldList .frame')).toHaveCount(3);
+  await expect(page.locator('#wordBank .wordbank-chip').first()).toBeHidden(); // a tab away
+  await page.click('#freeShowWords');
   await expect(page.locator('#wordBank .wordbank-chip').first()).toBeVisible();
+  await expect(page.locator('#scaffoldList')).toBeHidden();
   await expect(page.locator('#freeNextSlideBtn')).toBeDisabled();
   await expect(page.locator('#freeNextBtn')).toHaveClass(/nudge/);
 

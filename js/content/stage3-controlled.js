@@ -52,8 +52,9 @@ const LESSON_CONTENT = {
   },
   'will-wont': {
     // `word` is a whole gapped sentence here rather than a single word —
-    // the lesson's mcQuestionTemplate is "Choose the correct answer: X",
-    // so the sentence IS the question.
+    // the lesson's mcQuestionTemplate just shows it, so the sentence IS
+    // the question (no "Choose the correct answer:" lead-in since
+    // 2026-11-22).
     MC_QUESTIONS: [
       { word: "Tomorrow it ___ be sunny.", correct: "will", options: ["will", "wills", "will to"] },
       { word: "I ___ go to school on Sunday.", correct: "won\u2019t", options: ["won\u2019t", "will", "don\u2019t will"] },
