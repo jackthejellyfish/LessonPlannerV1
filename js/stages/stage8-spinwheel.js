@@ -33,15 +33,11 @@ const SPIN_EXTRA_TURNS = 6;
 /* ---- The fun bits (added 2026-11-22: "add some fun dynamic element") ----
    - Pegs on the rim and a flapper pointer that clicks against them and
      wobbles, so the wheel feels physical as it slows down.
-   - A suspense finish: the wheel creeps over the line into the next
-     slice, hangs there, then rocks back onto its real slice.
    - Two BONUS slices (a gold star) per game. Landing on one rolls a
      twist before the question: DOUBLE or TRIPLE points, or STEAL (a
      right answer takes the slice's points from the team in the lead).
      The twist only pays out on a correct answer, like the slice itself. */
 const BONUS_SLICES = 2;
-const OVERSHOOT = 0.62;        // how far past its slice the wheel creeps, in slices
-const SETTLE_SHARE = 0.2;      // the last 20% of the spin is the rock back
 const TWISTS = [
   { id: 'double', label: 'DOUBLE POINTS', ask: 'Double points!', color: '#49D6A0' },
   { id: 'triple', label: 'TRIPLE POINTS', ask: 'Triple points!', color: '#FFD23F' },
@@ -169,16 +165,11 @@ let flap = 0, flapVel = 0;
 let twistBanner = null;
 function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 
-// The spin's shape: ease out to a point just PAST the target slice
-// (over the line into the next one), hang, then rock back onto the target.
+// The spin's shape: a plain ease-out that stops on the target slice.
+// (A creep-past-and-rock-back finish was tried 2026-11-22 and taken out
+// the same day: the class read the wheel moving backwards as odd.)
 function spinProgress(t, start, target){
-  const over = target + OVERSHOOT * SEG_ANGLE;
-  const split = 1 - SETTLE_SHARE;
-  if(t < split) return start + (over - start) * easeOutCubic(t / split);
-  const u = (t - split) / SETTLE_SHARE;
-  // A short hang, then an ease-in-out fall back.
-  const back = u < 0.25 ? 0 : (1 - Math.cos(Math.PI * (u - 0.25) / 0.75)) / 2;
-  return over - (over - target) * back;
+  return start + (target - start) * easeOutCubic(t);
 }
 
 // Which peg is under the pointer: pegs sit on slice boundaries, which

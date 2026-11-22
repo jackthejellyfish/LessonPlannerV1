@@ -14,7 +14,7 @@
   }
   .free-step{
     display:flex; align-items:center; gap:8px;
-    padding:6px 16px 6px 6px; border-radius:999px;
+    padding:5px 14px 5px 5px; border-radius:999px;
     border:1.5px solid var(--line); background:var(--surface); color:var(--muted);
     font-family:var(--font-display); font-weight:700; font-size:clamp(13px,1.7vh,15px);
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
@@ -137,28 +137,30 @@
      long phrases ("put on a plaster"), which went one chip per row in a
      half-width column. */
   .free-go-help{ display:flex; flex-direction:column; gap:clamp(6px,1vh,14px); min-width:0; }
+  /* Plain sections with an accent rule, not boxed cards of boxed
+     lines (2026-11-22: "cramped/messy"). */
   .free-card{
-    background:var(--surface); border:1.5px solid var(--line); border-radius:12px;
-    border-top:4px solid var(--card-accent, var(--primary));
-    padding:clamp(6px,1.1vh,14px) clamp(12px,1.6vw,18px);
+    background:none; border:none; border-left:4px solid var(--card-accent, var(--primary));
+    padding:clamp(2px,0.6vh,8px) 0 clamp(2px,0.6vh,8px) clamp(14px,1.6vw,22px);
   }
   #sentenceStartersCard{ --card-accent:var(--rule-a); }
   #wordBankCard{ --card-accent:var(--rule-d); }
   .free-card h3{
-    font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted);
-    margin:0 0 clamp(4px,0.8vh,10px); font-family:var(--font-body); font-weight:700; text-align:center;
+    font-size:clamp(12px,1.6vh,14px); text-transform:uppercase; letter-spacing:0.08em; color:var(--card-accent, var(--muted));
+    margin:0 0 clamp(4px,0.9vh,10px); font-family:var(--font-body); font-weight:800; text-align:left;
   }
-  .scaffold-list{ display:flex; flex-direction:column; gap:clamp(3px,0.5vh,7px); }
+  .scaffold-list{ display:flex; flex-direction:column; gap:clamp(4px,0.8vh,9px); }
   .scaffold-list .frame{
-    background:var(--paper); border-radius:8px; padding:clamp(3px,0.55vh,8px) 12px;
-    font-size:clamp(13px,1.75vh,16px); color:var(--ink); text-align:center;
+    background:none; padding:0;
+    font-size:clamp(14px,2.1vh,19px); font-weight:600; color:var(--ink); text-align:left; line-height:1.3;
   }
   .scaffold-list .frame .blank{ color:var(--primary); font-weight:700; }
 
-  .word-bank-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
+  /* Even columns instead of a heap of chips. */
+  .word-bank-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 15em), 1fr)); gap:clamp(3px,0.6vh,7px) clamp(14px,2vw,28px); }
   .wordbank-chip{
-    background:var(--paper); border:1px solid var(--line); border-radius:20px;
-    padding:clamp(2px,0.45vh,6px) 11px; font-size:clamp(12px,1.65vh,15px); color:var(--muted); white-space:nowrap;
+    background:none; border:none; padding:0;
+    font-size:clamp(13px,1.85vh,17px); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .wordbank-chip strong{ color:var(--primary); font-weight:700; margin-left:4px; }
 

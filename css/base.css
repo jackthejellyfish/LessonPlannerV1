@@ -353,6 +353,30 @@
      missing from the stages that had only a Next button, so footers
      lined up differently from page to page. */
   .footer-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
+  /* Slide arrows + dots in the middle of a footer (Stages 2 and 5). */
+  .slide-nav{ display:flex; align-items:center; gap:clamp(10px,1.4vw,18px); }
+  .slide-arrow{
+    width:clamp(38px,5.4vh,48px); height:clamp(38px,5.4vh,48px); border-radius:50%; padding:0;
+    border:2px solid var(--primary); background:var(--surface); color:var(--primary);
+    font-size:clamp(17px,2.4vh,22px); font-weight:800; line-height:1;
+    transition: transform 0.28s cubic-bezier(.34,1.56,.64,1), background-color 0.2s ease, color 0.2s ease;
+  }
+  .slide-arrow:hover:not(:disabled){ background:var(--primary); color:#fff; transform:scale(1.1); }
+  .slide-arrow:disabled{ border-color:var(--line); color:var(--line); cursor:default; }
+  .slide-arrow:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+  /* The last slide's way forward: the stage's Next button glows gently.
+     A glow, not a bob: a button that keeps moving is harder to hit. Only
+     the ring's opacity animates. */
+  .btn.nudge{ position:relative; }
+  .btn.nudge::after{
+    content:''; position:absolute; inset:-5px; border-radius:12px; pointer-events:none;
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 55%, transparent), 0 0 18px color-mix(in srgb, var(--primary) 50%, transparent);
+    animation: btnNudge 1.6s ease-in-out infinite;
+  }
+  @keyframes btnNudge{
+    0%, 100%{ opacity:0.15; }
+    50%{ opacity:1; }
+  }
   /* "Question 3 of 10" beside a progress bar — Stages 3 and 4. */
   .progress-counter{ font-size:clamp(13px, 1.7vh, 15px); color:var(--muted); white-space:nowrap; }
   /* Soft, springy hover language shared by every button in the app —

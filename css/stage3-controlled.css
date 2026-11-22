@@ -1,25 +1,33 @@
   /* ---- Controlled practice (Stage 2) ---- */
-  /* Timer on top, score underneath (Stages 3 and 4). The timer is the
-     thing the class watches, so it is the big element here - roughly
-     twice its old size - and the score pill is slimmer to pay for it:
-     the stack has to fit Guided practice on a 1280x720 board, which an
-     earlier stacked layout overflowed (clipping the top of the ring). */
-  .stage-meta{ display:flex; flex-direction:column; justify-content:center; align-items:center; gap:clamp(6px,1.1vh,12px); margin-bottom:clamp(10px,1.8vh,18px); flex-shrink:0; }
-  .stage-meta .timer-row{ margin-bottom:0; }
-  .stage-meta .timer-circle{ width:clamp(76px, 12vh, 132px); height:clamp(76px, 12vh, 132px); }
-  .stage-meta .timer-circle-num{ font-size:clamp(26px, 4.8vh, 48px); font-weight:800; }
+  /* ---- The practice bar (Stages 3 and 4), reworked 2026-11-22 ----
+     One slim rounded bar: "Question 3 of 10", the progress line, the
+     timer ring and the score. They used to be a stacked tower (a big
+     ring, a score pill, then the progress line) that pushed the
+     question halfway down the screen. The ring is still the boldest
+     thing in the bar, since it's what the class watches. */
+  .practice-bar{
+    display:flex; align-items:center; gap:clamp(12px,1.6vw,22px);
+    width:100%; max-width:980px; margin:0 auto clamp(18px,3.4vh,40px); flex-shrink:0;
+    padding:clamp(6px,1vh,10px) clamp(8px,1vw,12px) clamp(6px,1vh,10px) clamp(16px,2vw,26px);
+    background:var(--paper); border-radius:999px;
+  }
+  .practice-bar .progress-counter{ font-weight:700; color:var(--ink); font-size:clamp(14px,1.9vh,18px); }
+  .practice-bar .progress-track{ margin:0; height:8px; }
+  .practice-bar .timer-circle{ width:clamp(54px,8.5vh,84px); height:clamp(54px,8.5vh,84px); flex-shrink:0; }
+  .practice-bar .timer-circle-num{ font-size:clamp(20px,3.4vh,32px); font-weight:800; }
+  .practice-bar .score{
+    font-size:clamp(16px,2.4vh,22px); padding:clamp(6px,1vh,10px) clamp(14px,1.6vw,22px);
+    background:var(--surface); white-space:nowrap;
+  }
   /* Last five seconds: the ring is already red (setTimerRing adds
-     .urgent); the number goes red too and the whole timer pulses once a
-     second. Transform-only, so it costs no layout or repaint. */
-  .stage-meta .timer-circle:has(.timer-arc.urgent){ animation: timerUrgent 1s ease-in-out infinite; }
-  .stage-meta .timer-circle:has(.timer-arc.urgent) .timer-circle-num{ color:var(--error); }
+     .urgent); the number goes red too and the ring pulses once a
+     second. Transform-only. */
+  .practice-bar .timer-circle:has(.timer-arc.urgent){ animation: timerUrgent 1s ease-in-out infinite; }
+  .practice-bar .timer-circle:has(.timer-arc.urgent) .timer-circle-num{ color:var(--error); }
   @keyframes timerUrgent{
     0%, 100%{ transform:scale(1); }
-    50%{ transform:scale(1.08); }
+    50%{ transform:scale(1.1); }
   }
-  .score-row{ display:flex; justify-content:center; flex-shrink:0; }
-  .stage-meta .score{ font-size:clamp(18px, 2.8vh, 26px); padding:4px 18px; border-radius:18px; }
-  .progress-line{ display:flex; align-items:center; justify-content:space-between; margin-bottom:clamp(12px, 2.4vh, 26px); flex-shrink:0; max-width:820px; margin-left:auto; margin-right:auto; width:100%; }
   .score{
     font-family:var(--font-display); font-weight:800; font-size:clamp(24px, 4.2vh, 36px); color:var(--primary);
     display:inline-block;
@@ -47,10 +55,9 @@
     font-weight:800; color:var(--ink); text-align:center; flex-shrink:0; text-wrap:balance;
     max-width:1100px; width:100%; margin:0 auto clamp(14px,2.6vh,32px);
     padding:clamp(10px,2vh,24px) clamp(16px,2vw,32px);
-    background:color-mix(in srgb, var(--primary) 7%, var(--surface));
-    border:2px solid color-mix(in srgb, var(--primary) 22%, transparent); border-radius:20px;
+    background:none; border:none; border-radius:0;
   }
-  .mc-options{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:clamp(12px,1.8vh,18px); max-width:900px; margin:0 auto; width:100%; flex-shrink:0; }
+  .mc-options{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:clamp(14px,2.2vh,24px); max-width:960px; margin:0 auto; width:100%; flex-shrink:0; }
   .mc-option{
     background:var(--paper); border:2px solid var(--line); border-radius:14px;
     padding:clamp(14px,2.4vh,24px); font-size:clamp(18px,2.8vh,26px); font-weight:700; color:var(--ink);

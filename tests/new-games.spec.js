@@ -75,7 +75,7 @@ test('Zombie Dash: zombies climb out, sweets and ball bonks score, and laps move
   // The level picker shows between turns, one button per level.
   await expect(page.locator('#zombieLevels')).toBeVisible();
   const levels = await page.locator('#zombieLevels [data-level]').count();
-  expect(levels).toBe(6);
+  expect(levels).toBe(10);
   await expect(page.locator('#zombieLevels [data-level="0"]')).toHaveClass(/active/);
 
   const internals = () => page.evaluate(async () => (await import('/js/stages/stage17-zombies.js')).debugZombieInternals());
@@ -113,43 +113,45 @@ test('Zombie Dash: zombies climb out, sweets and ball bonks score, and laps move
   expect(errors).toEqual([]);
 });
 
-test('Hoop Shot: angle and power are set directly, then SHOOT fires; two shots end the turn', async ({ page }) => {
+// Stage 13 is football now (rebuilt from Hoop Shot 2026-11-22; ids keep
+// the hoop prefix).
+test('Football: tap the goal to aim, KICK scores past a parked keeper, three kicks end the turn', async ({ page }) => {
+  test.setTimeout(60000);
   const errors = watchErrors(page);
   await openGame(page, 12, 'hoop');
-
+  const fb = () => page.evaluate(async () => (await import('/js/stages/stage13-hoopshot.js')).debugFootball());
   const shotsLeft = page.locator('#hoopShotsDisplay');
-  const angle = page.locator('#hoopAngleValue');
-  const power = page.locator('#hoopPowerValue');
-  const shoot = page.locator('#hoopShootBtn');
-  await expect(shotsLeft).toHaveText('2');
+  const kick = page.locator('#hoopShootBtn');
+  await expect(shotsLeft).toHaveText('3');
   await expect(page.locator('#hoopControls')).toBeVisible();
 
-  // The +/- buttons change the values directly — no timing involved.
-  const a0 = await angle.textContent();
+  // The arrow buttons nudge the aim; tapping the goal moves it there.
+  const a0 = (await fb()).aim;
   await page.click('#hoopAngleUp');
-  await page.click('#hoopAngleUp');
-  expect(await angle.textContent()).not.toBe(a0);
-  await expect(power).toHaveText('50%');
   await page.click('#hoopPowerUp');
-  await expect(power).toHaveText('51%');
-  // Keyboard works too.
-  await page.keyboard.press('ArrowLeft');
-  await expect(power).toHaveText('50%');
+  const a1 = (await fb()).aim;
+  expect(a1.x).toBeGreaterThan(a0.x);
+  expect(a1.y).toBeGreaterThan(a0.y);
+  const box = await page.locator('#hoopCanvas').boundingBox();
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.4);
+  expect((await fb()).aim.x, 'a tap on the left of the goal aims left').toBeLessThan(0);
+  await expect(shotsLeft).toHaveText('3'); // aiming never kicks
 
-  // Tapping the court points the shot but never fires it.
-  await page.locator('#hoopCanvas').click({ position: { x: 600, y: 150 } });
-  await expect(shotsLeft).toHaveText('2');
-  await expect(shoot).toBeEnabled();
+  // Park the keeper on the far left and aim right: a goal.
+  await page.evaluate(async () => (await import('/js/stages/stage13-hoopshot.js')).debugParkKeeper(-0.9));
+  for (let i = 0; i < 25; i++) await page.click('#hoopAngleUp');
+  expect((await fb()).aim.x, 'aiming at the right of the goal').toBeGreaterThan(0.5);
+  await kick.click();
+  await expect(page.locator('#hoopAngleUp')).toBeDisabled(); // locked while the ball is in play
+  await expect(shotsLeft).toHaveText('2', { timeout: 6000 });
+  expect(Number(await page.locator('#hoopScoreDisplay').textContent()), 'a goal scores').toBeGreaterThanOrEqual(3);
 
   for (const remaining of ['1', '0']) {
-    await expect(shoot).toBeEnabled({ timeout: 9000 });
-    await shoot.click();
-    // Controls lock while the ball is in the air.
-    await expect(page.locator('#hoopAngleUp')).toBeDisabled();
-    await expect(shotsLeft).toHaveText(remaining, { timeout: 9000 });
+    await expect(kick).toBeEnabled({ timeout: 6000 });
+    await kick.click();
+    await expect(shotsLeft).toHaveText(remaining, { timeout: 6000 });
   }
-
-  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 12000 });
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 8000 });
   await page.click('#hoopNextTeamBtn');
   expect(errors).toEqual([]);
 });

@@ -3,7 +3,7 @@ import { goToStage } from './navigation.js';
 
 // Kept SHORT on purpose: with 17 stages the stepper gives each label
 // only ~56-80px before it wraps, so "Whack!" beats "Whack-a-Monster".
-export const STAGE_LABELS = ["Aim", "Learn", "Controlled", "Guided", "Free practice", "Balloon Pop", "Star Defender", "Spin Wheel", "Questions", "Billiards", "Neon Arena", "Fruit Ninja", "Hoop Shot", "Whack!", "Jelly Maze", "Ninja Jump", "Zombie Dash"];
+export const STAGE_LABELS = ["Aim", "Learn", "Controlled", "Guided", "Free practice", "Balloon Pop", "Star Defender", "Spin Wheel", "Questions", "Billiards", "Neon Arena", "Fruit Ninja", "Football", "Whack!", "Jelly Maze", "Ninja Jump", "Zombie Dash"];
 
 export function renderStepper(){
   const stepper = document.getElementById('stepper');

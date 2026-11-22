@@ -8,12 +8,16 @@
 .hoop-legend-swatch{
   display:block; width:28px; height:28px; border-radius:50%;
 }
-.hoop-legend-swatch.basket{
-  background: radial-gradient(circle at 34% 28%, #FFC489, #FF8C3B 58%, #B9541A);
-  box-shadow:0 0 10px rgba(255,140,59,0.55);
+.hoop-legend-swatch.goal{
+  background:
+    radial-gradient(circle at 50% 50%, #1E2433 0 22%, transparent 23%),
+    radial-gradient(circle at 34% 28%, #FFFFFF, #DDE3EA 70%);
+  box-shadow:0 0 8px rgba(0,0,0,0.25);
 }
-.hoop-legend-swatch.swish{
-  background: radial-gradient(circle at 34% 28%, #FFF6D9, #FFD23F 58%, #B8860B);
+.hoop-legend-swatch.corner{
+  background:
+    radial-gradient(circle at 50% 50%, #1E2433 0 22%, transparent 23%),
+    radial-gradient(circle at 34% 28%, #FFF6D9, #FFD23F 70%);
   box-shadow:0 0 12px rgba(255,210,63,0.8);
 }
 .hoop-legend-swatch.miss{

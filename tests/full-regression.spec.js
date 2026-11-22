@@ -61,11 +61,13 @@ test('stage 2 advances one rule at a time', async ({ page }) => {
   await page.click('#learnPrevSlideBtn');
   await expect(page.locator('.learn-rule-name')).toHaveText(firstRule);
 
-  // The last slide leads out of the stage rather than nowhere.
+  // On the last slide the arrow stops and the footer's Next takes over
+  // (it nudges), so there is one way forward, not two.
   const slides = await page.locator('.learn-dots .demo-dot').count();
   for (let i = 0; i < slides - 1; i++) await page.click('#learnNextSlideBtn');
-  await expect(page.locator('#learnNextSlideBtn')).toHaveText(/Controlled practice/);
-  await page.click('#learnNextSlideBtn');
+  await expect(page.locator('#learnNextSlideBtn')).toBeDisabled();
+  await expect(page.locator('#learnNextBtn')).toHaveClass(/nudge/);
+  await page.click('#learnNextBtn');
   await expect(page.locator('#stage3')).not.toHaveClass(/hidden/);
 });
 
@@ -134,9 +136,10 @@ test('stage 5 shows the task first, then the timer with the useful language', as
   await expect(page.locator('#stopwatch')).toBeVisible();
   await expect(page.locator('#scaffoldList .frame')).toHaveCount(5);
   await expect(page.locator('#wordBank .wordbank-chip').first()).toBeVisible();
-  await expect(page.locator('#freeNextSlideBtn')).toHaveText('Next: Balloon Pop →');
+  await expect(page.locator('#freeNextSlideBtn')).toBeDisabled();
+  await expect(page.locator('#freeNextBtn')).toHaveClass(/nudge/);
 
-  await page.click('#freeNextSlideBtn');
+  await page.click('#freeNextBtn');
   await expect(page.locator('#stage6')).toBeVisible();
 });
 

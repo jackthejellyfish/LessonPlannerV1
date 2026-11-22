@@ -39,6 +39,11 @@
     border-radius:3px;
     box-shadow:0 0 8px rgba(255,140,66,0.7);
   }
+  .inv-legend-swatch.spread{
+    width:22px; height:22px; border-radius:50%; background:#FF5CF4; box-shadow:0 2px 6px rgba(0,0,0,0.25);
+  }
+  /* Holding a finger fires: the page must not pan underneath it. */
+  #invPlayArea:not(.idle){ touch-action:none; }
   .inv-legend-swatch.heart{
     width:26px; height:26px; color:#FF6B8B; font-size:20px; box-shadow:none;
   }

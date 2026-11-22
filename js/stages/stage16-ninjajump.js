@@ -203,6 +203,27 @@ const LEVELS = [
   speed: [[12, 13], [31, 13], [17, 7]],
   golden: [[18, 0], [35, 7], [0, 7]] },
 
+  { name: 'Jungle Vines', diff: 'easy', theme: 'jungle', sky: ['#123322', '#6FB36A'], moon: [0.86, 0.14], map: [
+    '....................................',
+    '................*...................',
+    '..............=====.................',
+    '....................................',
+    '....*...........................*...',
+    '...=====.....................=====..',
+    '....................................',
+    '...........*..............*.........',
+    '..........=====.........=====.......',
+    '....................................',
+    '....................................',
+    '.....=====..........=====...........',
+    '....................................',
+    '.P.......*....^^.......*.......*....',
+    '####################################',
+    '####################################'
+  ],
+  speed: [[12, 13], [27, 13]],
+  golden: [[35, 1], [1, 2], [24, 1]] },
+
   { name: 'Spring Valley', diff: 'medium', sky: ['#14324A', '#5FB3A8'], moon: [0.52, 0.13], map: [
     '....................................',
     '....................................',
@@ -284,6 +305,48 @@ const LEVELS = [
   speed: [[3, 11], [17, 11], [31, 11]],
   golden: [[0, 0], [13, 13], [27, 13]] },
 
+  { name: 'Desert Dunes', diff: 'medium', theme: 'desert', sky: ['#E9824A', '#FBD38D'], moon: [0.5, 0.16], map: [
+    '....................................',
+    '....................................',
+    '...*..............................*.',
+    '..===............................===',
+    '....................................',
+    '....................................',
+    '.......*........................*...',
+    '......===......................===..',
+    '....................................',
+    '....................................',
+    '...........*................*.......',
+    '..........###..............###......',
+    '.........#####............#####.....',
+    '.P...*..#######...^^^.*.#######.....',
+    '####################################',
+    '####################################'
+  ],
+  speed: [[3, 13], [16, 13]],
+  golden: [[17, 6], [0, 0], [35, 0]] },
+
+  { name: 'Snowy Summit', diff: 'medium', theme: 'snow', sky: ['#2C4A73', '#B9D7F0'], moon: [0.12, 0.14], map: [
+    '....................................',
+    '.................**.................',
+    '................====................',
+    '....................................',
+    '....................................',
+    '....*........................*......',
+    '...====........======.......====....',
+    '....................................',
+    '....................................',
+    '..........*..............*..........',
+    '.........====...........====........',
+    '....................................',
+    '....................................',
+    '.P....S.....^^^^...*.*.^^^^.....S...',
+    '####################################',
+    '####################################'
+  ],
+  triple: [[34, 10], [1, 10]],
+  golden: [[0, 3], [35, 3], [17, 4]] },
+
   { name: 'Windy Peak', diff: 'hard', sky: ['#1A2238', '#7A8FB8'], moon: [0.5, 0.12], map: [
     '....................................',
     '....................................',
@@ -329,7 +392,31 @@ const LEVELS = [
   ],
   triple: [[35, 0], [0, 1], [19, 11]],
   speed: [[10, 13], [26, 13]],
-  golden: [[14, 12], [21, 12], [35, 3]] }
+  golden: [[14, 12], [21, 12], [35, 3]] },
+
+  { name: 'Volcano Crossing', diff: 'hard', theme: 'volcano', sky: ['#1A0A0A', '#7A2A14'], map: [
+    '....................................',
+    '.....*.......................*......',
+    '....===.....................===.....',
+    '....................................',
+    '....................................',
+    '.........*..............*...........',
+    '........===............===..........',
+    '....................................',
+    '.....*........**..........*.........',
+    '....................................',
+    '....###....................###......',
+    '....###....................###......',
+    '....###....................###......',
+    '.P..###^^^^^^^^^^^^^^^^^^^^###......',
+    '####################################',
+    '####################################'
+  ], movers: [
+    // A ferry over the lava, flush with both rock pillars at each end.
+    { x: 7, y: 10, w: 2, dx: 18, dy: 0, period: 7, phase: 0 }
+  ],
+  triple: [[1, 12], [33, 12]],
+  golden: [[17, 3], [0, 0], [35, 0]] }
 ];
 LEVELS.forEach((lv, i) => {
   if(lv.map.length !== ROWS || lv.map.some(r => r.length !== COLS)){
@@ -1005,32 +1092,87 @@ function layout(canvas){
   return { s, ox: (canvas.width - COLS * s) / 2, oy: (canvas.height - ROWS * s) / 2 };
 }
 
-let sceneryLayer = null;
-let sceneryKey = '';
-function drawScenery(canvas){
-  const key = `${canvas.width}x${canvas.height}:${levelIndex}`;
-  if(sceneryLayer && key === sceneryKey) return sceneryLayer;
-  sceneryKey = key;
-  sceneryLayer = sceneryLayer || document.createElement('canvas');
-  sceneryLayer.width = canvas.width;
-  sceneryLayer.height = canvas.height;
-  const ctx = sceneryLayer.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const lv = LEVELS[levelIndex];
+/* ---- Environment themes (2026-11-22) ----
+   A level's `theme` sets its backdrop and what its blocks, planks and
+   hazards look like. Only the look changes: '^' still means "back to
+   the start", whether it's drawn as spikes, thorns, cactus, icicles
+   or lava. Levels with no theme are the original dojo look. */
+const THEMES = {
+  dojo:    { ground: '#3B3648', block: '#4A4458', lip: '#6FBF73', plank: '#B07A4A', plankEdge: '#7E5230', hazard: 'spike' },
+  jungle:  { ground: '#26331C', block: '#4D5B32', lip: '#7BD15A', plank: '#8A5A2E', plankEdge: '#5C3B1C', hazard: 'thorn' },
+  desert:  { ground: '#9C6B3C', block: '#D9A55B', lip: '#F2CF8A', plank: '#A8743F', plankEdge: '#76502A', hazard: 'cactus' },
+  snow:    { ground: '#53647F', block: '#7586A6', lip: '#F4FAFF', plank: '#BFE6FF', plankEdge: '#7FB8DB', hazard: 'icicle' },
+  volcano: { ground: '#221414', block: '#3F2C2A', lip: '#6B4A3A', plank: '#5A4038', plankEdge: '#33231F', hazard: 'lava' }
+};
 
-  const sky = ctx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, lv.sky[0]);
-  sky.addColorStop(1, lv.sky[1]);
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, w, h);
-
-  // Moon - placed per level where it won't sit behind a star.
+// The far scenery for each theme, as flat silhouettes (cached with the
+// rest of the scenery, so it costs nothing per frame).
+function drawBackdrop(ctx, w, h, theme, lv){
   const [mx, my] = lv.moon || [0.82, 0.2];
+  if(theme === 'desert'){
+    // A big low sun, dunes and two pyramids.
+    ctx.fillStyle = 'rgba(255, 236, 170, 0.95)';
+    ctx.beginPath(); ctx.arc(w * mx, h * my, h * 0.12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(160, 90, 40, 0.45)';
+    for(const [px, base, size] of [[0.22, 0.66, 0.2], [0.36, 0.66, 0.13], [0.78, 0.68, 0.17]]){
+      ctx.beginPath(); ctx.moveTo(w * px - h * size, h * base); ctx.lineTo(w * px, h * (base - size)); ctx.lineTo(w * px + h * size, h * base); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(200, 120, 60, 0.4)';
+    ctx.beginPath(); ctx.moveTo(0, h);
+    for(let i = 0; i <= 8; i++) ctx.quadraticCurveTo(w * (i - 0.5) / 8, h * (0.6 + (i % 2) * 0.06), w * i / 8, h * 0.66);
+    ctx.lineTo(w, h); ctx.fill();
+    return;
+  }
+  if(theme === 'volcano'){
+    // No moon: a glowing volcano with a smoke plume.
+    const vx = w * 0.5;
+    const glow = ctx.createRadialGradient(vx, h * 0.34, 0, vx, h * 0.34, h * 0.35);
+    glow.addColorStop(0, 'rgba(255, 140, 40, 0.55)'); glow.addColorStop(1, 'rgba(255, 80, 20, 0)');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(60, 50, 50, 0.45)';
+    for(const [px, py, r] of [[0.5, 0.2, 0.06], [0.53, 0.13, 0.08], [0.49, 0.06, 0.09]]){ ctx.beginPath(); ctx.arc(w * px, h * py, h * r, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = 'rgba(20, 8, 8, 0.75)';
+    ctx.beginPath(); ctx.moveTo(vx - h * 0.62, h * 0.72); ctx.lineTo(vx - h * 0.08, h * 0.3); ctx.lineTo(vx + h * 0.08, h * 0.3); ctx.lineTo(vx + h * 0.62, h * 0.72); ctx.fill();
+    ctx.fillStyle = 'rgba(255, 110, 30, 0.9)';
+    ctx.beginPath(); ctx.moveTo(vx - h * 0.08, h * 0.3); ctx.lineTo(vx + h * 0.08, h * 0.3); ctx.lineTo(vx + h * 0.03, h * 0.42); ctx.lineTo(vx - h * 0.02, h * 0.5); ctx.lineTo(vx - h * 0.05, h * 0.38); ctx.fill();
+    return;
+  }
+  // Moon (or a pale sun) for the others.
   ctx.fillStyle = 'rgba(255, 244, 214, 0.9)';
-  ctx.beginPath();
-  ctx.arc(w * mx, h * my, h * 0.09, 0, Math.PI * 2);
-  ctx.fill();
-  // Far mountains and a pagoda, as flat silhouettes.
+  ctx.beginPath(); ctx.arc(w * mx, h * my, h * 0.09, 0, Math.PI * 2); ctx.fill();
+  if(theme === 'snow'){
+    // Snowy peaks, and flakes hanging in the air.
+    const peaks = [[0.05, 0.62, 0.24], [0.28, 0.6, 0.32], [0.52, 0.66, 0.22], [0.75, 0.58, 0.3], [0.97, 0.64, 0.22]];
+    for(const [px, base, size] of peaks){
+      const x = w * px, top = h * (base - size), half = h * size * 0.9;
+      ctx.fillStyle = 'rgba(40, 60, 95, 0.55)';
+      ctx.beginPath(); ctx.moveTo(x - half, h * base + h * 0.2); ctx.lineTo(x, top); ctx.lineTo(x + half, h * base + h * 0.2); ctx.fill();
+      ctx.fillStyle = 'rgba(245, 250, 255, 0.85)';
+      ctx.beginPath(); ctx.moveTo(x - half * 0.3, top + h * size * 0.3); ctx.lineTo(x, top); ctx.lineTo(x + half * 0.3, top + h * size * 0.3);
+      ctx.lineTo(x + half * 0.1, top + h * size * 0.24); ctx.lineTo(x - half * 0.05, top + h * size * 0.32); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    let seed = 3;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for(let i = 0; i < 70; i++){ ctx.beginPath(); ctx.arc(rnd() * w, rnd() * h * 0.8, h * (0.003 + rnd() * 0.004), 0, Math.PI * 2); ctx.fill(); }
+    return;
+  }
+  if(theme === 'jungle'){
+    // Rolling treetops, and vines hanging from the top edge.
+    ctx.fillStyle = 'rgba(10, 40, 20, 0.5)';
+    ctx.beginPath(); ctx.moveTo(0, h);
+    for(let i = 0; i <= 14; i++){ const x = w * i / 14; ctx.arc(x, h * (0.58 + (i % 3) * 0.04), h * 0.09, Math.PI, 0); }
+    ctx.lineTo(w, h); ctx.fill();
+    ctx.strokeStyle = 'rgba(30, 90, 40, 0.7)'; ctx.lineWidth = Math.max(2, h * 0.006);
+    ctx.fillStyle = 'rgba(70, 150, 60, 0.8)';
+    for(let i = 0; i < 9; i++){
+      const x = w * (0.05 + i * 0.115), len = h * (0.12 + (i % 3) * 0.07);
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.quadraticCurveTo(x + h * 0.03, len / 2, x, len); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(x, len, h * 0.018, h * 0.01, 0.5, 0, Math.PI * 2); ctx.fill();
+    }
+    return;
+  }
+  // Dojo: far mountains and a pagoda.
   ctx.fillStyle = 'rgba(10, 8, 25, 0.35)';
   ctx.beginPath();
   ctx.moveTo(0, h);
@@ -1051,12 +1193,62 @@ function drawScenery(canvas){
     ctx.closePath();
     ctx.fill();
   }
+}
+
+// One hazard tile ('^'), drawn in its theme's style.
+function drawHazard(ctx, X, Y, s, style){
+  if(style === 'lava'){
+    ctx.fillStyle = '#FF5A1F';
+    ctx.fillRect(X, Y + s * 0.45, s + 0.5, s * 0.55);
+    ctx.fillStyle = '#FFB13B';
+    ctx.fillRect(X, Y + s * 0.45, s + 0.5, s * 0.12);
+    ctx.beginPath(); ctx.arc(X + s * 0.35, Y + s * 0.62, s * 0.08, 0, Math.PI * 2); ctx.arc(X + s * 0.75, Y + s * 0.78, s * 0.06, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+  ctx.fillStyle = style === 'thorn' ? '#3E7D2E' : style === 'cactus' ? '#3F9B4A' : style === 'icicle' ? '#CFEFFF' : '#C9D3DF';
+  if(style === 'cactus'){
+    ctx.fillRect(X + s * 0.38, Y + s * 0.25, s * 0.24, s * 0.75);
+    ctx.fillRect(X + s * 0.15, Y + s * 0.45, s * 0.2, s * 0.12); ctx.fillRect(X + s * 0.15, Y + s * 0.32, s * 0.08, s * 0.2);
+    ctx.fillRect(X + s * 0.65, Y + s * 0.55, s * 0.2, s * 0.12); ctx.fillRect(X + s * 0.77, Y + s * 0.4, s * 0.08, s * 0.22);
+    return;
+  }
+  ctx.beginPath();
+  for(let k = 0; k < 3; k++){
+    const bx = X + (k / 3) * s;
+    ctx.moveTo(bx, Y + s);
+    ctx.lineTo(bx + s / 6, Y + s * (style === 'thorn' ? 0.3 : 0.42));
+    ctx.lineTo(bx + s / 3, Y + s);
+  }
+  ctx.fill();
+}
+
+let sceneryLayer = null;
+let sceneryKey = '';
+function drawScenery(canvas){
+  const key = `${canvas.width}x${canvas.height}:${levelIndex}`;
+  if(sceneryLayer && key === sceneryKey) return sceneryLayer;
+  sceneryKey = key;
+  sceneryLayer = sceneryLayer || document.createElement('canvas');
+  sceneryLayer.width = canvas.width;
+  sceneryLayer.height = canvas.height;
+  const ctx = sceneryLayer.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const lv = LEVELS[levelIndex];
+
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, lv.sky[0]);
+  sky.addColorStop(1, lv.sky[1]);
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h);
+
+  const th = THEMES[lv.theme] || THEMES.dojo;
+  drawBackdrop(ctx, w, h, lv.theme || 'dojo', lv);
 
   const { s, ox, oy } = layout(canvas);
   // The level keeps its 36x16 shape, so on a taller or wider play area
   // there's spare room around it. Below it is solid ground, beside it
   // stone walls, so the floor never looks like it's floating in the sky.
-  ctx.fillStyle = '#3B3648';
+  ctx.fillStyle = th.ground;
   ctx.fillRect(0, oy + ROWS * s - 1, w, h - (oy + ROWS * s) + 1);
   if(ox > 0){
     ctx.fillRect(0, 0, ox + 0.5, h);
@@ -1067,33 +1259,25 @@ function drawScenery(canvas){
       const ch = grid[y][x];
       const X = ox + x * s, Y = oy + y * s;
       if(ch === '#'){
-        ctx.fillStyle = '#4A4458';
+        ctx.fillStyle = th.block;
         ctx.fillRect(X, Y, s + 0.5, s + 0.5);
         ctx.fillStyle = 'rgba(0,0,0,0.18)';
         ctx.fillRect(X, Y + s * 0.5, s + 0.5, 1);
         ctx.fillRect(X + ((y % 2) ? s * 0.5 : 0), Y, 1, s * 0.5);
         // A grassy lip on any block with open air above it.
         if(!isSolid(tileAt(x, y - 1))){
-          ctx.fillStyle = '#6FBF73';
+          ctx.fillStyle = th.lip;
           ctx.fillRect(X, Y, s + 0.5, s * 0.16);
         }
       } else if(FAN_TILES.includes(ch)){
         drawFanHousing(ctx, X, Y, s, ch);
       } else if(ch === '='){
-        ctx.fillStyle = '#B07A4A';
+        ctx.fillStyle = th.plank;
         ctx.fillRect(X, Y, s + 0.5, s * 0.26);
-        ctx.fillStyle = '#7E5230';
+        ctx.fillStyle = th.plankEdge;
         ctx.fillRect(X, Y + s * 0.2, s + 0.5, s * 0.06);
       } else if(ch === '^'){
-        ctx.fillStyle = '#C9D3DF';
-        ctx.beginPath();
-        for(let k = 0; k < 3; k++){
-          const bx = X + (k / 3) * s;
-          ctx.moveTo(bx, Y + s);
-          ctx.lineTo(bx + s / 6, Y + s * 0.42);
-          ctx.lineTo(bx + s / 3, Y + s);
-        }
-        ctx.fill();
+        drawHazard(ctx, X, Y, s, th.hazard);
       }
     }
   }

@@ -176,18 +176,16 @@
           <!-- One slide at a time: each rule, then each worked example.
                Built by renderLearnSlide() in js/stages/stage2-rules.js. -->
           <div class="learn-slide" id="learnSlide"></div>
-          <div class="learn-nav">
-            <button class="btn btn-ghost" id="learnPrevSlideBtn" type="button">
-              ← Previous
-            </button>
-            <div class="learn-dots" id="learnDots"></div>
-            <button class="btn btn-primary" id="learnNextSlideBtn" type="button">
-              Next →
-            </button>
-          </div>
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="learnBackBtn">← Back</button>
+          <!-- Slide navigation lives in the footer's middle (2026-11-22):
+               it used to be a second row of buttons above the footer. -->
+          <div class="slide-nav">
+            <button class="slide-arrow" id="learnPrevSlideBtn" type="button" aria-label="Previous slide">←</button>
+            <div class="learn-dots" id="learnDots"></div>
+            <button class="slide-arrow" id="learnNextSlideBtn" type="button" aria-label="Next slide">→</button>
+          </div>
           <div class="footer-actions">
             <button class="btn btn-ghost" id="printRulesBtn" type="button">
               Print rules
@@ -204,33 +202,22 @@
       <section class="stage hidden" id="stage3">
         <h2>Controlled practice</h2>
         <div class="stage-body">
-          <div class="stage-meta">
-            <div class="timer-row">
-              <div class="timer-circle">
-                <svg viewBox="0 0 44 44">
-                  <circle class="timer-track" cx="22" cy="22" r="18"></circle>
-                  <circle
-                    class="timer-arc"
-                    id="mcTimerArc"
-                    cx="22"
-                    cy="22"
-                    r="18"
-                  ></circle>
-                </svg>
-                <span class="timer-circle-num" id="mcTimerNum"></span>
-              </div>
-            </div>
-            <div class="score-row"><span class="score" id="mcScore"></span></div>
-          </div>
-
-          <div class="progress-line">
-            <span
-              id="mcCounter"
-              class="progress-counter"
-            ></span>
+          <!-- One slim bar: where we are, the time left, the score
+               (reworked 2026-11-22; these were a stacked tower above the
+               question). -->
+          <div class="practice-bar">
+            <span id="mcCounter" class="progress-counter"></span>
             <div class="progress-track">
               <div class="progress-fill" id="mcProgressFill"></div>
             </div>
+            <div class="timer-circle">
+              <svg viewBox="0 0 44 44">
+                <circle class="timer-track" cx="22" cy="22" r="18"></circle>
+                <circle class="timer-arc" id="mcTimerArc" cx="22" cy="22" r="18"></circle>
+              </svg>
+              <span class="timer-circle-num" id="mcTimerNum"></span>
+            </div>
+            <span class="score" id="mcScore"></span>
           </div>
 
           <p class="mc-question" id="mcQuestion"></p>
@@ -252,35 +239,22 @@
       <section class="stage hidden" id="stage4">
         <h2>Guided practice</h2>
         <div class="stage-body">
-          <div class="stage-meta">
-            <div class="timer-row">
-              <div class="timer-circle">
-                <svg viewBox="0 0 44 44">
-                  <circle class="timer-track" cx="22" cy="22" r="18"></circle>
-                  <circle
-                    class="timer-arc"
-                    id="semiTimerArc"
-                    cx="22"
-                    cy="22"
-                    r="18"
-                  ></circle>
-                </svg>
-                <span class="timer-circle-num" id="semiTimerNum"></span>
-              </div>
-            </div>
-            <div class="score-row">
-              <span class="score" id="semiScoreDisplay"></span>
-            </div>
-          </div>
-
-          <div class="progress-line">
-            <span
-              id="semiCounter"
-              class="progress-counter"
-            ></span>
+          <!-- One slim bar: where we are, the time left, the score
+               (reworked 2026-11-22; these were a stacked tower above the
+               question). -->
+          <div class="practice-bar">
+            <span id="semiCounter" class="progress-counter"></span>
             <div class="progress-track">
               <div class="progress-fill" id="semiProgressFill"></div>
             </div>
+            <div class="timer-circle">
+              <svg viewBox="0 0 44 44">
+                <circle class="timer-track" cx="22" cy="22" r="18"></circle>
+                <circle class="timer-arc" id="semiTimerArc" cx="22" cy="22" r="18"></circle>
+              </svg>
+              <span class="timer-circle-num" id="semiTimerNum"></span>
+            </div>
+            <span class="score" id="semiScoreDisplay"></span>
           </div>
 
           <div class="sentence-strip empty" id="answerStrip"></div>
@@ -394,14 +368,14 @@
             </section>
           </div>
 
-          <div class="learn-nav">
-            <button class="btn btn-ghost" id="freePrevSlideBtn" type="button">← Previous</button>
-            <div class="free-steps" id="freeSteps"></div>
-            <button class="btn btn-primary" id="freeNextSlideBtn" type="button">Next →</button>
-          </div>
         </div>
         <div class="stage-footer">
           <button class="btn btn-ghost" id="freeBackBtn">← Back</button>
+          <div class="slide-nav">
+            <button class="slide-arrow" id="freePrevSlideBtn" type="button" aria-label="Previous slide">←</button>
+            <div class="free-steps" id="freeSteps"></div>
+            <button class="slide-arrow" id="freeNextSlideBtn" type="button" aria-label="Next slide">→</button>
+          </div>
           <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="freeNextBtn">
@@ -958,14 +932,14 @@
           <button class="btn btn-ghost" id="fruitBackBtn">← Back</button>
           <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
-            <button class="btn btn-primary" id="fruitNextStageBtn">Next: Hoop Shot →</button>
+            <button class="btn btn-primary" id="fruitNextStageBtn">Next: Football →</button>
           </div>
         </div>
       </section>
 
-      <!-- STAGE 13: HOOP SHOT -->
+      <!-- STAGE 13: FOOTBALL (rebuilt from Hoop Shot; ids keep the hoop prefix) -->
       <section class="stage hidden" id="stage13">
-        <h2>Hoop Shot</h2>
+        <h2>Football</h2>
         <div class="stage-body">
           <div id="hoopSetup"></div>
 
@@ -989,8 +963,8 @@
               <div class="pop-hud-card">
                 <div class="pop-hud">
                   <div>
-                    <span class="pop-hud-label">Shots left</span
-                    ><span class="pop-hud-num" id="hoopShotsDisplay">2</span>
+                    <span class="pop-hud-label">Kicks left</span
+                    ><span class="pop-hud-num" id="hoopShotsDisplay">3</span>
                   </div>
                   <div>
                     <span class="pop-hud-label">Turn score</span
@@ -1004,22 +978,20 @@
 
               <div id="hoopPlayArea" class="inv-play-area idle">
                 <canvas id="hoopCanvas" class="inv-canvas"></canvas>
-                <p class="game-hint hidden" id="hoopHint">Set the angle and power, then SHOOT!</p>
+                <p class="game-hint hidden" id="hoopHint">Tap the goal to aim, then KICK!</p>
+                <!-- Fine aim for a board with no easy tap; tapping the goal is quicker. -->
                 <div class="hoop-controls" id="hoopControls">
                   <div class="hoop-control-group">
-                    <span class="hoop-control-label">Angle</span>
-                    <button class="hoop-step-btn" id="hoopAngleDown" type="button" aria-label="Lower the angle">&minus;</button>
-                    <span class="hoop-control-value" id="hoopAngleValue">55°</span>
-                    <button class="hoop-step-btn" id="hoopAngleUp" type="button" aria-label="Raise the angle">+</button>
+                    <button class="hoop-step-btn" id="hoopAngleDown" type="button" aria-label="Aim left">&#9664;</button>
+                    <span class="hoop-control-label">Aim</span>
+                    <button class="hoop-step-btn" id="hoopAngleUp" type="button" aria-label="Aim right">&#9654;</button>
                   </div>
                   <div class="hoop-control-group">
-                    <span class="hoop-control-label">Power</span>
-                    <button class="hoop-step-btn" id="hoopPowerDown" type="button" aria-label="Less power">&minus;</button>
-                    <span class="hoop-power-meter" aria-hidden="true"><span class="hoop-power-fill" id="hoopPowerFill"></span></span>
-                    <span class="hoop-control-value" id="hoopPowerValue">50%</span>
-                    <button class="hoop-step-btn" id="hoopPowerUp" type="button" aria-label="More power">+</button>
+                    <button class="hoop-step-btn" id="hoopPowerDown" type="button" aria-label="Aim lower">&#9660;</button>
+                    <span class="hoop-control-label">Height</span>
+                    <button class="hoop-step-btn" id="hoopPowerUp" type="button" aria-label="Aim higher">&#9650;</button>
                   </div>
-                  <button class="hoop-shoot-btn" id="hoopShootBtn" type="button">Shoot!</button>
+                  <button class="hoop-shoot-btn" id="hoopShootBtn" type="button">Kick!</button>
                 </div>
                 <button class="btn btn-primary" id="hoopBeginTurnBtn" type="button">
                   Begin turn

@@ -73,12 +73,22 @@ const LEVELS = [
       { t: 'slide', x: 16, y: 12, w: 10, h: 24 }, { t: 'slide', x: 134, y: 54, w: 10, h: 24 },
       { t: 'bush', x: 124, y: 20, r: 6 }, { t: 'bush', x: 34, y: 70, r: 6 }
     ], zones: [{ t: 'sand', x: 58, y: 58, w: 44, h: 22, slow: 0.5 }] },
+  { name: 'Jungle Trail', diff: 'easy', ground: '#6DBE55', ground2: '#62B14B', zombies: 3, zSpeed: 15, balls: 1,
+    obstacles: [
+      { t: 'palm', x: 34, y: 22, r: 5.5 }, { t: 'palm', x: 126, y: 68, r: 5.5 }, { t: 'palm', x: 40, y: 70, r: 5 },
+      { t: 'palm', x: 122, y: 20, r: 5 }, { t: 'log', x: 66, y: 10, w: 28, h: 5 }, { t: 'log', x: 66, y: 75, w: 28, h: 5 }
+    ], zones: [{ t: 'river', x: 14, y: 38, w: 40, h: 12, slow: 0.5 }, { t: 'river', x: 106, y: 38, w: 40, h: 12, slow: 0.5 }] },
   { name: 'Pumpkin Patch', diff: 'medium', ground: '#B98B58', ground2: '#AA7D4B', zombies: 3, zSpeed: 17, balls: 1,
     obstacles: [
       { t: 'pumpkin', x: 30, y: 22, r: 4.5 }, { t: 'pumpkin', x: 54, y: 30, r: 3.5 }, { t: 'pumpkin', x: 106, y: 24, r: 4 },
       { t: 'pumpkin', x: 130, y: 34, r: 5 }, { t: 'pumpkin', x: 28, y: 62, r: 4 }, { t: 'pumpkin', x: 104, y: 68, r: 4.5 },
       { t: 'pumpkin', x: 134, y: 72, r: 3.5 }, { t: 'pumpkin', x: 58, y: 70, r: 3 }
     ], zones: [{ t: 'mud', x: 70, y: 8, w: 22, h: 14, slow: 0.55 }, { t: 'mud', x: 68, y: 70, w: 26, h: 13, slow: 0.55 }] },
+  { name: 'Desert Oasis', diff: 'medium', ground: '#EBCB86', ground2: '#E2C07A', zombies: 3, zSpeed: 17, balls: 1,
+    obstacles: [
+      { t: 'cactus', x: 30, y: 22, r: 3.8 }, { t: 'cactus', x: 50, y: 70, r: 3.4 }, { t: 'cactus', x: 112, y: 22, r: 3.8 },
+      { t: 'cactus', x: 132, y: 64, r: 4.2 }, { t: 'rock', x: 80, y: 14, r: 3.5 }, { t: 'rock', x: 98, y: 74, r: 3 }
+    ], zones: [{ t: 'quicksand', x: 24, y: 38, w: 26, h: 16, slow: 0.4 }, { t: 'quicksand', x: 110, y: 38, w: 26, h: 16, slow: 0.4 }] },
   { name: 'Hedge Maze', diff: 'medium', ground: '#A6D985', ground2: '#98CC77', zombies: 3, zSpeed: 16, balls: 1,
     obstacles: [
       { t: 'hedge', x: 24, y: 18, w: 40, h: 6 }, { t: 'hedge', x: 96, y: 18, w: 40, h: 6 },
@@ -91,12 +101,23 @@ const LEVELS = [
       { t: 'snowman', x: 34, y: 24, r: 5 }, { t: 'snowman', x: 126, y: 66, r: 5 },
       { t: 'snowman', x: 128, y: 22, r: 4 }, { t: 'snowman', x: 32, y: 68, r: 4 }
     ], zones: [] },
+  { name: 'Snowy Mountain', diff: 'medium', ground: '#EEF6FF', ground2: '#E2EDF8', zombies: 4, zSpeed: 16, balls: 2,
+    obstacles: [
+      { t: 'pine', x: 28, y: 20, r: 5 }, { t: 'pine', x: 132, y: 24, r: 5 }, { t: 'pine', x: 36, y: 70, r: 5 },
+      { t: 'pine', x: 124, y: 70, r: 5 }, { t: 'pine', x: 80, y: 12, r: 4 }, { t: 'snowman', x: 60, y: 22, r: 3.5 }
+    ], zones: [{ t: 'snow', x: 52, y: 62, w: 56, h: 14, slow: 0.6 }, { t: 'snow', x: 8, y: 34, w: 16, h: 22, slow: 0.6 }, { t: 'snow', x: 136, y: 34, w: 16, h: 22, slow: 0.6 }] },
   { name: 'Spooky Night', diff: 'hard', night: true, ground: '#3C4A66', ground2: '#35425C', zombies: 5, zSpeed: 18, balls: 1,
     obstacles: [
       { t: 'grave', x: 26, y: 16, w: 8, h: 10 }, { t: 'grave', x: 46, y: 16, w: 8, h: 10 }, { t: 'grave', x: 106, y: 16, w: 8, h: 10 },
       { t: 'grave', x: 126, y: 16, w: 8, h: 10 }, { t: 'grave', x: 26, y: 64, w: 8, h: 10 }, { t: 'grave', x: 126, y: 64, w: 8, h: 10 },
       { t: 'tree', x: 80, y: 74, r: 5 }, { t: 'tree', x: 80, y: 14, r: 4 }
-    ], zones: [] }
+    ], zones: [] },
+  { name: 'Volcano Island', diff: 'hard', ground: '#5A4640', ground2: '#52403A', zombies: 5, zSpeed: 18, balls: 1,
+    obstacles: [
+      { t: 'lava', x: 28, y: 15, w: 22, h: 12 }, { t: 'lava', x: 110, y: 63, w: 22, h: 12 },
+      { t: 'lava', x: 112, y: 14, w: 18, h: 10 }, { t: 'lava', x: 28, y: 63, w: 20, h: 11 },
+      { t: 'rock', x: 80, y: 13, r: 4 }, { t: 'rock', x: 80, y: 78, r: 3.5 }
+    ], zones: [{ t: 'ash', x: 60, y: 60, w: 40, h: 14, slow: 0.7 }] }
 ];
 // Where zombies climb out of the ground: the four corners and the
 // middle of the long sides, whichever are furthest from Pip.
@@ -685,12 +706,31 @@ function getField(canvas){
       ctx.beginPath(); ctx.arc(x, y, 0.55, 0, Math.PI * 2); ctx.fill();
     }
   }
+  // Slow ground: sand, mud, river, quicksand, snow drifts, ash.
+  const ZONE_LOOK = {
+    sand: ['#F3D98F', 'rgba(200,160,80,0.35)'], mud: ['#7A5634', 'rgba(40,24,10,0.3)'],
+    river: ['#5AB8E8', 'rgba(255,255,255,0.55)'], quicksand: ['#C9A25E', 'rgba(120,80,30,0.45)'],
+    snow: ['#FFFFFF', 'rgba(170,200,230,0.6)'], ash: ['#77665F', 'rgba(40,30,28,0.4)']
+  };
   for(const z of level.zones){
-    ctx.fillStyle = z.t === 'sand' ? '#F3D98F' : '#7A5634';
-    roundRect(ctx, z.x, z.y, z.w, z.h, 3); ctx.fill();
-    ctx.fillStyle = z.t === 'sand' ? 'rgba(200,160,80,0.35)' : 'rgba(40,24,10,0.3)';
-    for(let i = 0; i < 10; i++){
-      ctx.beginPath(); ctx.arc(z.x + 3 + ((i * 7.3) % (z.w - 6)), z.y + 3 + ((i * 4.1) % (z.h - 6)), 0.7, 0, Math.PI * 2); ctx.fill();
+    const [fill, dots] = ZONE_LOOK[z.t] || ZONE_LOOK.sand;
+    ctx.fillStyle = fill;
+    roundRect(ctx, z.x, z.y, z.w, z.h, z.t === 'river' ? 5 : 3); ctx.fill();
+    ctx.fillStyle = dots;
+    if(z.t === 'river' || z.t === 'quicksand'){
+      // Ripples / swirls.
+      ctx.strokeStyle = dots; ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      for(let i = 0; i < 6; i++){
+        const x = z.x + 4 + ((i * 9.7) % (z.w - 10)), y = z.y + 3 + ((i * 3.9) % (z.h - 6));
+        if(z.t === 'river'){ ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 2, y - 1, x + 4, y); ctx.quadraticCurveTo(x + 6, y + 1, x + 8, y); }
+        else { ctx.moveTo(x + 2, y); ctx.arc(x, y, 2, 0, Math.PI * 1.5); }
+      }
+      ctx.stroke();
+    } else {
+      for(let i = 0; i < 10; i++){
+        ctx.beginPath(); ctx.arc(z.x + 3 + ((i * 7.3) % (z.w - 6)), z.y + 3 + ((i * 4.1) % (z.h - 6)), 0.7, 0, Math.PI * 2); ctx.fill();
+      }
     }
   }
   // The fence.
@@ -746,6 +786,36 @@ function drawObstacle(ctx, ob){
     ctx.fillStyle = '#FF6B6B'; roundRect(ctx, ob.x, ob.y, ob.w, ob.h, 2); ctx.fill();
     ctx.fillStyle = '#FFD23F'; ctx.fillRect(ob.x + 2, ob.y + 2, ob.w - 4, ob.h - 4);
     ctx.fillStyle = '#FF6B6B'; for(let y = ob.y + 4; y < ob.y + ob.h - 3; y += 4) ctx.fillRect(ob.x + 2, y, ob.w - 4, 1);
+  } else if(ob.t === 'palm'){
+    ctx.fillStyle = '#8A5A2E'; ctx.beginPath(); ctx.arc(ob.x, ob.y, ob.r * 0.35, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2E9E4A';
+    for(let k = 0; k < 6; k++){
+      const a = k * Math.PI / 3 + 0.3;
+      ctx.beginPath(); ctx.ellipse(ob.x + Math.cos(a) * ob.r * 0.55, ob.y + Math.sin(a) * ob.r * 0.55, ob.r * 0.55, ob.r * 0.22, a, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#7A4E28'; ctx.beginPath(); ctx.arc(ob.x, ob.y, ob.r * 0.2, 0, Math.PI * 2); ctx.fill();
+  } else if(ob.t === 'log'){
+    ctx.fillStyle = '#8A5A2E'; roundRect(ctx, ob.x, ob.y, ob.w, ob.h, ob.h / 2); ctx.fill();
+    ctx.fillStyle = '#C4925C'; ctx.beginPath(); ctx.ellipse(ob.x + ob.w - ob.h * 0.3, ob.y + ob.h / 2, ob.h * 0.28, ob.h * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#6E4522'; ctx.fillRect(ob.x + 3, ob.y + ob.h * 0.35, ob.w * 0.6, 0.4);
+  } else if(ob.t === 'cactus'){
+    ctx.fillStyle = '#3F9B4A';
+    ctx.beginPath(); ctx.arc(ob.x, ob.y, ob.r, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(ob.x - ob.r * 0.95, ob.y - ob.r * 0.2, ob.r * 0.45, 0, Math.PI * 2); ctx.arc(ob.x + ob.r * 0.95, ob.y + ob.r * 0.15, ob.r * 0.45, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FF6FA8'; ctx.beginPath(); ctx.arc(ob.x, ob.y - ob.r * 0.75, ob.r * 0.25, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for(const [dx, dy] of [[-0.4, 0.1], [0.3, -0.3], [0.2, 0.45]]){ ctx.fillRect(ob.x + dx * ob.r, ob.y + dy * ob.r, 0.3, 0.3); }
+  } else if(ob.t === 'pine'){
+    ctx.fillStyle = '#2F6B45';
+    for(const [k, rr] of [[0, 1], [1, 0.72], [2, 0.45]]){ ctx.beginPath(); ctx.arc(ob.x, ob.y - k * ob.r * 0.35, ob.r * rr, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = '#FFFFFF';
+    for(const [dx, dy] of [[-0.5, -0.1], [0.45, 0.1], [0, -0.75], [0.1, 0.5]]){ ctx.beginPath(); ctx.arc(ob.x + dx * ob.r, ob.y + dy * ob.r, ob.r * 0.16, 0, Math.PI * 2); ctx.fill(); }
+  } else if(ob.t === 'lava'){
+    // A glowing lava pool (solid: nobody walks through lava).
+    ctx.fillStyle = '#3A2420'; roundRect(ctx, ob.x - 1, ob.y - 1, ob.w + 2, ob.h + 2, 4); ctx.fill();
+    ctx.fillStyle = '#FF5A1F'; roundRect(ctx, ob.x, ob.y, ob.w, ob.h, 3.5); ctx.fill();
+    ctx.fillStyle = '#FFB13B';
+    for(let k = 0; k < 4; k++){ ctx.beginPath(); ctx.arc(ob.x + ob.w * (0.2 + k * 0.2), ob.y + ob.h * (0.35 + (k % 2) * 0.3), Math.min(ob.w, ob.h) * 0.12, 0, Math.PI * 2); ctx.fill(); }
   } else if(ob.t === 'grave'){
     ctx.fillStyle = '#8D93A6'; roundRect(ctx, ob.x, ob.y, ob.w, ob.h, 3); ctx.fill();
     ctx.fillStyle = '#6C7287'; ctx.fillRect(ob.x + ob.w / 2 - 0.5, ob.y + 2, 1, 4.5); ctx.fillRect(ob.x + ob.w / 2 - 2, ob.y + 3.2, 4, 1);

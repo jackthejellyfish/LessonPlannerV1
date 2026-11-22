@@ -48,7 +48,7 @@ function createState(lessonId, muted){
     invLives: 3,
     invRoundActive: false,
     invRoundRAF: null,
-    invShip: { x: 50, targetX: 50 },
+    invShip: { x: 90, targetX: 90, vx: 0 },  // world units: 100 tall, worldW wide
     invProjectiles: [],
     invEnemies: [],
     invPickups: [],
@@ -56,8 +56,7 @@ function createState(lessonId, muted){
     invShockwaves: [],      // expanding rings fired on every enemy kill: { x, y, color, big, createdAt }
     invStars: [],           // starfield background positions, generated once on first render
     invRapidFireUntil: 0,
-    invMachineGunUntil: 0,
-    invLastAutoFireAt: 0,
+    invSpreadUntil: 0,      // Spread Shot power-up: 3 bolts at once until this time (ms)
     invLastShotAt: 0,
     invBossSpawnedThisRound: false,
     invBossTimeout: null,

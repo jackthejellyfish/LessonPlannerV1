@@ -38,7 +38,7 @@
   transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.28s ease;
   position:relative;
 }
-.team-color-option:hover:not(:disabled){
+.team-color-option:hover:not(:disabled):not(.taken){
   transform:scale(1.28) rotate(8deg);
   box-shadow:0 0 0 4px rgba(255,255,255,0.5), 0 6px 14px rgba(0,0,0,0.28);
 }
@@ -52,7 +52,26 @@
      on white as well as on black, and a shadow alone doesn't do that. */
   -webkit-text-stroke:3px rgba(0,0,0,0.55); paint-order:stroke fill;
 }
-.team-color-option.taken{ opacity:0.2; cursor:not-allowed; }
+/* Taken by another team: still its real colour (a faded swatch read as a
+   different, pastel colour), crossed out, with the owner's team number. */
+.team-color-option.taken{ cursor:not-allowed; filter:brightness(0.8); }
+.team-color-option.taken::before{
+  content:''; position:absolute; left:50%; top:-4px; bottom:-4px; width:5px; margin-left:-2.5px;
+  background:#1E2433; border-radius:3px; transform:rotate(45deg);
+  box-shadow:0 0 0 2px #FFFFFF;
+}
+.team-color-option.taken .taken-badge{
+  position:absolute; right:-7px; bottom:-7px; min-width:22px; height:22px; padding:0 5px;
+  border-radius:11px; background:#1E2433; color:#FFFFFF; border:2px solid #FFFFFF;
+  font-family:var(--font-display); font-weight:800; font-size:12px; line-height:18px;
+}
+.team-color-option.taken .taken-badge::before{ content:'T'; }
+.team-color-note{
+  grid-column:1 / -1; margin:2px 0 0; min-height:1.3em; text-align:center;
+  font-weight:700; font-size:clamp(13px,1.7vh,16px); color:var(--error);
+  opacity:0; transition:opacity .15s ease;
+}
+.team-color-note.show{ opacity:1; }
 
 /* Team setup row: a small card with real identity, not a plain bordered
    input strip — the border/background tint tracks the chosen color live

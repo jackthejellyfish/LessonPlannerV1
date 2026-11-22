@@ -2,119 +2,94 @@ import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
-import { beep, sfxRisingChime } from '../audio.js';
+import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
 import { HOOP_QUESTIONS } from '../content/stage13-hoopshot.js';
 import { createCanvasResizer } from '../canvasGame.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
-import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, frameFactor } from '../canvasEffects.js';
-import { createBackdrop, drawGlow } from '../canvasGlow.js';
+import { createShakeState, triggerShake, applyShake, stepParticles, frameFactor } from '../canvasEffects.js';
+import { createBackdrop } from '../canvasGlow.js';
 import { setTimerFill } from '../hud.js';
-import { noteFrame } from '../quality.js';
+import { noteFrame, particleCount } from '../quality.js';
 
 /* =========================================================
-   STAGE 13 — HOOP SHOT
+   STAGE 13 — FOOTBALL (a penalty shoot-out)
+   Rebuilt 2026-11-22 from Hoop Shot ("rework the basketball game into
+   a football game: fun physics and characters, a little bit silly").
+   The file, the `hoop` id prefix and HOOP_QUESTIONS keep their old
+   names, the same way Balloon Pop kept Ball Pop's.
 
-   Answer a question, then take two shots at the hoop (three until
-   2026-11-19, cut to two after classroom feedback).
+   Answer a question, then take three penalty kicks. Tap anywhere on
+   the goal to aim (or nudge the aim with the arrow buttons / keys),
+   then press KICK. Nothing fires until KICK, so a slip costs nothing.
 
-   v3 rework, per classroom feedback:
-   - The hoop NEVER moves. A moving hoop turned the game into a
-     reaction test; a fixed one makes it about judging the arc.
-   - Angle and power are set DIRECTLY — big +/- buttons (hold to
-     repeat), tapping the court to point the shot, or the arrow keys —
-     and nothing fires until SHOOT is pressed. The previous version
-     used two timed sweeps, which made a good shot mostly luck.
-   - The only thing that changes is WHERE THE BALL STARTS: every shot
-     gets a fresh spot on the court, so a team can't find one setting
-     and repeat it, and every play is different.
+   The skill is WHERE and WHEN: the goalkeeper sways about in his goal
+   and, once the ball is struck, dives late (and now and then the wrong
+   way), so a kick into the corner he's furthest from is the best bet.
+   Some kicks have a wall of hopping defenders in front, so aim over
+   them. Corners are worth more than the middle.
 
-   Coordinates are percent of the canvas (x of width, y of height),
-   like every other game here, so gameplay is identical at any size.
-   The launch angle is applied with ASPECT_REF so that the number on
-   the button roughly matches the angle you see on a typical
-   widescreen board, rather than the distorted %-space angle.
-
-   Tuning: SPEED_MIN/MAX and the ball's x range were chosen by
-   simulating every angle x power combination for every start spot
-   against this geometry (at 1.97:1 and 1.45:1 aspect): every spot has
-   a band of scoring shots, and those bands sit between ~20% and 100%
-   power, so the whole meter is live.
+   The view looks from behind the ball at the goal. Positions are in
+   "goal units": the posts are at x = -1 and +1, the crossbar at
+   y = 0.66, and depth z runs from 0 (the penalty spot) to 1 (the goal
+   line). proj() turns that into canvas pixels with a simple
+   perspective, so near things are bigger.
 ========================================================= */
-const HOOP_SHOTS_PER_TURN = 2;
-const HOOP_GRAVITY = 155;          // %H/second²
-const HOOP_FLOOR_Y = 80;           // court line; the control dock sits below it
-const HOOP_RIM_Y = 30;             // height of the rim
-const HOOP_X = 80;                 // centre of the rim — fixed
-const HOOP_RIM_HALF_W = 6.2;       // half the rim's width, % of canvas width
-const HOOP_BALL_R = 3.2;           // ball radius, % of canvas width
-const HOOP_BALL_X_MIN = 8;         // where a ball may spawn
-const HOOP_BALL_X_MAX = 56;
-const HOOP_ASPECT_REF = 1.9;
-const HOOP_SPEED_MIN = 58;         // %W/second at 0% power
-const HOOP_SPEED_MAX = 106;        // ... at 100% power
-const HOOP_ANGLE_MIN = 15;
-const HOOP_ANGLE_MAX = 85;
-const HOOP_DEFAULT_ANGLE = 55;
-const HOOP_DEFAULT_POWER = 50;     // percent
-// How much of the predicted path is drawn. Up to the top of the arc
-// only: enough to aim with, not enough to solve the shot for you.
-const HOOP_PREVIEW_TO_APEX = true;
-// Backstop for a shot that never settles (a ball wedged bouncing
-// between the board and the rim).
-const HOOP_SHOT_TIMEOUT_MS = 4200;
-
-const HOOP_BALL_COLOR = '#FF8C3B';
-const HOOP_RIM_COLOR = '#FF4D4D';
+const SHOTS_PER_TURN = 3;
+const BAR_Y = 0.66;
+const POST_R = 0.05;
+const FLIGHT_S = 0.8;          // spot to goal line
+const RUNUP_S = 0.45;
+const WALL_Z = 0.58;
+const KEEPER_REACT_S = 0.2;
+const KEEPER_DIVE_SPEED = 2.4; // goal units/second
+const KEEPER_MAX_DIVE = 0.55;
+const KEEPER_MAX_TILT = 0.9;   // radians: a full dive lies him well over, but not flat
+const KEEPER_LENGTH = 0.62;    // feet to gloves, in goal units
+const KEEPER_WRONG_WAY = 0.33; // how often he guesses the wrong side
+const GRAVITY = 2.6;
+const GOAL_POINTS = 3;
+const CORNER_POINTS = 5;
+const GREEN = '#46B04A';
 
 /* =========================================================
    AUDIO
 ========================================================= */
-function sfxHoopLaunch(){
-  beep(320, 0.07, 'triangle', 0.09);
-  beep(520, 0.06, 'sine', 0.06, 0.03);
+function sfxKick(){ sfxImpact(0.55); beep(140, 0.08, 'sine', 0.16); }
+function sfxStep(){ beep(90 + Math.random() * 30, 0.04, 'triangle', 0.05); }
+function sfxBoing(){ beep(260, 0.07, 'square', 0.08); beep(520, 0.14, 'sine', 0.1, 0.03); beep(390, 0.16, 'sine', 0.06, 0.1); }
+function sfxSave(){ sfxImpact(0.4); beep(220, 0.12, 'sawtooth', 0.05); }
+function sfxGoal(corner){
+  sfxRisingChime(corner ? [784, 988, 1175, 1568, 1976] : [659, 880, 1109, 1319], { duration: 0.14, volume: 0.15, stagger: 0.05 });
+  // The crowd: a burst of filtered "noise" made of quick random beeps.
+  for(let i = 0; i < 8; i++) beep(300 + Math.random() * 500, 0.12, 'sawtooth', 0.012, 0.05 + i * 0.04);
 }
-// A soft click for every angle/power step, quiet enough to hold down.
-function sfxHoopAdjust(up){
-  beep(up ? 980 : 760, 0.025, 'triangle', 0.035);
-}
-function sfxHoopBounce(force){
-  // Pitch rises with impact speed, so a hard clang off the rim sounds
-  // different from the ball softly settling on the floor.
-  beep(180 + Math.min(260, force * 7), 0.07, 'triangle', 0.06 + Math.min(0.07, force * 0.002));
-}
-function sfxHoopScore(swish){
-  if(swish){
-    sfxRisingChime([784, 988, 1175, 1568, 1976], { duration: 0.14, volume: 0.15, stagger: 0.05 });
-  } else {
-    sfxRisingChime([659, 880, 1109], { duration: 0.13, volume: 0.14, stagger: 0.06 });
-  }
-}
+function sfxAim(){ beep(880, 0.02, 'triangle', 0.03); }
 
 /* =========================================================
    SETUP / TEAMS
 ========================================================= */
 let hoopRowColors = [];
-let hoopFloatTexts = [];
-let hoopShockwaves = [];
-let hoopShake = createShakeState();
+let floatTexts = [];
+let particles = [];
+let shake = createShakeState();
 
 renderGameIntro('hoopSetup', {
   prefix: 'hoop',
-  title: 'Hoop Shot',
+  title: 'Football',
   steps: [
     'One team answers a question.',
-    'Set the angle and the power, then press SHOOT.',
-    'You get two shots. The ball starts somewhere new every time!'
+    'Tap the goal where you want to shoot (or use the arrow buttons), then press KICK!',
+    'You get three kicks. Beat the goalie, and look out for the wall!'
   ],
   scoring: [
-    { swatch: '<span class="hoop-legend-swatch basket"></span>', label: 'In the hoop', points: '+3' },
-    { swatch: '<span class="hoop-legend-swatch swish"></span>', label: 'Swish &mdash; straight in, no rim', points: '+5', tone: 'bonus' },
-    { swatch: '<span class="hoop-legend-swatch miss"></span>', label: 'Miss', points: '0' }
+    { swatch: '<span class="hoop-legend-swatch goal"></span>', label: 'Goal!', points: '+3' },
+    { swatch: '<span class="hoop-legend-swatch corner"></span>', label: 'Top corner', points: '+5', tone: 'bonus' },
+    { swatch: '<span class="hoop-legend-swatch miss"></span>', label: 'Saved, wide or off the post', points: '0' }
   ],
-  tip: 'Use the &minus; and + buttons (hold them down to go faster), or tap the court to point the shot. The dotted line shows the start of the throw.'
+  tip: 'The goalie sways from side to side. Kick when he is far from where you are aiming, and he might even dive the wrong way!'
 });
 
 export function renderHoopTeamInputs(count){
@@ -128,10 +103,10 @@ document.getElementById('hoopStartBtn').addEventListener('click', () => {
   state.hoopCurrentTeam = 0;
   state.hoopTurnsPlayed = 0;
   state.hoopQuestionOrder = shuffle(HOOP_QUESTIONS.map((_, i) => i));
-
   showGameScreen('hoop');
   renderHoopScoreboard();
   renderHoopTurnBanner();
+  newShot(true);
   ensureHoopLayout();
 });
 
@@ -143,270 +118,627 @@ function renderHoopTurnBanner(){
 }
 
 /* =========================================================
-   CANVAS
+   CANVAS + PERSPECTIVE
 ========================================================= */
-// A resize wipes the canvas buffer; make sure the next frame repaints.
-// Opaque canvas — see the note on neonCanvasResizer in stage 11.
-const hoopCanvasResizer = createCanvasResizer('hoopCanvas', 'hoopPlayArea', (canvas) => {
-  invalidateHoop();
-  if(!state.hoopRoundActive) renderHoopBackground(hoopCanvasResizer.getContext(), canvas);
-}, { contextAttributes: { alpha: false } });
-
-/* ---- Render on demand ----
-   Most of a Hoop Shot turn is a team deciding on an angle and power
-   while nothing moves. The loop used to redraw the court 60 times a
-   second through all of it. Now it only draws while something is in
-   motion (the ball in flight, an effect fading, a shake), plus a couple
-   of frames after. Every aim change goes through syncHoopControls(),
-   which marks the canvas dirty, so the preview arc still follows the
-   controls instantly. */
-let hoopDirtyFrames = 2;
-function invalidateHoop(){ hoopDirtyFrames = 2; }
-function hoopSceneIsMoving(){
-  return (hoopBall && hoopBall.flying) || hoopFloatTexts.length > 0 || hoopShockwaves.length > 0
-    || performance.now() < hoopShake.until;
-}
+// Opaque canvas: the stadium backdrop covers it every frame.
+const hoopCanvasResizer = createCanvasResizer('hoopCanvas', 'hoopPlayArea', () => {
+  renderHoopCanvas();
+}, { contextAttributes: { alpha: false }, maxBufferWidth: 1024 });
 export function ensureHoopLayout(){
   if(state.hoopTeams.length > 0){ hoopCanvasResizer.resize(); renderHoopCanvas(); }
 }
 
-// Ball radius expressed in %-of-HEIGHT, for floor contact. The canvas
-// is wider than it is tall, so a radius in %W is bigger in %H.
-function ballRadiusY(){
-  const c = hoopCanvasResizer.getCanvas();
-  return c && c.height ? HOOP_BALL_R * (c.width / c.height) : HOOP_BALL_R * 1.9;
+// The goal's place on screen. The dock of buttons sits over the bottom
+// of the play area, so the penalty spot is kept above it.
+function viewOf(w, h){
+  const GW = Math.min(w * 0.3, h * 0.55);   // half the goal's width, in px
+  return { w, h, cx: w / 2, Gy: h * 0.6, Sy: h * 0.8, GW, Kn: 1.9 };
+}
+// Goal units (x across, y up, z depth) to canvas pixels, and the scale
+// there (1 on the goal line, bigger nearer the viewer).
+function proj(v, x, y, z){
+  const k = v.Kn + (1 - v.Kn) * z;
+  const groundY = v.Sy + (v.Gy - v.Sy) * z;
+  return { x: v.cx + x * v.GW * k, y: groundY - y * v.GW * k, k };
 }
 
-const renderHoopBackground = createBackdrop((ctx, w, h) => {
-  const bg = ctx.createLinearGradient(0, 0, 0, h);
-  bg.addColorStop(0, '#20143A');
-  bg.addColorStop(0.55, '#2C1B4D');
-  bg.addColorStop(1, '#140C26');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-
-  // Crowd: three rows of small dim blobs up in the stands.
-  const floorY = (HOOP_FLOOR_Y / 100) * h;
-  let seed = 7;
+/* =========================================================
+   THE STADIUM (cached)
+========================================================= */
+const renderStadium = createBackdrop((ctx, w, h) => {
+  const v = viewOf(w, h);
+  // Sky and floodlights.
+  const sky = ctx.createLinearGradient(0, 0, 0, h * 0.3);
+  sky.addColorStop(0, '#1B2A5A'); sky.addColorStop(1, '#3C5BA8');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * 0.3);
+  // The stand and a crowd of coloured dots.
+  const standTop = h * 0.07, standBot = v.Gy - v.GW * 0.95;
+  ctx.fillStyle = '#2B2F45'; ctx.fillRect(0, standTop, w, standBot - standTop);
+  let seed = 11;
   const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-  for(let row = 0; row < 3; row++){
-    const cy = floorY - h * (0.2 + row * 0.052);
-    for(let x = w * 0.015; x < w; x += w * 0.031){
-      ctx.globalAlpha = 0.07 + rnd() * 0.07;
-      ctx.fillStyle = ['#FFD9A0', '#9FD8FF', '#FFAFC8', '#C8FFB0'][Math.floor(rnd() * 4)];
-      ctx.beginPath();
-      ctx.arc(x + rnd() * w * 0.014, cy, w * 0.0062, 0, Math.PI * 2);
-      ctx.fill();
+  const fans = ['#FF5F6D', '#FFD23F', '#4DA3FF', '#FFFFFF', '#FF9F43', '#B07CFF', '#3FD38B'];
+  const rows = 6, rowH = (standBot - standTop) / rows;
+  for(let r = 0; r < rows; r++){
+    for(let x = rowH * 0.6 * (r % 2 ? 1 : 0.5); x < w; x += rowH * 0.85){
+      ctx.fillStyle = fans[Math.floor(rnd() * fans.length)];
+      ctx.beginPath(); ctx.arc(x, standTop + rowH * (r + 0.55), rowH * 0.32, 0, Math.PI * 2); ctx.fill();
     }
   }
-  ctx.globalAlpha = 1;
-
-  // Court floor: wood, with a three-point-style arc and a darker apron
-  // under the control dock.
-  const floor = ctx.createLinearGradient(0, floorY, 0, h);
-  floor.addColorStop(0, '#9A6532');
-  floor.addColorStop(1, '#5C3A18');
-  ctx.fillStyle = floor;
-  ctx.fillRect(0, floorY, w, h - floorY);
-  ctx.strokeStyle = 'rgba(255,230,190,0.28)';
-  ctx.lineWidth = Math.max(1, w * 0.002);
-  ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(w, floorY); ctx.stroke();
-  // Floorboards
-  ctx.strokeStyle = 'rgba(60,30,10,0.25)';
-  for(let i = 1; i < 4; i++){
-    const y = floorY + (h - floorY) * (i / 4);
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  // Advert boards.
+  const boardY = standBot, boardH = h * 0.035;
+  const ads = ['#FF5F6D', '#FFD23F', '#4DA3FF', '#3FD38B'];
+  for(let i = 0; i * w / 8 < w; i++){ ctx.fillStyle = ads[i % ads.length]; ctx.fillRect(i * w / 8, boardY, w / 8, boardH); }
+  // The pitch, with mowing stripes that narrow towards the goal.
+  const pitchTop = boardY + boardH;
+  ctx.fillStyle = GREEN; ctx.fillRect(0, pitchTop, w, h - pitchTop);
+  ctx.fillStyle = '#3FA043';
+  for(let i = -6; i <= 6; i += 2){
+    const a = proj(v, i * 0.5, 0, 1.25), b = proj(v, (i + 1) * 0.5, 0, 1.25);
+    const c = proj(v, (i + 1) * 0.5, 0, -0.6), d = proj(v, i * 0.5, 0, -0.6);
+    ctx.beginPath(); ctx.moveTo(a.x, pitchTop); ctx.lineTo(b.x, pitchTop); ctx.lineTo(c.x, d.y + 400); ctx.lineTo(d.x, d.y + 400); ctx.fill();
   }
-
-  // Fixed hoop furniture — post and backboard never move, so they live
-  // in the cached backdrop rather than being redrawn every frame.
-  const ry = (HOOP_RIM_Y / 100) * h;
-  const boardX = ((HOOP_X + HOOP_RIM_HALF_W + 1.6) / 100) * w;
-  ctx.fillStyle = '#4A3A6B';
-  ctx.fillRect(boardX + w * 0.012, ry - h * 0.08, w * 0.014, floorY - ry + h * 0.08);
-  ctx.fillStyle = 'rgba(244,240,255,0.95)';
-  ctx.fillRect(boardX, ry - h * 0.2, w * 0.011, h * 0.235);
-  ctx.fillStyle = HOOP_RIM_COLOR;
-  ctx.fillRect(boardX, ry + h * 0.012, w * 0.011, h * 0.023);
+  // White lines: the goal line, the six-yard box, the spot.
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = Math.max(2, v.GW * 0.012);
+  const line = (pts) => { ctx.beginPath(); pts.forEach(([x, z], i) => { const p = proj(v, x, 0, z); i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); }); ctx.stroke(); };
+  line([[-3.5, 1], [3.5, 1]]);
+  line([[-1.6, 1], [-1.6, 0.72], [1.6, 0.72], [1.6, 1]]);
+  line([[-2.8, 1], [-2.8, 0.25], [2.8, 0.25], [2.8, 1]]);
+  const spot = proj(v, 0, 0, 0);
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(spot.x, spot.y, v.GW * 0.03, v.GW * 0.012, 0, 0, Math.PI * 2); ctx.fill();
+  // The net (behind the goal line) and the frame.
+  const back = 1.18;
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  const tl = proj(v, -1, BAR_Y, back), tr = proj(v, 1, BAR_Y, back), bl = proj(v, -1, 0, back), br = proj(v, 1, 0, back);
+  ctx.fillRect(tl.x, tl.y, tr.x - tl.x, bl.y - tl.y);
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let i = 0; i <= 14; i++){ const x = tl.x + (tr.x - tl.x) * i / 14; ctx.moveTo(x, tl.y); ctx.lineTo(x, bl.y); }
+  for(let i = 0; i <= 7; i++){ const y = tl.y + (bl.y - tl.y) * i / 7; ctx.moveTo(tl.x, y); ctx.lineTo(tr.x, y); }
+  const fl = proj(v, -1, BAR_Y, 1), fr = proj(v, 1, BAR_Y, 1), fbl = proj(v, -1, 0, 1), fbr = proj(v, 1, 0, 1);
+  ctx.moveTo(fl.x, fl.y); ctx.lineTo(tl.x, tl.y); ctx.moveTo(fr.x, fr.y); ctx.lineTo(tr.x, tr.y);
+  ctx.moveTo(fbl.x, fbl.y); ctx.lineTo(bl.x, bl.y); ctx.moveTo(fbr.x, fbr.y); ctx.lineTo(br.x, br.y);
+  ctx.stroke();
+  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = v.GW * 0.045; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(fbl.x, fbl.y); ctx.lineTo(fl.x, fl.y); ctx.lineTo(fr.x, fr.y); ctx.lineTo(fbr.x, fbr.y); ctx.stroke();
+  // The two "top corner" targets, faintly marked.
+  ctx.fillStyle = 'rgba(255,210,63,0.16)';
+  for(const side of [-1, 1]){
+    const a = proj(v, side * 0.6, BAR_Y, 1), b = proj(v, side * 1, 0.38, 1);
+    ctx.fillRect(Math.min(a.x, b.x), a.y, Math.abs(b.x - a.x), b.y - a.y);
+  }
 });
 
 /* =========================================================
-   SHOT STATE
-   Transient render/aim data lives in module scope (same convention as
-   every other game here); the scoring data lives in `state`.
+   ONE PENALTY
 ========================================================= */
-let hoopBall = null;          // {x, y, vx, vy, flying, touchedRim}
-let hoopAngle = HOOP_DEFAULT_ANGLE;   // degrees
-let hoopPower = HOOP_DEFAULT_POWER;   // 0..100
-let hoopLastSpawnX = null;
-let hoopShotStartedAt = 0;
-let hoopResolving = false;
+let aim = { x: 0.55, y: 0.45 };
+let keeper = null;
+let wall = [];
+let ball = null;
+let kicker = null;
+let phase = 'aim';          // aim | runup | flight | loose | done
+let phaseAt = 0;
+let shotResult = null;      // 'goal' | 'corner' | 'saved' | 'post' | 'wide' | 'blocked'
+let netBulge = null;
+let shotsTaken = 0;
 
-// A new spot for every ball, never too close to the last one — two
-// near-identical spots in a row would let a team just repeat a shot.
-function pickHoopSpawnX(){
-  let x;
-  for(let tries = 0; tries < 20; tries++){
-    x = HOOP_BALL_X_MIN + Math.random() * (HOOP_BALL_X_MAX - HOOP_BALL_X_MIN);
-    if(hoopLastSpawnX === null || Math.abs(x - hoopLastSpawnX) > 10) break;
+function newShot(first){
+  const now = performance.now();
+  keeper = {
+    x: 0, y: 0, center: 0, swayAmp: 0.3 + Math.random() * 0.28, swaySpeed: 1.3 + Math.random() * 0.9, swayPhase: Math.random() * 6,
+    diving: false, diveFrom: 0, diveTo: 0, diveAt: 0, tilt: 0, dizzyUntil: 0, bob: 0, cheer: false
+  };
+  // The first kick of a turn has no wall; later ones may have 0-3.
+  wall = [];
+  const n = first ? 0 : (Math.random() < 0.45 ? 0 : 1 + Math.floor(Math.random() * 3));
+  for(let i = 0; i < n; i++){
+    let x, tries = 0;
+    do { x = -0.75 + Math.random() * 1.5; tries++; } while(tries < 20 && wall.some(d => Math.abs(d.x - x) < 0.3));
+    wall.push({ x, jumpAt: Math.random() * 0.35, jumpY: 0, color: ['#E8453C', '#2F6FE0', '#F59F00'][i % 3], blink: Math.random() * 3 });
   }
-  hoopLastSpawnX = x;
-  return x;
+  ball = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, spin: 0, squash: 0 };
+  kicker = { t: 0, mood: 'ready' };
+  phase = 'aim';
+  phaseAt = now;
+  shotResult = null;
+  netBulge = null;
+  syncControls();
 }
 
-function resetHoopBall(){
-  hoopBall = { x: pickHoopSpawnX(), y: HOOP_FLOOR_Y - ballRadiusY(), vx: 0, vy: 0, flying: false, touchedRim: false };
-  setHoopHint('Set the angle and power, then SHOOT!');
-  syncHoopControls();
-}
+function canAim(){ return state.hoopRoundActive && phase === 'aim'; }
 
-function setHoopHint(text){
+function setHint(text){
   const hint = document.getElementById('hoopHint');
   if(hint) hint.textContent = text;
 }
 
-function hoopCanAim(){
-  return state.hoopRoundActive && !hoopResolving && hoopBall && !hoopBall.flying;
+/* ---- Aiming ---- */
+function setAim(x, y){
+  aim.x = Math.max(-1.35, Math.min(1.35, x));
+  aim.y = Math.max(0.04, Math.min(0.95, y));
 }
-
-/* =========================================================
-   CONTROLS — angle, power, shoot
-========================================================= */
-// The angle shown is what the arrow looks like on screen. Physics runs
-// in %-space, so convert through the live canvas shape.
-function visualAngle(){
-  const c = hoopCanvasResizer.getCanvas();
-  const aspect = c && c.height ? c.width / c.height : HOOP_ASPECT_REF;
-  const rad = (hoopAngle * Math.PI) / 180;
-  return Math.round(Math.atan2(Math.sin(rad) * HOOP_ASPECT_REF / aspect, Math.cos(rad)) * 180 / Math.PI);
-}
-
-function syncHoopControls(){
-  invalidateHoop();
-  const aim = hoopCanAim();
-  document.getElementById('hoopAngleValue').textContent = `${visualAngle()}°`;
-  document.getElementById('hoopPowerValue').textContent = `${Math.round(hoopPower)}%`;
-  document.getElementById('hoopPowerFill').style.width = `${hoopPower}%`;
-  document.querySelectorAll('#hoopControls button').forEach(b => { b.disabled = !aim; });
-  if(aim){
-    document.getElementById('hoopAngleDown').disabled = hoopAngle <= HOOP_ANGLE_MIN;
-    document.getElementById('hoopAngleUp').disabled = hoopAngle >= HOOP_ANGLE_MAX;
-    document.getElementById('hoopPowerDown').disabled = hoopPower <= 0;
-    document.getElementById('hoopPowerUp').disabled = hoopPower >= 100;
-  }
-}
-
-function adjustHoop(kind, dir){
-  if(!hoopCanAim()) return false;
-  const before = kind === 'angle' ? hoopAngle : hoopPower;
-  if(kind === 'angle') hoopAngle = Math.max(HOOP_ANGLE_MIN, Math.min(HOOP_ANGLE_MAX, hoopAngle + dir));
-  else hoopPower = Math.max(0, Math.min(100, hoopPower + dir));
-  const after = kind === 'angle' ? hoopAngle : hoopPower;
-  if(after === before) return false;
-  sfxHoopAdjust(dir > 0);
-  syncHoopControls();
+function nudge(dx, dy){
+  if(!canAim()) return false;
+  setAim(aim.x + dx, aim.y + dy);
+  sfxAim();
   return true;
 }
-
-// Hold-to-repeat: one step on press, then after a short pause it keeps
-// stepping, faster the longer it's held. Pointer events cover mouse,
-// pen and touch alike; pointer capture means a finger sliding off the
-// button still releases it properly.
-function wireHoldButton(id, kind, dir){
+function wireHoldButton(id, dx, dy){
   const btn = document.getElementById(id);
   let timer = null;
   const stop = () => { clearTimeout(timer); timer = null; };
   btn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     try { btn.setPointerCapture(e.pointerId); } catch(_){ /* ignore */ }
-    adjustHoop(kind, dir);
-    let delay = 320, held = 0;
-    const repeat = () => {
-      held++;
-      if(!adjustHoop(kind, held > 12 ? dir * 2 : dir)) { stop(); return; }
-      delay = Math.max(45, delay * 0.8);
-      timer = setTimeout(repeat, delay);
-    };
+    nudge(dx, dy);
+    let delay = 260;
+    const repeat = () => { if(!nudge(dx, dy)) { stop(); return; } delay = Math.max(50, delay * 0.8); timer = setTimeout(repeat, delay); };
     timer = setTimeout(repeat, delay);
   });
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => btn.addEventListener(ev, stop));
-  // Keyboard users: Enter/Space on a focused button steps once.
-  btn.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); adjustHoop(kind, dir); }
-  });
+  btn.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); nudge(dx, dy); } });
 }
-wireHoldButton('hoopAngleDown', 'angle', -1);
-wireHoldButton('hoopAngleUp', 'angle', 1);
-wireHoldButton('hoopPowerDown', 'power', -1);
-wireHoldButton('hoopPowerUp', 'power', 1);
+wireHoldButton('hoopAngleDown', -0.06, 0);
+wireHoldButton('hoopAngleUp', 0.06, 0);
+wireHoldButton('hoopPowerDown', 0, -0.05);
+wireHoldButton('hoopPowerUp', 0, 0.05);
+document.getElementById('hoopShootBtn').addEventListener('click', kick);
 
-document.getElementById('hoopShootBtn').addEventListener('click', shootHoop);
-
-// Arrow keys and Space, only while Hoop Shot is the open stage and no
-// modal is up.
 document.addEventListener('keydown', (e) => {
-  if(state.currentStage !== 13 || !hoopCanAim()) return;
+  if(state.currentStage !== 13 || !canAim()) return;
   if(document.querySelector('.overlay:not(.hidden)')) return;
   if(e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
-  const map = { ArrowUp: ['angle', 1], ArrowDown: ['angle', -1], ArrowRight: ['power', 1], ArrowLeft: ['power', -1] };
-  if(map[e.key]){ e.preventDefault(); adjustHoop(map[e.key][0], map[e.key][1]); return; }
+  const map = { ArrowLeft: [-0.06, 0], ArrowRight: [0.06, 0], ArrowUp: [0, 0.05], ArrowDown: [0, -0.05] };
+  if(map[e.key]){ e.preventDefault(); nudge(...map[e.key]); return; }
   if(e.key === ' ' || e.key === 'Enter'){
     if(e.target && e.target.tagName === 'BUTTON' && e.target.closest('#hoopControls')) return;
-    e.preventDefault(); shootHoop();
+    e.preventDefault(); kick();
   }
 });
 
-// Tap (or press and slide) anywhere on the court to POINT the shot:
-// the direction from the ball to your finger sets the angle, and the
-// distance sets the power. It never fires the ball — that's SHOOT's
-// job — so a slip on the board costs nothing.
+// Tap (or press and slide) anywhere on the goal to put the target there.
+const canvasEl = hoopCanvasResizer.getCanvas();
+let pointerAiming = false;
 function aimAtPointer(e){
-  if(!hoopCanAim()) return;
+  if(!canAim()) return;
   const canvas = hoopCanvasResizer.getCanvas();
   const rect = canvas.getBoundingClientRect();
-  const px = ((e.clientX - rect.left) / rect.width) * 100;
-  const py = ((e.clientY - rect.top) / rect.height) * 100;
-  const dx = px - hoopBall.x;
-  const dy = (hoopBall.y - py) / HOOP_ASPECT_REF;
-  if(dx <= 0.5 && dy <= 0.5) return;
-  const ang = Math.atan2(Math.max(0, dy), Math.max(0.01, dx)) * 180 / Math.PI;
-  hoopAngle = Math.round(Math.max(HOOP_ANGLE_MIN, Math.min(HOOP_ANGLE_MAX, ang)));
-  // Distance measured on screen (in % of width), so it feels the same
-  // in every direction. 45% of the court's width away = full power.
-  const dyOnScreen = (hoopBall.y - py) * (rect.height / rect.width);
-  hoopPower = Math.round(Math.max(0, Math.min(100, (Math.hypot(dx, dyOnScreen) / 45) * 100)));
-  syncHoopControls();
+  const px = (e.clientX - rect.left) * canvas.width / rect.width;
+  const py = (e.clientY - rect.top) * canvas.height / rect.height;
+  const v = viewOf(canvas.width, canvas.height);
+  setAim((px - v.cx) / v.GW, (v.Gy - py) / v.GW);
 }
-const hoopCanvasEl = hoopCanvasResizer.getCanvas();
-let hoopPointerAiming = false;
-hoopCanvasEl.addEventListener('pointerdown', (e) => {
-  if(!hoopCanAim()) return;
-  hoopPointerAiming = true;
-  try { hoopCanvasEl.setPointerCapture(e.pointerId); } catch(_){ /* ignore */ }
+canvasEl.addEventListener('pointerdown', (e) => {
+  if(!canAim()) return;
+  pointerAiming = true;
+  try { canvasEl.setPointerCapture(e.pointerId); } catch(_){ /* ignore */ }
   aimAtPointer(e);
+  sfxAim();
   e.preventDefault();
 });
-hoopCanvasEl.addEventListener('pointermove', (e) => { if(hoopPointerAiming) aimAtPointer(e); });
-['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev =>
-  hoopCanvasEl.addEventListener(ev, () => { hoopPointerAiming = false; }));
+canvasEl.addEventListener('pointermove', (e) => { if(pointerAiming) aimAtPointer(e); });
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => canvasEl.addEventListener(ev, () => { pointerAiming = false; }));
 
-function hoopLaunchVector(angleDeg, powerPct){
-  const rad = (angleDeg * Math.PI) / 180;
-  const speed = HOOP_SPEED_MIN + (powerPct / 100) * (HOOP_SPEED_MAX - HOOP_SPEED_MIN);
-  return { vx: Math.cos(rad) * speed, vy: -Math.sin(rad) * speed * HOOP_ASPECT_REF };
+function syncControls(){
+  const on = canAim();
+  document.querySelectorAll('#hoopControls button').forEach(b => { b.disabled = !on; });
 }
 
-function shootHoop(){
-  if(!hoopCanAim()) return;
-  const v = hoopLaunchVector(hoopAngle, hoopPower);
-  hoopBall.vx = v.vx;
-  hoopBall.vy = v.vy;
-  hoopBall.flying = true;
-  hoopBall.touchedRim = false;
-  hoopShotStartedAt = performance.now();
-  setHoopHint('Here it goes...');
-  syncHoopControls();
-  sfxHoopLaunch();
+/* ---- The kick ---- */
+function kick(){
+  if(!canAim()) return;
+  phase = 'runup';
+  phaseAt = performance.now();
+  kicker.mood = 'run';
+  // A little random bend, so the same aim doesn't always land the same.
+  ball.curve = (Math.random() - 0.5) * 0.16;
+  ball.tx = aim.x; ball.ty = aim.y;
+  setHint('Here goes...');
+  syncControls();
+}
+
+function launch(now){
+  phase = 'flight';
+  phaseAt = now;
+  sfxKick();
+  triggerShake(shake, 2);
+  // The keeper reads it (or doesn't), a moment after the strike.
+  const guessRight = Math.random() > KEEPER_WRONG_WAY;
+  const target = guessRight ? ball.tx + (Math.random() - 0.5) * 0.25 : -Math.sign(ball.tx || 1) * (0.3 + Math.random() * 0.4);
+  keeper.diveAt = now + KEEPER_REACT_S * 1000;
+  keeper.diveTo = target;
+}
+
+function addPoints(n, label, color, at){
+  state.hoopScore += n;
+  document.getElementById('hoopScoreDisplay').textContent = String(state.hoopScore);
+  const canvas = hoopCanvasResizer.getCanvas();
+  const v = viewOf(canvas.width, canvas.height);
+  const p = proj(v, at.x, at.y + 0.15, Math.min(1, at.z));
+  spawnFloatText(floatTexts, p.x, p.y, label, color, -1.4);
+}
+
+function burst(at, color, count, speed = 1){
+  const canvas = hoopCanvasResizer.getCanvas();
+  const v = viewOf(canvas.width, canvas.height);
+  const p = proj(v, at.x, at.y, Math.min(1.1, at.z));
+  const n = particleCount(count);
+  const s = v.GW / 200;
+  for(let i = 0; i < n; i++){
+    const a = Math.random() * Math.PI * 2, sp = (Math.random() * 6 + 2) * speed * s;
+    particles.push({ x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 2 * s, alpha: 1, decay: 0.015 + Math.random() * 0.02,
+      size: (Math.random() * 4 + 2) * s, color: color || ['#FF5F6D', '#FFD23F', '#4DA3FF', '#3FD38B', '#FFFFFF'][i % 5] });
+  }
+}
+
+// Does the keeper get a hand (or a face) to it? He is a line from his
+// feet to his gloves, tipped over by his dive, with some thickness:
+// exactly what's drawn. Standing he's wide (arms out); fully stretched
+// he's thinner, and can't reach the top corners.
+function keeperTouches(x, y){
+  const fx = keeper.x, fy = 0.05;
+  const hx = fx + Math.sin(keeper.tilt) * KEEPER_LENGTH, hy = fy + Math.cos(keeper.tilt) * KEEPER_LENGTH;
+  const dx = hx - fx, dy = hy - fy;
+  const t = Math.max(0, Math.min(1, ((x - fx) * dx + (y - fy) * dy) / (dx * dx + dy * dy)));
+  const d = Math.hypot(x - (fx + dx * t), y - (fy + dy * t));
+  const thick = 0.2 + (0.11 - 0.2) * Math.min(1, Math.abs(keeper.tilt) / KEEPER_MAX_TILT);
+  return d < thick;
+}
+
+// The ball reaches the goal line: post, save, goal or miss.
+function judgeAtGoal(now){
+  const x = ball.x, y = ball.y;
+  const absX = Math.abs(x);
+  const hitPost = Math.abs(absX - 1) < POST_R + 0.03 && y < BAR_Y + 0.03;
+  const hitBar = Math.abs(y - BAR_Y) < POST_R + 0.03 && absX < 1 + POST_R;
+  if(hitPost || hitBar){
+    shotResult = 'post';
+    ball.vz = -0.5; ball.vx = hitPost ? -Math.sign(x) * (0.5 + Math.random() * 0.4) : (Math.random() - 0.5) * 0.8;
+    ball.vy = hitBar ? -0.2 : 0.4;
+    phase = 'loose'; phaseAt = now;
+    sfxBoing(); triggerShake(shake, 5);
+    addPoints(0, 'BOING!', '#FFFFFF', ball);
+    kicker.mood = 'sad';
+    return;
+  }
+  const inGoal = absX < 1 - POST_R && y < BAR_Y - 0.02;
+  if(!inGoal){
+    shotResult = 'wide';
+    ball.vz = 0.9; ball.vx = x * 0.4; ball.vy = 0.2;
+    phase = 'loose'; phaseAt = now;
+    addPoints(0, y >= BAR_Y ? 'Over the bar!' : 'Wide!', '#FFFFFF', ball);
+    kicker.mood = 'sad';
+    return;
+  }
+  if(keeperTouches(x, y)){
+    shotResult = 'saved';
+    ball.vz = -0.55; ball.vx = (x - keeper.x) * 2.2 + (Math.random() - 0.5) * 0.4; ball.vy = 0.55;
+    phase = 'loose'; phaseAt = now;
+    sfxSave(); triggerShake(shake, 4);
+    // Off the face: dizzy!
+    if(y > 0.4 && Math.abs(keeper.tilt) < 0.4 && Math.abs(x - keeper.x) < 0.12){ keeper.dizzyUntil = now + 1600; addPoints(0, 'BONK! Saved!', '#FFD23F', ball); }
+    else addPoints(0, 'SAVED!', '#FFFFFF', ball);
+    keeper.cheer = true;
+    kicker.mood = 'sad';
+    return;
+  }
+  const corner = absX > 0.6 && y > 0.38;
+  shotResult = corner ? 'corner' : 'goal';
+  ball.vz = 0.5; ball.vx = 0; ball.vy = 0;
+  phase = 'loose'; phaseAt = now;
+  netBulge = { x, y, at: now };
+  addPoints(corner ? CORNER_POINTS : GOAL_POINTS, corner ? 'TOP CORNER! +5' : 'GOAL! +3', corner ? '#FFD23F' : '#FFFFFF', ball);
+  burst(ball, null, corner ? 50 : 34, 1.3);
+  triggerShake(shake, corner ? 8 : 5);
+  sfxGoal(corner);
+  kicker.mood = 'happy';
+  if(keeper.diving && Math.sign(keeper.diveTo - keeper.diveFrom) !== Math.sign(x - keeper.diveFrom)) setHint('Sent him the wrong way!');
+}
+
+function update(dt, now){
+  const t = now / 1000;
+  // Keeper sways until the ball is struck, then dives.
+  if(!keeper.diving){
+    if(phase === 'aim' || phase === 'runup' || (phase === 'flight' && now < keeper.diveAt)){
+      keeper.x = keeper.center + Math.sin(t * keeper.swaySpeed + keeper.swayPhase) * keeper.swayAmp;
+    } else if(phase === 'flight'){
+      keeper.diving = true; keeper.diveFrom = keeper.x;
+      const want = keeper.diveTo - keeper.x;
+      keeper.diveTo = Math.max(-0.85, Math.min(0.85, keeper.x + Math.max(-KEEPER_MAX_DIVE, Math.min(KEEPER_MAX_DIVE, want))));
+    }
+  } else {
+    const dir = Math.sign(keeper.diveTo - keeper.x);
+    keeper.x += dir * Math.min(Math.abs(keeper.diveTo - keeper.x), KEEPER_DIVE_SPEED * dt);
+    const target = Math.sign(keeper.diveTo - keeper.diveFrom) * Math.min(KEEPER_MAX_TILT, Math.abs(keeper.diveTo - keeper.diveFrom) * 2);
+    keeper.tilt += (target - keeper.tilt) * Math.min(1, dt * 10);
+  }
+  keeper.bob = Math.abs(Math.sin(t * 6)) * (keeper.diving ? 0 : 0.02);
+
+  // Wall defenders hop when the ball is struck.
+  if(phase === 'flight' || phase === 'loose'){
+    const since = (now - phaseAt) / 1000 + (phase === 'loose' ? FLIGHT_S : 0);
+    for(const d of wall){
+      const j = (since - d.jumpAt) / 0.45;
+      d.jumpY = j > 0 && j < 1 ? Math.sin(j * Math.PI) * 0.24 : 0;
+    }
+  }
+
+  if(phase === 'runup'){
+    kicker.t = Math.min(1, (now - phaseAt) / (RUNUP_S * 1000));
+    if(Math.floor(kicker.t * 6) !== kicker.lastStep){ kicker.lastStep = Math.floor(kicker.t * 6); sfxStep(); }
+    if(kicker.t >= 1) launch(now);
+  } else if(phase === 'flight'){
+    const p = Math.min(1, (now - phaseAt) / (FLIGHT_S * 1000));
+    const prevZ = ball.z;
+    ball.z = p;
+    ball.x = ball.tx * p + ball.curve * Math.sin(Math.PI * p);
+    ball.y = ball.ty * p + 0.16 * Math.sin(Math.PI * p);
+    ball.spin += dt * 14;
+    // Through the wall?
+    if(prevZ < WALL_Z && ball.z >= WALL_Z){
+      for(const d of wall){
+        if(Math.abs(ball.x - d.x) < 0.13 && ball.y < 0.44 + d.jumpY){
+          shotResult = 'blocked';
+          ball.vz = -0.45; ball.vx = (ball.x - d.x) * 3 + (Math.random() - 0.5) * 0.6; ball.vy = 0.6;
+          phase = 'loose'; phaseAt = now;
+          sfxSave(); triggerShake(shake, 3);
+          addPoints(0, 'Blocked!', '#FFFFFF', ball);
+          kicker.mood = 'sad';
+          return;
+        }
+      }
+    }
+    if(p >= 1) judgeAtGoal(now);
+  } else if(phase === 'loose'){
+    // Free physics: rebounds bounce along the grass; a goal settles in
+    // the net; a miss sails off.
+    const inNet = shotResult === 'goal' || shotResult === 'corner';
+    ball.x += ball.vx * dt; ball.z += ball.vz * dt; ball.y += ball.vy * dt;
+    if(inNet){
+      ball.vz *= Math.pow(0.02, dt);
+      if(ball.z > 1.14){ ball.z = 1.14; ball.vz = 0; }
+      ball.vy -= GRAVITY * 0.5 * dt;
+      if(ball.y < 0){ ball.y = 0; ball.vy = 0; }
+    } else {
+      ball.vy -= GRAVITY * dt;
+      if(ball.y < 0){
+        ball.y = 0;
+        if(Math.abs(ball.vy) > 0.25){ ball.squash = 1; beep(200, 0.04, 'sine', 0.06); }
+        ball.vy = -ball.vy * 0.55; ball.vx *= 0.8; ball.vz *= 0.8;
+      }
+    }
+    ball.spin += dt * (Math.hypot(ball.vx, ball.vz) * 8);
+    ball.squash = Math.max(0, ball.squash - dt * 6);
+    if(now - phaseAt > (inNet ? 1300 : 1200)){ phase = 'done'; resolveShot(); }
+  }
+}
+
+function resolveShot(){
+  shotsTaken++;
+  state.hoopShotsLeft--;
+  document.getElementById('hoopShotsDisplay').textContent = String(Math.max(0, state.hoopShotsLeft));
+  setTimerFill(document.getElementById('hoopTimerFill'), state.hoopShotsLeft / SHOTS_PER_TURN);
+  setTimeout(() => {
+    if(!state.hoopRoundActive) return;
+    if(state.hoopShotsLeft <= 0){ finishHoopRound(); return; }
+    newShot(false);
+    setHint(wall.length ? 'A wall! Aim over it, then KICK!' : 'Tap the goal to aim, then KICK!');
+  }, 350);
+}
+
+/* =========================================================
+   DRAWING
+========================================================= */
+// The goalkeeper: noodle arms, giant gloves, googly eyes on the ball.
+// Diving, he tips over from his feet; dizzy, stars spin round his head.
+function drawKeeper(ctx, v, now){
+  const base = proj(v, keeper.x, 0, 1);
+  const u = v.GW;                         // 1 goal unit in px, on the goal line
+  ctx.save();
+  ctx.translate(base.x, base.y - keeper.bob * u);
+  ctx.rotate(keeper.tilt);
+  // Legs.
+  ctx.strokeStyle = '#1E2433'; ctx.lineWidth = u * 0.045; ctx.lineCap = 'round';
+  const kickLeg = keeper.diving ? 0.08 : Math.sin(now / 160) * 0.02;
+  ctx.beginPath(); ctx.moveTo(-u * 0.05, -u * 0.18); ctx.lineTo(-u * 0.08 - kickLeg * u, 0); ctx.moveTo(u * 0.05, -u * 0.18); ctx.lineTo(u * 0.08 + kickLeg * u, 0); ctx.stroke();
+  // Body (a bright jersey) and shorts.
+  ctx.fillStyle = '#B8F03C';
+  ctx.beginPath(); ctx.ellipse(0, -u * 0.31, u * 0.12, u * 0.15, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1E2433'; ctx.fillRect(-u * 0.1, -u * 0.2, u * 0.2, u * 0.05);
+  ctx.fillStyle = '#1E2433'; ctx.font = `800 ${u * 0.09}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('1', 0, -u * 0.32);
+  // Noodle arms up and out, wobbling, with huge gloves.
+  const wob = Math.sin(now / 130) * 0.04;
+  const reach = keeper.diving ? 0.36 : 0.24;
+  ctx.strokeStyle = '#FFD7A8'; ctx.lineWidth = u * 0.035;
+  ctx.beginPath();
+  for(const side of [-1, 1]){
+    ctx.moveTo(side * u * 0.1, -u * 0.38);
+    ctx.quadraticCurveTo(side * u * (reach * 0.6), -u * (0.5 + wob * side), side * u * reach, -u * (0.52 + wob * side));
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#FFFFFF';
+  for(const side of [-1, 1]){ ctx.beginPath(); ctx.arc(side * u * reach, -u * (0.53 + wob * side), u * 0.06, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#FF6B6B';
+  for(const side of [-1, 1]){ ctx.beginPath(); ctx.arc(side * u * reach, -u * (0.53 + wob * side), u * 0.03, 0, Math.PI * 2); ctx.fill(); }
+  // Head, googly eyes on the ball, a cap.
+  ctx.fillStyle = '#FFD7A8';
+  ctx.beginPath(); ctx.arc(0, -u * 0.52, u * 0.085, 0, Math.PI * 2); ctx.fill();
+  const bp = proj(v, ball.x, ball.y, Math.min(1, ball.z));
+  const look = Math.atan2(bp.y - (base.y - u * 0.52), bp.x - base.x) - keeper.tilt;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath(); ctx.arc(-u * 0.035, -u * 0.54, u * 0.032, 0, Math.PI * 2); ctx.arc(u * 0.038, -u * 0.545, u * 0.026, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1E2433';
+  const dizzy = now < keeper.dizzyUntil;
+  if(dizzy){
+    ctx.font = `800 ${u * 0.05}px sans-serif`;
+    ctx.fillText('x', -u * 0.035, -u * 0.54); ctx.fillText('x', u * 0.038, -u * 0.545);
+  } else {
+    ctx.beginPath();
+    ctx.arc(-u * 0.035 + Math.cos(look) * u * 0.013, -u * 0.54 + Math.sin(look) * u * 0.013, u * 0.014, 0, Math.PI * 2);
+    ctx.arc(u * 0.038 + Math.cos(look) * u * 0.011, -u * 0.545 + Math.sin(look) * u * 0.011, u * 0.011, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.strokeStyle = '#1E2433'; ctx.lineWidth = u * 0.008;
+  ctx.beginPath();
+  if(keeper.cheer) ctx.arc(0, -u * 0.5, u * 0.03, 0.2, Math.PI - 0.2);
+  else { ctx.moveTo(-u * 0.025, -u * 0.485); ctx.lineTo(u * 0.025, -u * 0.48); }
+  ctx.stroke();
+  ctx.fillStyle = '#2F6FE0';
+  ctx.beginPath(); ctx.arc(0, -u * 0.565, u * 0.085, Math.PI, 0); ctx.fill();
+  ctx.restore();
+  if(dizzy){
+    ctx.fillStyle = '#FFE066';
+    for(let k = 0; k < 3; k++){
+      const a = now / 180 + k * 2.1;
+      const hx = base.x + Math.sin(keeper.tilt) * u * 0.55, hy = base.y - Math.cos(keeper.tilt) * u * 0.62;
+      ctx.beginPath(); ctx.arc(hx + Math.cos(a) * u * 0.1, hy + Math.sin(a) * u * 0.03, u * 0.018, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+}
+
+// Wall defenders: round, eyes squeezed shut, hands over their faces.
+function drawWall(ctx, v, now){
+  for(const d of wall){
+    const p = proj(v, d.x, d.jumpY, WALL_Z);
+    const u = v.GW * p.k;
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    const g = proj(v, d.x, 0, WALL_Z);
+    ctx.beginPath(); ctx.ellipse(g.x, g.y, u * 0.12, u * 0.03, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1E2433';
+    ctx.fillRect(p.x - u * 0.06, p.y - u * 0.14, u * 0.035, u * 0.14); ctx.fillRect(p.x + u * 0.025, p.y - u * 0.14, u * 0.035, u * 0.14);
+    ctx.fillStyle = d.color;
+    ctx.beginPath(); ctx.ellipse(p.x, p.y - u * 0.25, u * 0.11, u * 0.13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFD7A8';
+    ctx.beginPath(); ctx.arc(p.x, p.y - u * 0.41, u * 0.075, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#1E2433'; ctx.lineWidth = Math.max(1, u * 0.01);
+    const blink = (now / 1000 + d.blink) % 3 < 0.15 || d.jumpY > 0;
+    ctx.beginPath();
+    if(blink){ ctx.moveTo(p.x - u * 0.04, p.y - u * 0.42); ctx.lineTo(p.x - u * 0.015, p.y - u * 0.42); ctx.moveTo(p.x + u * 0.015, p.y - u * 0.42); ctx.lineTo(p.x + u * 0.04, p.y - u * 0.42); }
+    else { ctx.arc(p.x - u * 0.028, p.y - u * 0.42, u * 0.012, 0, Math.PI * 2); ctx.moveTo(p.x + u * 0.04, p.y - u * 0.42); ctx.arc(p.x + u * 0.028, p.y - u * 0.42, u * 0.012, 0, Math.PI * 2); }
+    ctx.stroke();
+    // Hands up in front of the face when jumping.
+    ctx.fillStyle = '#FFD7A8';
+    const hy = d.jumpY > 0 ? p.y - u * 0.38 : p.y - u * 0.22;
+    ctx.beginPath(); ctx.arc(p.x - u * 0.05, hy, u * 0.03, 0, Math.PI * 2); ctx.arc(p.x + u * 0.05, hy, u * 0.03, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+// The striker, seen from behind: runs in from the left with wobbly legs
+// and big boots, then celebrates or holds their head.
+function drawKicker(ctx, v, now){
+  const spot = proj(v, 0, 0, 0);
+  const u = v.GW * spot.k * 0.6;
+  let x, y;
+  if(phase === 'aim'){ x = spot.x - u * 0.75; y = spot.y + u * 0.18; }
+  else if(phase === 'runup'){ const t = kicker.t; x = spot.x - u * (0.75 - 0.55 * t); y = spot.y + u * (0.18 - 0.12 * t) - Math.abs(Math.sin(t * Math.PI * 3)) * u * 0.05; }
+  else { x = spot.x - u * 0.2; y = spot.y + u * 0.06; }
+  const happy = kicker.mood === 'happy' && phase !== 'runup';
+  const jump = happy ? Math.abs(Math.sin(now / 140)) * u * 0.08 : 0;
+  y -= jump;
+  const swing = phase === 'runup' ? Math.sin(kicker.t * Math.PI * 6) * 0.5 : phase === 'flight' && now - phaseAt < 250 ? 0.9 : 0;
+  ctx.save();
+  ctx.translate(x, y);
+  // Legs with big boots.
+  ctx.strokeStyle = '#FFD7A8'; ctx.lineWidth = u * 0.04; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-u * 0.04, -u * 0.12); ctx.lineTo(-u * 0.05 - swing * u * 0.04, 0);
+  ctx.moveTo(u * 0.04, -u * 0.12); ctx.lineTo(u * 0.06 + swing * u * 0.12, -swing * u * 0.06);
+  ctx.stroke();
+  ctx.fillStyle = '#1E2433';
+  ctx.beginPath(); ctx.ellipse(-u * 0.05 - swing * u * 0.04, 0, u * 0.045, u * 0.022, 0, 0, Math.PI * 2);
+  ctx.ellipse(u * 0.06 + swing * u * 0.12, -swing * u * 0.06, u * 0.045, u * 0.022, 0, 0, Math.PI * 2); ctx.fill();
+  // Shorts, shirt with a number, head.
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-u * 0.08, -u * 0.16, u * 0.16, u * 0.06);
+  ctx.fillStyle = '#E8453C';
+  ctx.beginPath(); ctx.ellipse(0, -u * 0.25, u * 0.1, u * 0.11, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.font = `800 ${u * 0.09}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('9', 0, -u * 0.25);
+  // Arms: up for joy, on the head when it went wrong, swinging otherwise.
+  ctx.strokeStyle = '#FFD7A8'; ctx.lineWidth = u * 0.03;
+  ctx.beginPath();
+  if(happy){ ctx.moveTo(-u * 0.08, -u * 0.3); ctx.lineTo(-u * 0.16, -u * 0.48); ctx.moveTo(u * 0.08, -u * 0.3); ctx.lineTo(u * 0.16, -u * 0.48); }
+  else if(kicker.mood === 'sad' && phase !== 'runup'){ ctx.moveTo(-u * 0.08, -u * 0.3); ctx.lineTo(-u * 0.07, -u * 0.43); ctx.moveTo(u * 0.08, -u * 0.3); ctx.lineTo(u * 0.07, -u * 0.43); }
+  else { ctx.moveTo(-u * 0.08, -u * 0.3); ctx.lineTo(-u * 0.14, -u * (0.2 + swing * 0.05)); ctx.moveTo(u * 0.08, -u * 0.3); ctx.lineTo(u * 0.14, -u * (0.2 - swing * 0.05)); }
+  ctx.stroke();
+  ctx.fillStyle = '#6B3E26';
+  ctx.beginPath(); ctx.arc(0, -u * 0.4, u * 0.07, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFD23F'; ctx.fillRect(-u * 0.07, -u * 0.43, u * 0.14, u * 0.02); // headband
+  ctx.restore();
+}
+
+function drawBall(ctx, v){
+  const p = proj(v, ball.x, ball.y, ball.z);
+  const g = proj(v, ball.x, 0, ball.z);
+  const r = v.GW * 0.055 * p.k;
+  // Shadow on the grass, smaller the higher the ball.
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.beginPath(); ctx.ellipse(g.x, g.y, r * (1 - Math.min(0.6, ball.y)), r * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save();
+  ctx.translate(p.x, p.y - r);
+  ctx.scale(1 + ball.squash * 0.25, 1 - ball.squash * 0.25);
+  ctx.rotate(ball.spin);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1E2433';
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2);
+  for(let k = 0; k < 5; k++){
+    const a = k * Math.PI * 2 / 5;
+    ctx.moveTo(Math.cos(a) * r * 0.86 + r * 0.14, Math.sin(a) * r * 0.86);
+    ctx.arc(Math.cos(a) * r * 0.86, Math.sin(a) * r * 0.86, r * 0.14, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawTarget(ctx, v, now){
+  const p = proj(v, aim.x, aim.y, 1);
+  const r = v.GW * (0.07 + Math.sin(now / 200) * 0.006);
+  ctx.save();
+  ctx.strokeStyle = '#FFD23F'; ctx.lineWidth = Math.max(2, v.GW * 0.014);
+  ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+  ctx.moveTo(p.x - r * 1.4, p.y); ctx.lineTo(p.x - r * 0.5, p.y); ctx.moveTo(p.x + r * 0.5, p.y); ctx.lineTo(p.x + r * 1.4, p.y);
+  ctx.moveTo(p.x, p.y - r * 1.4); ctx.lineTo(p.x, p.y - r * 0.5); ctx.moveTo(p.x, p.y + r * 0.5); ctx.lineTo(p.x, p.y + r * 1.4);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function renderHoopCanvas(){
+  const canvas = hoopCanvasResizer.getCanvas();
+  if(!canvas || canvas.width === 0 || canvas.height === 0) return;
+  const ctx = hoopCanvasResizer.getContext();
+  const v = viewOf(canvas.width, canvas.height);
+  const now = performance.now();
+  renderStadium(ctx, canvas);
+  if(!ball) return;
+  ctx.save();
+  applyShake(ctx, shake);
+  // The net bulges where a goal went in.
+  if(netBulge){
+    const t = (now - netBulge.at) / 700;
+    if(t < 1){
+      const p = proj(v, netBulge.x, netBulge.y, 1.15);
+      ctx.strokeStyle = `rgba(255,255,255,${0.7 * (1 - t)})`; ctx.lineWidth = Math.max(1, v.GW * 0.006);
+      for(let k = 1; k <= 3; k++){ ctx.beginPath(); ctx.arc(p.x, p.y, v.GW * 0.06 * k * (0.6 + t), 0, Math.PI * 2); ctx.stroke(); }
+    }
+  }
+  // Back to front: anything in the net, keeper, wall, ball, striker.
+  const ballBehind = ball.z > 1;
+  if(ballBehind) drawBall(ctx, v);
+  drawKeeper(ctx, v, now);
+  if(!ballBehind && ball.z > WALL_Z) drawBall(ctx, v);
+  drawWall(ctx, v, now);
+  if(phase === 'aim') drawTarget(ctx, v, now);
+  if(!ballBehind && ball.z <= WALL_Z) drawBall(ctx, v);
+  drawKicker(ctx, v, now);
+  ctx.save();
+  for(const p of particles){
+    ctx.globalAlpha = Math.max(0, p.alpha); ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size * 0.6);
+  }
+  ctx.restore();
+  drawFloatTexts(ctx, floatTexts, Math.max(18, v.GW * 0.12));
+  ctx.restore();
 }
 
 /* =========================================================
@@ -427,34 +759,31 @@ function startHoopRound(){
   cancelHoopRound();
   state.hoopRoundActive = true;
   state.hoopScore = 0;
-  state.hoopShotsLeft = HOOP_SHOTS_PER_TURN;
-  hoopFloatTexts = [];
-  hoopShockwaves = [];
-  hoopShake = createShakeState();
-  hoopResolving = false;
-  hoopAngle = HOOP_DEFAULT_ANGLE;
-  hoopPower = HOOP_DEFAULT_POWER;
-
+  state.hoopShotsLeft = SHOTS_PER_TURN;
+  shotsTaken = 0;
+  floatTexts = []; particles = [];
+  shake = createShakeState();
+  aim = { x: 0.55, y: 0.45 };
   document.getElementById('hoopScoreDisplay').textContent = '0';
-  document.getElementById('hoopShotsDisplay').textContent = String(HOOP_SHOTS_PER_TURN);
+  document.getElementById('hoopShotsDisplay').textContent = String(SHOTS_PER_TURN);
   setTimerFill(document.getElementById('hoopTimerFill'), 1);
   document.getElementById('hoopPlayArea').classList.remove('idle');
   document.getElementById('hoopHint').classList.remove('hidden');
   hoopCanvasResizer.resize();
-  resetHoopBall();
+  newShot(true);
+  setHint('Tap the goal to aim, then KICK!');
 
   let last = performance.now();
   function tick(now){
-    const dt = Math.min(50, now - last) / 1000;
+    const dtMs = Math.min(50, now - last);
     noteFrame();
     last = now;
-    updateHoop(dt);
-    if(hoopSceneIsMoving()) hoopDirtyFrames = 2;
-    if(hoopDirtyFrames > 0){
-      hoopDirtyFrames--;
-      renderHoopCanvas();
-    }
-    state.hoopRoundRAF = requestAnimationFrame(tick);
+    update(dtMs / 1000, now);
+    const k = frameFactor(dtMs);
+    stepParticles(particles, k, { gravity: 0.25, dragX: 0.98 });
+    floatTexts = updateFloatTexts(floatTexts, k);
+    renderHoopCanvas();
+    if(state.hoopRoundActive) state.hoopRoundRAF = requestAnimationFrame(tick);
   }
   state.hoopRoundRAF = requestAnimationFrame(tick);
 }
@@ -468,118 +797,11 @@ export function cancelHoopRound(){
     if(playArea) playArea.classList.add('idle');
     const hint = document.getElementById('hoopHint');
     if(hint) hint.classList.add('hidden');
-    const canvas = hoopCanvasResizer.getCanvas();
-    if(canvas) renderHoopBackground(hoopCanvasResizer.getContext(), canvas);
+    newShot(true);
+    renderHoopCanvas();
     const begin = document.getElementById('hoopBeginTurnBtn');
     if(begin) begin.disabled = false;
   }
-}
-
-/* =========================================================
-   PHYSICS
-========================================================= */
-function updateHoop(dt){
-  hoopFloatTexts = updateFloatTexts(hoopFloatTexts, frameFactor(dt * 1000));
-  hoopShockwaves = updateShockwaves(hoopShockwaves);
-
-  if(!hoopBall || !hoopBall.flying) return;
-  const ballRY = ballRadiusY();
-
-  hoopBall.vy += HOOP_GRAVITY * dt;
-  const prevY = hoopBall.y;
-  hoopBall.x += hoopBall.vx * dt;
-  hoopBall.y += hoopBall.vy * dt;
-
-  // Side walls
-  if(hoopBall.x < HOOP_BALL_R){ hoopBall.x = HOOP_BALL_R; hoopBall.vx *= -0.62; sfxHoopBounce(Math.abs(hoopBall.vx)); }
-  if(hoopBall.x > 100 - HOOP_BALL_R){ hoopBall.x = 100 - HOOP_BALL_R; hoopBall.vx *= -0.62; sfxHoopBounce(Math.abs(hoopBall.vx)); }
-
-  // Backboard: a vertical plate just behind the rim.
-  const boardX = HOOP_X + HOOP_RIM_HALF_W + 1.6;
-  if(hoopBall.x + HOOP_BALL_R > boardX && hoopBall.y > HOOP_RIM_Y - 20 && hoopBall.y < HOOP_RIM_Y + 3.5 && hoopBall.vx > 0){
-    hoopBall.x = boardX - HOOP_BALL_R;
-    hoopBall.vx *= -0.55;
-    hoopBall.touchedRim = true;
-    sfxHoopBounce(Math.abs(hoopBall.vx) + 20);
-  }
-
-  // Scoring: the ball's centre crosses the rim plane on the way DOWN,
-  // inside the rim. Checking the crossing rather than "is it near the
-  // rim" is what stops a ball rising through the hoop from underneath
-  // counting as a basket.
-  if(!hoopResolving && prevY <= HOOP_RIM_Y && hoopBall.y > HOOP_RIM_Y && hoopBall.vy > 0){
-    if(Math.abs(hoopBall.x - HOOP_X) < HOOP_RIM_HALF_W * 0.92){
-      scoreHoopBasket();
-      return;
-    }
-  }
-
-  // Rim edges: two small solid posts the ball can clatter off.
-  for(const side of [-1, 1]){
-    const rx = HOOP_X + side * HOOP_RIM_HALF_W;
-    const dx = hoopBall.x - rx, dy = hoopBall.y - HOOP_RIM_Y;
-    const dist = Math.hypot(dx, dy);
-    if(dist < HOOP_BALL_R + 0.7){
-      const nx = dx / (dist || 1), ny = dy / (dist || 1);
-      hoopBall.x = rx + nx * (HOOP_BALL_R + 0.7);
-      hoopBall.y = HOOP_RIM_Y + ny * (HOOP_BALL_R + 0.7);
-      const dot = hoopBall.vx * nx + hoopBall.vy * ny;
-      hoopBall.vx = (hoopBall.vx - 2 * dot * nx) * 0.6;
-      hoopBall.vy = (hoopBall.vy - 2 * dot * ny) * 0.6;
-      hoopBall.touchedRim = true;
-      sfxHoopBounce(40);
-    }
-  }
-
-  // Floor
-  if(hoopBall.y > HOOP_FLOOR_Y - ballRY){
-    hoopBall.y = HOOP_FLOOR_Y - ballRY;
-    if(Math.abs(hoopBall.vy) > 8){
-      sfxHoopBounce(Math.abs(hoopBall.vy));
-      hoopBall.vy *= -0.52;
-      hoopBall.vx *= 0.82;
-    } else {
-      hoopBall.vy = 0; hoopBall.vx *= 0.9;
-    }
-  }
-
-  const settled = hoopBall.y >= HOOP_FLOOR_Y - ballRY - 0.2 && Math.abs(hoopBall.vy) < 8 && Math.abs(hoopBall.vx) < 4;
-  if(!hoopResolving && (settled || performance.now() - hoopShotStartedAt > HOOP_SHOT_TIMEOUT_MS)){
-    setHoopHint('So close!');
-    resolveHoopShot(false);
-  }
-}
-
-function scoreHoopBasket(){
-  const swish = !hoopBall.touchedRim;
-  const points = swish ? 5 : 3;
-  state.hoopScore += points;
-  document.getElementById('hoopScoreDisplay').textContent = String(state.hoopScore);
-
-  const canvas = hoopCanvasResizer.getCanvas();
-  const px = (hoopBall.x / 100) * canvas.width, py = (hoopBall.y / 100) * canvas.height;
-  spawnFloatText(hoopFloatTexts, px, py, swish ? 'SWISH! +5' : '+3', swish ? '#FFD23F' : '#7CFFEA', -1.5);
-  spawnShockwave(hoopShockwaves, px, py, swish ? '#FFD23F' : '#7CFFEA', { big: swish });
-  triggerShake(hoopShake, swish ? 7 : 4);
-  sfxHoopScore(swish);
-  setHoopHint(swish ? 'SWISH!' : 'Basket!');
-  resolveHoopShot(true);
-}
-
-function resolveHoopShot(scored){
-  if(hoopResolving) return;
-  hoopResolving = true;
-  state.hoopShotsLeft--;
-  document.getElementById('hoopShotsDisplay').textContent = String(Math.max(0, state.hoopShotsLeft));
-  setTimerFill(document.getElementById('hoopTimerFill'), state.hoopShotsLeft / HOOP_SHOTS_PER_TURN);
-
-  // A beat before the next ball so the result registers.
-  setTimeout(() => {
-    if(!state.hoopRoundActive) return;
-    hoopResolving = false;
-    if(state.hoopShotsLeft <= 0){ finishHoopRound(); return; }
-    resetHoopBall();
-  }, scored ? 950 : 600);
 }
 
 function finishHoopRound(){
@@ -588,7 +810,7 @@ function finishHoopRound(){
   state.hoopRoundRAF = null;
   document.getElementById('hoopPlayArea').classList.add('idle');
   document.getElementById('hoopHint').classList.add('hidden');
-  syncHoopControls();
+  syncControls();
 
   state.hoopTeams[state.hoopCurrentTeam].total += state.hoopScore;
   state.hoopTurnsPlayed++;
@@ -599,8 +821,10 @@ function finishHoopRound(){
     state.hoopCurrentTeam = (state.hoopCurrentTeam + 1) % state.hoopTeams.length;
     renderHoopScoreboard();
     renderHoopTurnBanner();
+    newShot(true);
+    renderHoopCanvas();
     document.getElementById('hoopBeginTurnBtn').disabled = false;
-    document.getElementById('hoopShotsDisplay').textContent = String(HOOP_SHOTS_PER_TURN);
+    document.getElementById('hoopShotsDisplay').textContent = String(SHOTS_PER_TURN);
     setTimerFill(document.getElementById('hoopTimerFill'), 1);
   });
 }
@@ -610,117 +834,13 @@ function endHoopGame(){
   document.getElementById('hoopTurnBanner').innerHTML = `All done — ${winnerText}`;
 }
 
-/* =========================================================
-   RENDERING
-========================================================= */
-function renderHoopCanvas(){
-  const canvas = hoopCanvasResizer.getCanvas();
-  if(!canvas || canvas.width === 0) return;
-  const ctx = hoopCanvasResizer.getContext();
-  const W = canvas.width, H = canvas.height;
-  const toX = (pct) => (pct / 100) * W;
-  const toY = (pct) => (pct / 100) * H;
-  const ballR = (HOOP_BALL_R / 100) * W;
-
-  ctx.save();
-  applyShake(ctx, hoopShake);
-  renderHoopBackground(ctx, canvas);
-
-  // ---- Rim + net (post and backboard are in the backdrop) ----
-  const hx = toX(HOOP_X), ry = toY(HOOP_RIM_Y);
-  const rimHalf = (HOOP_RIM_HALF_W / 100) * W;
-  const boardX = toX(HOOP_X + HOOP_RIM_HALF_W + 1.6);
-  ctx.fillStyle = HOOP_RIM_COLOR;
-  ctx.fillRect(hx + rimHalf, ry - H * 0.006, boardX - (hx + rimHalf), H * 0.012);
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-  ctx.lineWidth = Math.max(1, W * 0.0022);
-  for(let i = 0; i <= 5; i++){
-    const t = i / 5;
-    const topX = hx - rimHalf + t * rimHalf * 2;
-    const botX = hx - rimHalf * 0.45 + t * rimHalf * 0.9;
-    ctx.beginPath(); ctx.moveTo(topX, ry); ctx.lineTo(botX, ry + H * 0.075); ctx.stroke();
-  }
-  ctx.beginPath(); ctx.moveTo(hx - rimHalf * 0.62, ry + H * 0.038);
-  ctx.lineTo(hx + rimHalf * 0.62, ry + H * 0.038); ctx.stroke();
-
-  drawGlow(ctx, hx, ry, rimHalf * 2.1, HOOP_RIM_COLOR, 0.4, 1.7);
-  ctx.strokeStyle = HOOP_RIM_COLOR;
-  ctx.lineWidth = Math.max(3, W * 0.0075);
-  ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(hx - rimHalf, ry); ctx.lineTo(hx + rimHalf, ry); ctx.stroke();
-
-  // ---- Aim: arrow + the rising half of the predicted arc ----
-  if(hoopCanAim()){
-    const bx = toX(hoopBall.x), by = toY(hoopBall.y);
-    const v = hoopLaunchVector(hoopAngle, hoopPower);
-
-    // Simulated with the SAME gravity the real shot uses, so it is an
-    // honest preview. Stops at the top of the arc.
-    let sx = hoopBall.x, sy = hoopBall.y, svx = v.vx, svy = v.vy;
-    ctx.fillStyle = '#FFFFFF';
-    const steps = 40;
-    for(let i = 0; i < steps; i++){
-      svy += HOOP_GRAVITY * 0.03;
-      sx += svx * 0.03;
-      sy += svy * 0.03;
-      if((HOOP_PREVIEW_TO_APEX && svy > 0) || sy > HOOP_FLOOR_Y || sx > 100) break;
-      ctx.globalAlpha = 0.8 * (1 - i / steps) + 0.15;
-      ctx.beginPath();
-      ctx.arc(toX(sx), toY(sy), Math.max(2, W * 0.0038), 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-
-    // Arrow out of the ball, pointing exactly along the launch
-    // direction on screen; its length grows with power.
-    const dirX = v.vx / 100 * W, dirY = v.vy / 100 * H;
-    const dl = Math.hypot(dirX, dirY) || 1;
-    const ux = dirX / dl, uy = dirY / dl;
-    const len = ballR * (1.6 + 2.6 * (hoopPower / 100));
-    const sx0 = bx + ux * ballR * 1.15, sy0 = by + uy * ballR * 1.15;
-    const ax = bx + ux * (ballR * 1.15 + len), ay = by + uy * (ballR * 1.15 + len);
-    ctx.strokeStyle = '#7CFFEA';
-    ctx.lineWidth = Math.max(4, W * 0.006);
-    ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(ax, ay); ctx.stroke();
-    ctx.fillStyle = '#7CFFEA';
-    const hs = ballR * 0.75;
-    ctx.beginPath();
-    ctx.moveTo(ax + ux * hs, ay + uy * hs);
-    ctx.lineTo(ax - uy * hs * 0.7, ay + ux * hs * 0.7);
-    ctx.lineTo(ax + uy * hs * 0.7, ay - ux * hs * 0.7);
-    ctx.closePath(); ctx.fill();
-
-    // A soft marker on the floor so the new spot is obvious.
-    ctx.fillStyle = 'rgba(124,255,234,0.25)';
-    ctx.beginPath();
-    ctx.ellipse(bx, toY(HOOP_FLOOR_Y), ballR * 1.5, ballR * 0.35, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // ---- Ball ----
-  if(hoopBall){
-    const bx = toX(hoopBall.x), by = toY(hoopBall.y);
-    drawGlow(ctx, bx, by, ballR * 2.2, HOOP_BALL_COLOR, 0.4, 1.7);
-    ctx.fillStyle = HOOP_BALL_COLOR;
-    ctx.beginPath(); ctx.arc(bx, by, ballR, 0, Math.PI * 2); ctx.fill();
-    // Seams, rotated with travel so the ball visibly spins.
-    ctx.strokeStyle = 'rgba(60,20,0,0.65)';
-    ctx.lineWidth = Math.max(1, ballR * 0.1);
-    const spin = (hoopBall.x + hoopBall.y) * 0.12;
-    ctx.save();
-    ctx.translate(bx, by);
-    ctx.rotate(spin);
-    ctx.beginPath(); ctx.moveTo(-ballR, 0); ctx.lineTo(ballR, 0); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, 0, ballR * 0.45, ballR, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.restore();
-  }
-
-  drawShockwaves(ctx, hoopShockwaves, W / 900);
-  drawFloatTexts(ctx, hoopFloatTexts, Math.max(18, W * 0.03));
-  ctx.restore();
+// For the automated tests only.
+export function debugFootball(){
+  return { phase, aim: { ...aim }, keeper: keeper ? { x: keeper.x, diving: keeper.diving } : null, wall: wall.length,
+    result: shotResult, shotsLeft: state.hoopShotsLeft, ball: ball ? { x: ball.x, y: ball.y, z: ball.z } : null };
 }
+// Freezes the keeper far from (left of) the aim, so a test can score.
+export function debugParkKeeper(x){ if(keeper){ keeper.swayAmp = 0; keeper.center = x; keeper.x = x; } }
 
 /* =========================================================
    TEAM MANAGEMENT + NAVIGATION

@@ -48,22 +48,22 @@ quiz the same language.
 | # | Stage | Kind |
 |---|---|---|
 | 1 | Aim | Lesson objective and 3 example sentences with icons |
-| 2 | Learn | Rule cards and visual demos (one at a time) |
-| 3 | Controlled | Multiple choice |
-| 4 | Guided | Word-order sentence building, 20s a sentence |
+| 2 | Learn | Rule cards and visual demos (one at a time; the ← dots → slide nav sits in the footer) |
+| 3 | Controlled | Multiple choice, under one slim practice bar (progress, timer ring, score) |
+| 4 | Guided | Word-order sentence building, 20s a sentence (same practice bar) |
 | 5 | Free practice | Two slides: **1** the task, **2** your turn (timer, starters, word bank) |
 | 6 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |
-| 7 | Star Defender | Team game, canvas shooter |
-| 8 | Spin the Wheel | Team game: pegs and a flapping pointer, a creep-over-the-line finish, two ★ bonus slices a game (Double / Triple / Steal) |
+| 7 | Star Defender | Team game, canvas shooter: the ship follows the pointer, hold to fire, frequent power-ups (Rapid Fire, Spread Shot, Shield, Bomb) caught by shooting or flying into them |
+| 8 | Spin the Wheel | Team game: pegs and a flapping pointer, two ★ bonus slices a game (Double / Triple / Steal) |
 | 9 | Practice questions | The worksheet on the board: gap fill, unscramble and sentences side by side on one screen; tap a question (or a section's Show) to reveal its answer. Free writing is on the printed sheet only |
 | 10 | Billiards | Team game, canvas physics |
 | 11 | Neon Arena | Team game, canvas: hold to fire, timed power-ups (10s) that turn up often |
 | 12 | Fruit Ninja | Team game, canvas (each volley comes from a random edge: bottom, top, left, right or a corner; bombs cost 5; a mega bomb halves the score; the blade never freezes) |
-| 13 | Hoop Shot | Team game, canvas (fixed hoop, −/+ aim dock, SHOOT) |
+| 13 | Football | Team game, canvas penalty shoot-out (rebuilt from Hoop Shot; ids keep the `hoop` prefix): tap the goal to aim, KICK, 3 kicks a turn; a swaying keeper who dives late, sometimes a hopping wall |
 | 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns); every lane gets the same deal |
 | 15 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
-| 16 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round |
-| 17 | Zombie Dash | Team game, canvas, top-down, for young classes: Pip collects sweets while goofy zombies shuffle after them; beach balls to kick (a fast one bonks a zombie, +2), Cure Potion / Super Sneakers / Bubble Blast, 6 levels (teacher picks; each lap moves on). Questions are a review mix from the other games. Ends with **Finish: choose a lesson** |
+| 16 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round. 12 levels since 2026-11-22, with environment themes (jungle, desert, snow, volcano) |
+| 17 | Zombie Dash | Team game, canvas, top-down, for young classes: Pip collects sweets while goofy zombies shuffle after them; beach balls to kick (a fast one bonks a zombie, +2), Cure Potion / Super Sneakers / Bubble Blast, 10 levels incl. jungle, desert, snowy mountain and volcano (teacher picks; each lap moves on). Questions are a review mix from the other games. Ends with **Finish: choose a lesson** |
 
 Every team game follows the same loop: a setup screen (rules plus teams and
 colours) → a team answers a question → the team plays a short timed turn →
@@ -201,9 +201,10 @@ main-thread numbers (busy %, layouts/s, style recalcs/s).
 2. **Don't write the same DOM value every frame.** Timer bars go through
    `js/hud.js`: they drain with `scaleX`, and the text is written only when the
    second changes. Never set a `.timer-bar-fill`'s width.
-3. **Don't redraw a canvas that hasn't changed.** Billiards and Hoop Shot
-   render on demand (`invalidateBilliards()` / `invalidateHoop()`). Every
-   other game draws one still frame between turns and runs no loop.
+3. **Don't redraw a canvas that hasn't changed.** Billiards renders on
+   demand (`invalidateBilliards()`). Every game draws one still frame
+   between turns and runs no loop (Football's keeper sways, so it loops
+   during its round only).
 4. **Never leave a `requestAnimationFrame` loop running in the background.**
    Every loop has a cancel function, and `goToStage()` calls all of them.
 5. **Make every step frame-rate independent:** `k = frameFactor(dt)`, and use
@@ -285,7 +286,7 @@ worst frame, and whether lite mode is on.
   had one vent per lane, and a class just tapped the same spot over and
   over (2026-11-19). Rows are drawn back to front, each row's rock lips
   over its jellies, which is what makes them come up out of the holes.
-- **Hoop Shot** is 2 shots a turn (was 3, changed 2026-11-19).
+- **Football** (stage 13, was Hoop Shot) is 3 kicks a turn.
 - **Up to 6 teams** per game (`MAX_TEAMS` in `js/teamColorPicker.js`,
   raised from 4 on 2026-11-19). With 5-6 teams the setup rows go two
   across and the result screen lays out 3 + 3 (`:has()` rules in
@@ -356,6 +357,17 @@ worst frame, and whether lite mode is on.
   team, 3 + 3 for five or six), a "+N this turn" tag on the team that
   just played and "In the lead" on the leader. `teamGameFlow.js` works
   out the turn's points from the last total it showed.
+- **Environment themes** (2026-11-22). Ninja Jump levels take a
+  `theme` (`jungle`, `desert`, `snow`, `volcano`; none = the dojo look):
+  it changes the backdrop, block / plank colours and how `^` is drawn
+  (thorns, cactus, icicles, lava), never the rules. Zombie Dash levels
+  are themed by their obstacle and zone types (palm, log, cactus, pine,
+  lava; river, quicksand, snow, ash).
+- **Football's keeper** saves with exactly what's drawn: a line from his
+  feet to his gloves, tipped by his dive (`keeperTouches`). Capping the
+  tilt (`KEEPER_MAX_TILT`) is what leaves the top corners open.
+- **Taken team colours** stay full colour with a cross and the owner's
+  team number (a faded swatch read as a different, pastel colour).
 - **Billiards** uses a deliberately spread layout, not a real rack. A tight
   rack absorbs the cue ball's energy and nothing gets pocketed.
 - **No emoji anywhere** (UI, text or comments). Use monochrome symbols

@@ -494,18 +494,19 @@ export function renderLearnSlide(){
   });
 
   document.getElementById('learnPrevSlideBtn').disabled = index === 0;
-  // On the final slide the in-page Next becomes the way forward into
-  // practice, so a teacher can run the whole page from one button
-  // instead of switching to the footer at the end.
-  const next = document.getElementById('learnNextSlideBtn');
-  next.textContent = index === slides.length - 1 ? 'Next: Controlled practice →' : 'Next →';
+  // The slide arrows sit in the footer beside the stage's own Next
+  // button, so on the last slide the arrow just stops and that button
+  // gives a little nudge: one way forward, not two.
+  const last = index === slides.length - 1;
+  document.getElementById('learnNextSlideBtn').disabled = last;
+  document.getElementById('learnNextBtn').classList.toggle('nudge', last);
 }
 
 document.getElementById('learnPrevSlideBtn').addEventListener('click', () => {
   if(state.learnIndex > 0){ state.learnIndex--; renderLearnSlide(); }
 });
 document.getElementById('learnNextSlideBtn').addEventListener('click', () => {
-  if(state.learnIndex >= learnSlides().length - 1){ goToStage(3); return; }
+  if(state.learnIndex >= learnSlides().length - 1) return;
   state.learnIndex++;
   renderLearnSlide();
 });

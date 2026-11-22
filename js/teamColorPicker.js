@@ -56,17 +56,23 @@ function handleEscape(e){
   if(e.key === 'Escape') closeOpenPopover();
 }
 
+// A colour another team already has is shown at FULL colour with a bold
+// cross and that team's number on it. It used to be faded to 20%, which
+// turned it into a pale pastel that students took for a different,
+// free colour (feedback 2026-11-22). Tapping one shakes it and says who
+// has it, rather than doing nothing.
 function openColorPopover(anchorBtn, currentColor, onChange, getUsedColors){
   closeOpenPopover();
 
+  const used = getUsedColors(); // [{ color, team }] for every OTHER row
   const popover = document.createElement('div');
   popover.className = 'team-color-popover';
   popover.innerHTML = TEAM_COLOR_PALETTE.map(color => {
-    const takenByOther = getUsedColors().includes(color) && color !== currentColor;
-    return `<button type="button" class="team-color-option${takenByOther ? ' taken' : ''}${color === currentColor ? ' selected' : ''}"
-      style="background:${color}" data-color="${color}" ${takenByOther ? 'disabled' : ''}
-      aria-label="Pick ${color}${takenByOther ? ' (already used by another team)' : ''}"></button>`;
-  }).join('');
+    const owner = color !== currentColor ? used.find(u => u.color === color) : null;
+    return `<button type="button" class="team-color-option${owner ? ' taken' : ''}${color === currentColor ? ' selected' : ''}"
+      style="background:${color}" data-color="${color}" ${owner ? `aria-disabled="true" data-owner="${owner.team}"` : ''}
+      aria-label="${owner ? `Taken by Team ${owner.team}` : `Pick ${color}`}">${owner ? `<span class="taken-badge">${owner.team}</span>` : ''}</button>`;
+  }).join('') + '<p class="team-color-note" aria-live="polite"></p>';
   document.body.appendChild(popover);
 
   const rect = anchorBtn.getBoundingClientRect();
@@ -83,6 +89,16 @@ function openColorPopover(anchorBtn, currentColor, onChange, getUsedColors){
       closeOpenPopover();
     });
   });
+  const note = popover.querySelector('.team-color-note');
+  popover.querySelectorAll('.team-color-option.taken').forEach(opt => {
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      note.textContent = `Team ${opt.dataset.owner} already has this colour. Pick another one!`;
+      note.classList.add('show');
+      opt.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' },
+        { transform: 'translateX(-3px)' }, { transform: 'translateX(0)' }], { duration: 320, easing: 'ease-out' });
+    });
+  });
 
   openPopover = popover;
   openAnchor = anchorBtn;
@@ -94,9 +110,9 @@ function openColorPopover(anchorBtn, currentColor, onChange, getUsedColors){
 }
 
 // Builds one color-swatch button. `onChange(color)` fires when the
-// teacher picks a new color; `getUsedColors()` returns the colors
-// currently claimed by every OTHER row, so this row's popover can grey
-// those out and keep every team visually distinct.
+// teacher picks a new color; `getUsedColors()` returns [{ color, team }]
+// for every OTHER row, so this row's popover can mark those as taken
+// (and by whom) and keep every team visually distinct.
 function createColorSwatchButton(initialColor, onChange, getUsedColors){
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -161,7 +177,7 @@ export function renderTeamSetupRows(containerId, addBtnId, count, rowColors, ren
     const swatch = createColorSwatchButton(rowColors[i], (color) => {
       rowColors[i] = color;
       applyRowColorStyle(row, color);
-    }, () => rowColors.filter((_, idx) => idx !== i));
+    }, () => rowColors.map((color, idx) => ({ color, team: idx + 1 })).filter((_, idx) => idx !== i));
 
     const input = document.createElement('input');
     input.type = 'text';

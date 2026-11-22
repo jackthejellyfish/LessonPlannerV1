@@ -194,6 +194,43 @@ test('Neon Arena: holding the mouse keeps firing, power-ups arrive early, and th
   expect(errors).toEqual([]);
 });
 
+// Reworked 2026-11-22 on the Neon pattern.
+test('Star Defender: the ship follows the mouse, holding fires repeatedly, power-ups arrive early', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(6).evaluate((el) => el.click());
+  await page.click('#invNewGameBtn');
+  await page.click('#invStartBtn');
+  await page.waitForTimeout(300);
+  await page.click('#invBeginTurnBtn');
+  await page.click('#popCheckBtn');
+  await page.click('#popCorrectBtn');
+  await page.click('#confirmOkBtn'); // play now (not bank)
+  await page.waitForTimeout(200);
+
+  const internals = () => page.evaluate(async () => (await import('/js/stages/stage7-stardefender.js')).debugInvInternals());
+  const box = await page.locator('#invCanvas').boundingBox();
+  const { W } = await internals();
+  expect(Math.abs(W - 100 * box.width / box.height)).toBeLessThan(1);
+
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.5);
+  await page.waitForTimeout(500);
+  expect((await internals()).ship.x, 'the ship follows the pointer').toBeLessThan(W * 0.3);
+
+  const shots = new Set();
+  await page.mouse.down();
+  for (let i = 0; i < 10; i++) { await page.waitForTimeout(100); shots.add((await internals()).lastShotAt); }
+  await page.mouse.up();
+  expect(shots.size, 'held fire keeps shooting').toBeGreaterThanOrEqual(5);
+
+  expect((await internals()).pickupsSpawned, 'a power-up has appeared within ~2s').toBeGreaterThan(0);
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 15000 });
+  expect(errors).toEqual([]);
+});
+
 // Fruit Ninja earns its own test for two v2-specific reasons: its drag
 // listeners are now attached per-swipe rather than permanently (so a
 // regression there silently stops ALL slicing), and its difficulty was

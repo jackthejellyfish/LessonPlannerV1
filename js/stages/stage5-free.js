@@ -89,16 +89,18 @@ export function renderFreeSlide(){
   });
 
   document.getElementById('freePrevSlideBtn').disabled = index === 0;
-  document.getElementById('freeNextSlideBtn').textContent = index < FREE_SLIDES.length - 1
-    ? `Next: ${FREE_SLIDES[index + 1].label} →`
-    : 'Next: Balloon Pop →';
+  // As in Stage 2: on the last slide the arrow stops and the footer's
+  // Next gives a nudge.
+  const last = index === FREE_SLIDES.length - 1;
+  document.getElementById('freeNextSlideBtn').disabled = last;
+  document.getElementById('freeNextBtn').classList.toggle('nudge', last);
 }
 
 document.getElementById('freePrevSlideBtn').addEventListener('click', () => {
   if(state.freeIndex > 0){ state.freeIndex--; renderFreeSlide(); }
 });
 document.getElementById('freeNextSlideBtn').addEventListener('click', () => {
-  if(state.freeIndex >= FREE_SLIDES.length - 1){ goToStage(6); return; }
+  if(state.freeIndex >= FREE_SLIDES.length - 1) return;
   state.freeIndex++;
   renderFreeSlide();
 });

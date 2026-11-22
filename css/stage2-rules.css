@@ -16,7 +16,7 @@
      and below it. */
   .learn-slide{
     flex:1; min-height:0; display:flex; align-items:stretch; justify-content:center;
-    width:100%; padding:clamp(6px,1.4vh,18px) 0;
+    width:100%; padding:0 0 clamp(4px,1vh,12px);
   }
   .learn-card{
     width:100%; max-width:1080px;
@@ -85,16 +85,7 @@
   }
   .compare-caption .hl{ color:var(--rule-c); font-weight:800; }
 
-  /* ---- Slide navigation ---- */
-  .learn-nav{
-    flex-shrink:0; display:flex; align-items:center; justify-content:center;
-    gap:clamp(14px,2.5vw,32px); padding-top:clamp(6px,1.4vh,16px);
-  }
-  /* Both buttons reserve the width of the longest label the Next button
-     ever takes ("Next: Controlled practice →"), so the dots stay put
-     instead of sliding sideways when the label changes on the last
-     slide. */
-  .learn-nav .btn{ min-width:clamp(120px, 15vw, 230px); }
+  /* ---- Slide navigation: now in the footer (see .slide-nav) ---- */
   .learn-dots{ display:flex; justify-content:center; gap:clamp(7px,1vw,11px); flex-wrap:wrap; }
   .demo-dot{
     width:13px; height:13px; border-radius:50%; background:var(--line); border:none; padding:0;
