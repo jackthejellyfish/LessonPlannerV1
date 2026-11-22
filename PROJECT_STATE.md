@@ -56,7 +56,7 @@ quiz the same language.
 | 7 | Class survey | How-to slide with a filled-in example row; **Print survey** gives the handout (same questions, empty rows, no example) (`js/stages/survey.js`, content `js/content/survey.js`) |
 | 8 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |
 | 9 | Star Defender | Team game, canvas shooter: the ship follows the pointer, hold to fire, frequent power-ups (Rapid Fire, Spread Shot, Shield, Bomb) caught by shooting or flying into them |
-| 10 | Spin the Wheel | Team game: pegs and a flapping pointer, two ★ bonus slices a game (Double / Triple / Steal) |
+| 10 | Spin the Wheel | Team game, answer first: a right answer earns a spin and the slice's points (a wrong one: no spin); pegs and a flapping pointer, two ★ bonus slices a game (Double / Triple / Steal) |
 | 11 | Practice questions | The worksheet on the board: gap fill, unscramble and sentences side by side on one screen; tap a question (or a section's Show) to reveal its answer. Free writing is on the printed sheet only |
 | 12 | Billiards | Team game, canvas physics |
 | 13 | Neon Arena | Team game, canvas: hold to fire, timed power-ups (10s) that turn up often |

@@ -1,6 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle, showQuestionModal } from '../utils.js';
+import { shuffle } from '../utils.js';
+import { askTeamQuestion } from '../questionChoices.js';
 import { beep, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -13,17 +14,13 @@ import { particleCount } from '../quality.js';
 
 /* =========================================================
    STAGE 8 — SPIN THE WHEEL (replaces the old Bamboozle tile game)
-   Team-turn structure: click "Spin", the wheel spins through several
-   full rotations with an ease-out deceleration and lands on the next
-   question in a shuffled order (state.wheelQuestionOrder — same
-   proven "shuffle once, consume one per turn" pattern every other
-   game here uses) — the segment it visually lands on IS that
-   question's real segment, not just decoration, so the spin is a
-   genuine (if simple) mechanic, not only a flourish. Each of the 10
-   segments has its own fixed point value; landing reveals that
-   question via the shared showQuestionModal, and a self-marked-
-   correct answer awards that segment's points. Once used, a segment
-   dims and won't be landed on again.
+   Answer first, then spin (changed 2026-11-22, like every other game:
+   the question comes first). A team answers the next question in the
+   shuffled order; a right answer earns a spin, and the team wins the
+   points on the slice the wheel lands on (plus any bonus twist). A
+   wrong answer means no spin: this is still the one game where a wrong
+   answer scores nothing. The wheel lands on a random slice that hasn't
+   been won yet, so each slice pays out at most once a game.
 ========================================================= */
 const SEG_COUNT = WHEEL_QUESTIONS.length;
 const SEG_ANGLE = (Math.PI * 2) / SEG_COUNT;
@@ -39,9 +36,9 @@ const SPIN_EXTRA_TURNS = 6;
      The twist only pays out on a correct answer, like the slice itself. */
 const BONUS_SLICES = 2;
 const TWISTS = [
-  { id: 'double', label: 'DOUBLE POINTS', ask: 'Double points!', color: '#49D6A0' },
-  { id: 'triple', label: 'TRIPLE POINTS', ask: 'Triple points!', color: '#FFD23F' },
-  { id: 'steal', label: 'STEAL!', ask: 'Steal points from the leader!', color: '#FF6B8B' }
+  { id: 'double', label: 'DOUBLE POINTS', color: '#49D6A0' },
+  { id: 'triple', label: 'TRIPLE POINTS', color: '#FFD23F' },
+  { id: 'steal', label: 'STEAL!', color: '#FF6B8B' }
 ];
 
 let wheelRowColors = [];
@@ -53,11 +50,11 @@ renderGameIntro('wheelSetup', {
   prefix: 'wheel',
   title: 'Spin the Wheel',
   steps: [
-    'Spin the wheel to land on a question.',
-    'Answer it out loud with your team.',
-    'Answer correctly to win that slice&rsquo;s points.'
+    'One team answers a question.',
+    'Get it right and you spin the wheel!',
+    'You win the points on the slice it lands on. Gold stars are bonus slices!'
   ],
-  tip: 'Bigger numbers on the wheel are worth more points &mdash; and this is the one game where a wrong answer scores nothing, so take your time.'
+  tip: 'This is the one game where a wrong answer scores nothing: no spin this time. So take your time and answer carefully.'
 });
 
 export function renderWheelTeamInputs(count){
@@ -332,24 +329,28 @@ async function beginWheelTurn(){
   document.getElementById('wheelBeginTurnBtn').disabled = true;
   document.getElementById('wheelPlayArea').classList.remove('idle');
 
-  const qIndex = state.wheelQuestionOrder[state.wheelTurnsPlayed];
-  // Confetti/sfx/shake + the beat before the modal covers the canvas
-  // all now happen inside spinWheelTo's own landOnSegment() settle loop.
-  await spinWheelTo(qIndex);
+  // 1. The question.
+  const q = WHEEL_QUESTIONS[state.wheelQuestionOrder[state.wheelTurnsPlayed]];
+  const correct = await askTeamQuestion(q, WHEEL_QUESTIONS, state.wheelTurnsPlayed);
+  if(!correct){ finishWheelTurn(null, 0); return; }
 
-  const q = WHEEL_QUESTIONS[qIndex];
-  const twist = bonusSlices.has(qIndex) ? await rollTwist() : null;
-  const prompt = twist ? `${twist.ask} ${q.prompt}` : q.prompt;
-  const correct = await showQuestionModal(prompt, q.answer, { showFollowup: true });
+  // 2. Right answer: spin for a slice nobody has won yet.
+  const free = WHEEL_QUESTIONS.map((_, i) => i).filter(i => !state.wheelUsedSegments[i]);
+  const slice = free.length ? free[Math.floor(Math.random() * free.length)] : Math.floor(Math.random() * SEG_COUNT);
+  // Confetti/sfx/shake + a beat to see where it landed all happen inside
+  // spinWheelTo's own landOnSegment() settle loop.
+  await spinWheelTo(slice);
+  const twist = bonusSlices.has(slice) ? await rollTwist() : null;
   twistBanner = null;
   renderWheelCanvas();
-  finishWheelTurn(qIndex, correct ? q.points : 0, twist);
+  finishWheelTurn(slice, WHEEL_QUESTIONS[slice].points, twist);
 }
 
-function finishWheelTurn(qIndex, points, twist = null){
-  state.wheelUsedSegments[qIndex] = true;
+// `slice` is null when the answer was wrong (no spin).
+function finishWheelTurn(slice, points, twist = null){
+  if(slice !== null) state.wheelUsedSegments[slice] = true;
   const team = state.wheelTeams[state.wheelCurrentTeam];
-  let label = `+${points}`;
+  let label = slice === null ? 'No spin' : `+${points}`;
   if(points > 0 && twist && twist.id === 'steal'){
     // From the team in the lead (not counting this one), up to what it has.
     const victim = state.wheelTeams

@@ -32,7 +32,7 @@ function watchErrors(page) {
   return errors;
 }
 
-test('Spin the Wheel: a bonus slice rolls a twist, and a right answer pays it out', async ({ page }) => {
+test('Spin the Wheel: answer first; a right answer spins, a bonus slice pays out its twist', async ({ page }) => {
   test.setTimeout(40000);
   const errors = watchErrors(page);
   await page.goto('/index.html');
@@ -41,25 +41,50 @@ test('Spin the Wheel: a bonus slice rolls a twist, and a right answer pays it ou
   await page.click('#wheelNewGameBtn');
   await page.click('#wheelStartBtn');
   await page.waitForTimeout(250);
-  // Every slice a bonus one, so the first spin lands on a twist.
+  // Every slice a bonus one, so the spin lands on a twist.
   await page.evaluate(async () => (await import('/js/stages/stage8-spinwheel.js')).debugSetWheelBonus([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]));
   await page.click('#wheelBeginTurnBtn');
-  // The spin, then the twist roll, then the question.
-  await expect(page.locator('#popQuestionOverlay')).not.toHaveClass(/hidden/, { timeout: 12000 });
-  const prompt = await page.locator('.modal-q-text').textContent();
-  // Nobody has points yet, so it can't be a steal.
-  const mult = prompt.startsWith('Double points!') ? 2 : prompt.startsWith('Triple points!') ? 3 : 0;
-  expect(mult, `prompt was: ${prompt}`).toBeGreaterThan(0);
-  const slicePoints = await page.evaluate(async () => {
-    const { state } = await import('/js/state.js');
-    const { WHEEL_QUESTIONS } = await import('/js/content/stage8-spinwheel.js');
-    return WHEEL_QUESTIONS[state.wheelQuestionOrder[0]].points;
-  });
+  // The question comes first, before any spin.
+  await expect(page.locator('#popQuestionOverlay')).not.toHaveClass(/hidden/);
+  expect(await page.evaluate(async () => (await import('/js/state.js')).state.wheelRoundActive)).toBe(false);
   await page.click('#popCheckBtn');
   await page.click('#popCorrectBtn');
-  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/);
-  const total = await page.evaluate(async () => (await import('/js/state.js')).state.wheelTeams[0].total);
-  expect(total).toBe(slicePoints * mult);
+  // Then the spin, the twist roll, and the result.
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 12000 });
+  const { total, won } = await page.evaluate(async () => {
+    const { state } = await import('/js/state.js');
+    const { WHEEL_QUESTIONS } = await import('/js/content/stage8-spinwheel.js');
+    const i = state.wheelUsedSegments.indexOf(true);
+    return { total: state.wheelTeams[0].total, won: WHEEL_QUESTIONS[i].points };
+  });
+  // Nobody had points, so the twist was double or triple, never a steal.
+  expect([won * 2, won * 3]).toContain(total);
+  await page.click('#wheelNextTeamBtn');
+
+  // Team 2 answers wrong: no spin, no points, no slice used up.
+  await page.click('#wheelBeginTurnBtn');
+  await page.locator('.mc-choice:not([data-correct])').first().waitFor().catch(() => {});
+  const choices = page.locator('.mc-choice');
+  if (await choices.count()) {
+    const right = await page.evaluate(async () => {
+      const { state } = await import('/js/state.js');
+      const { WHEEL_QUESTIONS } = await import('/js/content/stage8-spinwheel.js');
+      return WHEEL_QUESTIONS[state.wheelQuestionOrder[1]].answer;
+    });
+    const n = await choices.count();
+    for (let i = 0; i < n; i++) {
+      const t = (await choices.nth(i).locator('.mc-text').textContent()).trim();
+      if (!right.toLowerCase().includes(t.toLowerCase())) { await choices.nth(i).click(); break; }
+    }
+    await page.click('#popMcContinueBtn');
+  } else {
+    await page.click('#popCheckBtn');
+    await page.click('#popWrongBtn');
+  }
+  await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 4000 });
+  await expect(page.locator('#wheelLastSpinDisplay')).toHaveText('No spin');
+  const used = await page.evaluate(async () => (await import('/js/state.js')).state.wheelUsedSegments.filter(Boolean).length);
+  expect(used).toBe(1);
   expect(errors).toEqual([]);
 });
 
