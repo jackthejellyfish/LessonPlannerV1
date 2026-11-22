@@ -39,14 +39,28 @@
 // defined in each stage's own stylesheet, so they're reused verbatim
 // rather than reinvented here) and `tone` tints the points value:
 // 'bonus' for rewards, 'bad' for penalties, omitted for plain scoring.
+//
+// Each item is a CARD (reworked 2026-11-22: "hard to see what each thing
+// does"): the icon big on top, the name under it in large type that
+// wraps rather than being cut off, and the points as a big coloured
+// badge. A row with the points at the far end made students match a
+// "+3" to its icon across half the screen.
 function scoringRow({ swatch, label, points, tone }){
   const toneClass = tone === 'bad' ? ' gi-bad' : tone === 'bonus' ? ' gi-bonus' : '';
   return `
-    <li class="gi-score-row">
-      <span class="gi-score-swatch">${swatch}</span>
+    <li class="gi-score-row${toneClass}">
+      <span class="gi-score-swatch"><span class="gi-score-swatch-inner">${swatch}</span></span>
       <span class="gi-score-label">${label}</span>
-      ${points ? `<span class="gi-score-points${toneClass}">${points}</span>` : ''}
+      ${points ? `<span class="gi-score-points">${points}</span>` : ''}
     </li>`;
+}
+
+// As many columns as fit the count nicely: 4 or fewer in one row, then
+// 3 + 3 for five or six, 4 + 4 for seven or eight.
+function scoringColumns(n){
+  if(n <= 4) return n;
+  if(n <= 6) return 3;
+  return 4;
 }
 
 function stepsSlide(steps){
@@ -61,7 +75,7 @@ function stepsSlide(steps){
 function scoringSlide(scoring, tip){
   return `
     <h3 class="gi-slide-title">What everything is worth</h3>
-    <ul class="gi-scoring">${scoring.map(scoringRow).join('')}</ul>
+    <ul class="gi-scoring" style="--cols:${scoringColumns(scoring.length)}">${scoring.map(scoringRow).join('')}</ul>
     ${tip ? `<p class="gi-tip">${tip}</p>` : ''}
   `;
 }
