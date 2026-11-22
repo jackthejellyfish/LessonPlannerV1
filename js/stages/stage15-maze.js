@@ -936,6 +936,6 @@ wireTeamManagementButtons({
   cancelRound: cancelMazeRound
 });
 
-document.getElementById('mazeBackBtn').addEventListener('click', () => goToStage(14));
+document.getElementById('mazeBackBtn').addEventListener('click', () => goToStage(16));
 // A "Next" button's handler lives in the file for the stage it goes TO.
-document.getElementById('whackNextStageBtn').addEventListener('click', () => goToStage(15));
+document.getElementById('whackNextStageBtn').addEventListener('click', () => goToStage(17));

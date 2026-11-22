@@ -943,5 +943,5 @@ wireTeamManagementButtons({
   cancelRound: cancelInvRound
 });
 
-document.getElementById('invBackBtn').addEventListener('click', () => goToStage(6));
-document.getElementById('invNextBtn').addEventListener('click', () => goToStage(8));
+document.getElementById('invBackBtn').addEventListener('click', () => goToStage(8));
+document.getElementById('invNextBtn').addEventListener('click', () => goToStage(10));

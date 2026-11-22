@@ -1191,8 +1191,8 @@ wireTeamManagementButtons({
   cancelRound: cancelNeonRound
 });
 
-document.getElementById('neonBackBtn').addEventListener('click', () => goToStage(10));
+document.getElementById('neonBackBtn').addEventListener('click', () => goToStage(12));
 // Wired here (the target stage's own file), not in stage10 — same
 // existing convention as qsNextStageBtn: a "Next" button's click
 // handler lives in the file for the stage it goes TO.
-document.getElementById('billiardsNextStageBtn').addEventListener('click', () => goToStage(11));
+document.getElementById('billiardsNextStageBtn').addEventListener('click', () => goToStage(13));

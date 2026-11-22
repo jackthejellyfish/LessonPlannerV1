@@ -14,7 +14,7 @@ test('Billiards: a full turn answers a question, resolves a shot, and updates th
 
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(9).evaluate((el) => el.click());
+  await page.locator('.step').nth(11).evaluate((el) => el.click());
   // The setup screen opens on a menu now (New game / How to play).
   await page.click('#billiardsNewGameBtn');
   await page.click('#billiardsStartBtn');
@@ -61,7 +61,7 @@ test('Billiards: several turns run one loop at a time and the table never goes b
 
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(9).evaluate((el) => el.click());
+  await page.locator('.step').nth(11).evaluate((el) => el.click());
   await page.click('#billiardsNewGameBtn');
   await page.click('#billiardsStartBtn');
   await page.waitForTimeout(300);
@@ -123,7 +123,7 @@ test('Neon Arena: a full turn answers a question, plays a round, and reaches the
 
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(10).evaluate((el) => el.click());
+  await page.locator('.step').nth(12).evaluate((el) => el.click());
   // The setup screen opens on a menu now (New game / How to play).
   await page.click('#neonNewGameBtn');
   await page.click('#neonStartBtn');
@@ -159,7 +159,7 @@ test('Neon Arena: holding the mouse keeps firing, power-ups arrive early, and th
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(10).evaluate((el) => el.click());
+  await page.locator('.step').nth(12).evaluate((el) => el.click());
   await page.click('#neonNewGameBtn');
   await page.click('#neonStartBtn');
   await page.waitForTimeout(300);
@@ -201,7 +201,7 @@ test('Star Defender: the ship follows the mouse, holding fires repeatedly, power
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(6).evaluate((el) => el.click());
+  await page.locator('.step').nth(8).evaluate((el) => el.click());
   await page.click('#invNewGameBtn');
   await page.click('#invStartBtn');
   await page.waitForTimeout(300);
@@ -242,7 +242,7 @@ test('Fruit Ninja: a swipe across the play area slices shapes and scores', async
 
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(11).evaluate((el) => el.click());
+  await page.locator('.step').nth(13).evaluate((el) => el.click());
   // The setup screen opens on a menu now (New game / How to play).
   await page.click('#fruitNewGameBtn');
   await page.click('#fruitStartBtn');

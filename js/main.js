@@ -41,6 +41,8 @@ import { applyLesson as applyStage6Content } from './content/stage6-ballpop.js';
 import { applyLesson as applyStage7Content } from './content/stage7-stardefender.js';
 import { applyLesson as applyStage8Content } from './content/stage8-spinwheel.js';
 import { applyLesson as applyStage9Content } from './content/stage9-questions.js';
+import { applyLesson as applyDictationContent } from './content/dictation.js';
+import { applyLesson as applySurveyContent } from './content/survey.js';
 import { applyLesson as applyStage10Content } from './content/stage10-billiards.js';
 import { applyLesson as applyStage11Content } from './content/stage11-neonarena.js';
 import { applyLesson as applyStage12Content } from './content/stage12-fruitninja.js';
@@ -54,6 +56,7 @@ import { applyLesson as applyStage17Content } from './content/stage17-zombies.js
 
 const CONTENT_APPLIERS = [
   applyStage1Content, applyStage2Content, applyStage3Content, applyStage4Content, applyStage5Content,
+  applyDictationContent, applySurveyContent,
   applyStage6Content, applyStage7Content, applyStage8Content, applyStage9Content, applyStage10Content,
   applyStage11Content, applyStage12Content, applyStage13Content, applyStage14Content,
   applyStage15Content, applyStage16Content, applyStage17Content

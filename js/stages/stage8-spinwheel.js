@@ -622,5 +622,5 @@ wireTeamManagementButtons({
   cancelRound: cancelWheelRound
 });
 
-document.getElementById('wheelBackBtn').addEventListener('click', () => goToStage(7));
-document.getElementById('wheelNextBtn').addEventListener('click', () => goToStage(9));
+document.getElementById('wheelBackBtn').addEventListener('click', () => goToStage(9));
+document.getElementById('wheelNextBtn').addEventListener('click', () => goToStage(11));

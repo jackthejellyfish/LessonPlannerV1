@@ -13,7 +13,7 @@
 
 An interactive ESL lesson, run by a teacher on a classroom screen (projector
 or large board). Students don't use their own devices. The teacher picks a
-lesson, then steps through 17 stages: teaching first, then team games that
+lesson, then steps through 19 stages: teaching first, then team games that
 quiz the same language.
 
 - **Branding:** "Teacher Jack’s Lesson Planner", with Jack the jellyfish
@@ -43,7 +43,7 @@ quiz the same language.
 | `at-school` | At School: I’ve Got… / I Want… (have got / has got and want / wants, from the Unit 2 textbook pages) |
 | `months-weather` | Months, Weather and Seasons (in + month, on + date, ordinals, It’s + weather, the seasons) |
 
-### Stages (17), from `js/stepper.js`
+### Stages (19), from `js/stepper.js`
 
 | # | Stage | Kind |
 |---|---|---|
@@ -52,18 +52,20 @@ quiz the same language.
 | 3 | Controlled | Multiple choice, under one slim practice bar (progress, timer ring, score) |
 | 4 | Guided | Word-order sentence building, 20s a sentence (same practice bar) |
 | 5 | Free practice | Two slides: **1** the task, **2** your turn (timer, starters, word bank) |
-| 6 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |
-| 7 | Star Defender | Team game, canvas shooter: the ship follows the pointer, hold to fire, frequent power-ups (Rapid Fire, Spread Shot, Shield, Bomb) caught by shooting or flying into them |
-| 8 | Spin the Wheel | Team game: pegs and a flapping pointer, two ★ bonus slices a game (Double / Triple / Steal) |
-| 9 | Practice questions | The worksheet on the board: gap fill, unscramble and sentences side by side on one screen; tap a question (or a section's Show) to reveal its answer. Free writing is on the printed sheet only |
-| 10 | Billiards | Team game, canvas physics |
-| 11 | Neon Arena | Team game, canvas: hold to fire, timed power-ups (10s) that turn up often |
-| 12 | Fruit Ninja | Team game, canvas (each volley comes from a random edge: bottom, top, left, right or a corner; bombs cost 5; a mega bomb halves the score; the blade never freezes) |
-| 13 | Football | Team game, canvas penalty shoot-out (rebuilt from Hoop Shot; ids keep the `hoop` prefix): tap the goal to aim, KICK, 3 kicks a turn; a swaying keeper who dives late, sometimes a hopping wall |
-| 14 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns); every lane gets the same deal |
-| 15 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
-| 16 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round. 12 levels since 2026-11-22, with environment themes (jungle, desert, snow, volcano) |
-| 17 | Zombie Dash | Team game, canvas, top-down, for young classes: Pip collects sweets while goofy zombies shuffle after them; beach balls to kick (a fast one bonks a zombie, +2), Cure Potion / Super Sneakers / Bubble Blast, 10 levels incl. jungle, desert, snowy mountain and volcano (teacher picks; each lap moves on). Questions are a review mix from the other games. Ends with **Finish: choose a lesson** |
+| 6 | Running dictation | How-to slide; **Print sentences** gives six big sentences on one A4 page to cut out; the teacher reveals them one by one so pairs can check (`js/stages/dictation.js`, content `js/content/dictation.js`) |
+| 7 | Class survey | How-to slide with a filled-in example row; **Print survey** gives the handout (same questions, empty rows, no example) (`js/stages/survey.js`, content `js/content/survey.js`) |
+| 8 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |
+| 9 | Star Defender | Team game, canvas shooter: the ship follows the pointer, hold to fire, frequent power-ups (Rapid Fire, Spread Shot, Shield, Bomb) caught by shooting or flying into them |
+| 10 | Spin the Wheel | Team game: pegs and a flapping pointer, two ★ bonus slices a game (Double / Triple / Steal) |
+| 11 | Practice questions | The worksheet on the board: gap fill, unscramble and sentences side by side on one screen; tap a question (or a section's Show) to reveal its answer. Free writing is on the printed sheet only |
+| 12 | Billiards | Team game, canvas physics |
+| 13 | Neon Arena | Team game, canvas: hold to fire, timed power-ups (10s) that turn up often |
+| 14 | Fruit Ninja | Team game, canvas (each volley comes from a random edge: bottom, top, left, right or a corner; bombs cost 5; a mega bomb halves the score; the blade never freezes) |
+| 15 | Football | Team game, canvas penalty shoot-out (rebuilt from Hoop Shot; ids keep the `hoop` prefix): tap the goal to aim, KICK, 3 kicks a turn; a swaying keeper who dives late, sometimes a hopping wall |
+| 16 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns); every lane gets the same deal |
+| 17 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
+| 18 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round. 12 levels since 2026-11-22, with environment themes (jungle, desert, snow, volcano) |
+| 19 | Zombie Dash | Team game, canvas, top-down, for young classes: Pip collects sweets while goofy zombies shuffle after them; beach balls to kick (a fast one bonks a zombie, +2), Cure Potion / Super Sneakers / Bubble Blast, 10 levels incl. jungle, desert, snowy mountain and volcano (teacher picks; each lap moves on). Questions are a review mix from the other games. Ends with **Finish: choose a lesson** |
 
 Every team game follows the same loop: a setup screen (rules plus teams and
 colours) → a team answers a question → the team plays a short timed turn →
@@ -156,9 +158,17 @@ archive/              original single-file app, and the full history doc
 
 ## 4. Adding things
 
+**Stage numbers vs file names.** Stages 6 and 7 were inserted on
+2026-11-22, so every game moved up two (Balloon Pop is stage 8, Zombie
+Dash 19) but kept its file name (`stage6-ballpop.js` etc.). Go by the
+`GAMES` registry and the `<section id="stageN">`, not the file name. The
+new stages' files have no number (`dictation.js`, `survey.js`).
+
 **A new lesson.** Fill in `LESSON_TEMPLATE.md`, then:
 1. Add an entry to `LESSONS` in `js/lessons.js`.
-2. Add a `'<id>': {...}` block to **every** `js/content/stage*.js`. Plan for
+2. Add a `'<id>': {...}` block to **every** `js/content/stage*.js`, plus
+   six sentences in `js/content/dictation.js` and two questions with an
+   example row in `js/content/survey.js`. Plan for
    10–14 vocabulary items, and vary the phrasing and subject between games.
 3. Stage 2 is the only stage where the grammar's shape matters. Rule cards
    render as `base → base+suffix`, which covers suffix grammar

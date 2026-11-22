@@ -15,17 +15,17 @@ const { test, expect } = require('@playwright/test');
 ========================================================= */
 
 const GAMES = [
-  { step: 5, prefix: 'pop' },
-  { step: 6, prefix: 'inv' },
-  { step: 7, prefix: 'wheel' },
-  { step: 9, prefix: 'billiards' },
-  { step: 10, prefix: 'neon' },
-  { step: 11, prefix: 'fruit' },
-  { step: 12, prefix: 'hoop' },
-  { step: 13, prefix: 'whack' },
-  { step: 14, prefix: 'maze' },
-  { step: 15, prefix: 'jump' },
-  { step: 16, prefix: 'zombie' },
+  { step: 7, prefix: 'pop' },
+  { step: 8, prefix: 'inv' },
+  { step: 9, prefix: 'wheel' },
+  { step: 11, prefix: 'billiards' },
+  { step: 12, prefix: 'neon' },
+  { step: 13, prefix: 'fruit' },
+  { step: 14, prefix: 'hoop' },
+  { step: 15, prefix: 'whack' },
+  { step: 16, prefix: 'maze' },
+  { step: 17, prefix: 'jump' },
+  { step: 18, prefix: 'zombie' },
 ];
 
 const VIEWPORTS = [

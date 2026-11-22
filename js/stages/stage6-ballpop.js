@@ -768,5 +768,5 @@ wireTeamManagementButtons({
   cancelRound: cancelPopRound
 });
 
-document.getElementById('popBackBtn').addEventListener('click', () => goToStage(5));
-document.getElementById('popNextBtn').addEventListener('click', () => goToStage(7));
+document.getElementById('popBackBtn').addEventListener('click', () => goToStage(7));
+document.getElementById('popNextBtn').addEventListener('click', () => goToStage(9));

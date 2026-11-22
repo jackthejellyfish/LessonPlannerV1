@@ -285,7 +285,7 @@ wireHoldButton('hoopPowerUp', 0, 0.05);
 document.getElementById('hoopShootBtn').addEventListener('click', kick);
 
 document.addEventListener('keydown', (e) => {
-  if(state.currentStage !== 13 || !canAim()) return;
+  if(state.currentStage !== 15 || !canAim()) return;
   if(document.querySelector('.overlay:not(.hidden)')) return;
   if(e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
   const map = { ArrowLeft: [-0.06, 0], ArrowRight: [0.06, 0], ArrowUp: [0, 0.05], ArrowDown: [0, -0.05] };
@@ -852,6 +852,6 @@ wireTeamManagementButtons({
   cancelRound: cancelHoopRound
 });
 
-document.getElementById('hoopBackBtn').addEventListener('click', () => goToStage(12));
+document.getElementById('hoopBackBtn').addEventListener('click', () => goToStage(14));
 // Wired here (the target stage's own file) — the existing convention.
-document.getElementById('fruitNextStageBtn').addEventListener('click', () => goToStage(13));
+document.getElementById('fruitNextStageBtn').addEventListener('click', () => goToStage(15));

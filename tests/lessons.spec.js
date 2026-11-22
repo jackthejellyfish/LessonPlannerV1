@@ -15,7 +15,7 @@ const { test, expect } = require('@playwright/test');
    {prompt, answer} banks and are covered by the error check alone.
 ========================================================= */
 
-const STAGE_COUNT = 17;
+const STAGE_COUNT = 19;
 
 test('every lesson renders every stage with no console errors', async ({ page }) => {
   const errors = [];
@@ -69,7 +69,7 @@ test('every lesson renders every stage with no console errors', async ({ page })
     expect(await page.locator('#wordBank li, #wordBank .word-pair, #wordBank > *').count(),
       `${title}: stage 5 word bank`).toBeGreaterThan(5);
 
-    await steps.nth(8).evaluate((el) => el.click());
+    await steps.nth(10).evaluate((el) => el.click());
     expect(await page.locator('.ws-col').count(), `${title}: stage 9 sections`).toBe(3);
     expect(await page.locator('.ws-item').count(), `${title}: stage 9 questions`).toBe(15);
   }

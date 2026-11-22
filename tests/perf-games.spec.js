@@ -95,16 +95,16 @@ async function beginTurn(page, prefix) {
 }
 
 const GAMES = [
-  { name: 'Balloon Pop',   step: 5,  prefix: 'pop' },
-  { name: 'Star Defender', step: 6,  prefix: 'inv' },
-  { name: 'Billiards',     step: 9,  prefix: 'billiards' },
-  { name: 'Neon Arena',    step: 10, prefix: 'neon' },
-  { name: 'Fruit Ninja',   step: 11, prefix: 'fruit' },
-  { name: 'Hoop Shot',     step: 12, prefix: 'hoop' },
-  { name: 'Whack-a-Jelly', step: 13, prefix: 'whack' },
-  { name: 'Jelly Maze',    step: 14, prefix: 'maze' },
-  { name: 'Ninja Jump',    step: 15, prefix: 'jump' },
-  { name: 'Zombie Dash',   step: 16, prefix: 'zombie' },
+  { name: 'Balloon Pop',   step: 7,  prefix: 'pop' },
+  { name: 'Star Defender', step: 8,  prefix: 'inv' },
+  { name: 'Billiards',     step: 11,  prefix: 'billiards' },
+  { name: 'Neon Arena',    step: 12, prefix: 'neon' },
+  { name: 'Fruit Ninja',   step: 13, prefix: 'fruit' },
+  { name: 'Hoop Shot',     step: 14, prefix: 'hoop' },
+  { name: 'Whack-a-Jelly', step: 15, prefix: 'whack' },
+  { name: 'Jelly Maze',    step: 16, prefix: 'maze' },
+  { name: 'Ninja Jump',    step: 17, prefix: 'jump' },
+  { name: 'Zombie Dash',   step: 18, prefix: 'zombie' },
 ];
 
 test.describe('at a 4K classroom-panel resolution', () => {

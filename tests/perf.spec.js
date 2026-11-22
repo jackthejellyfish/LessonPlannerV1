@@ -147,7 +147,7 @@ async function openRound(page, { stepIndex, prefix }) {
 
 test('perf: Ball Pop holds its frame budget under CPU throttling', async ({ page }) => {
   await throttle(page);
-  await openRound(page, { stepIndex: 5, prefix: 'pop' });
+  await openRound(page, { stepIndex: 7, prefix: 'pop' });
 
   const stats = summarise('Ball Pop', await sampleFrames(page, SAMPLE_MS));
   expect(stats.fps).toBeGreaterThan(MIN_FPS.ballpop);
@@ -155,7 +155,7 @@ test('perf: Ball Pop holds its frame budget under CPU throttling', async ({ page
 
 test('perf: Fruit Ninja holds its frame budget under CPU throttling', async ({ page }) => {
   await throttle(page);
-  await openRound(page, { stepIndex: 11, prefix: 'fruit' });
+  await openRound(page, { stepIndex: 13, prefix: 'fruit' });
 
   const stats = summarise('Fruit Ninja', await sampleFrames(page, SAMPLE_MS));
   expect(stats.fps).toBeGreaterThan(MIN_FPS.fruit);

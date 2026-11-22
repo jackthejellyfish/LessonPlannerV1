@@ -37,7 +37,7 @@ test('Spin the Wheel: a bonus slice rolls a twist, and a right answer pays it ou
   const errors = watchErrors(page);
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(7).evaluate((el) => el.click());
+  await page.locator('.step').nth(9).evaluate((el) => el.click());
   await page.click('#wheelNewGameBtn');
   await page.click('#wheelStartBtn');
   await page.waitForTimeout(250);
@@ -68,7 +68,7 @@ test('Zombie Dash: zombies climb out, sweets and ball bonks score, and laps move
   const errors = watchErrors(page);
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(16).evaluate((el) => el.click());
+  await page.locator('.step').nth(18).evaluate((el) => el.click());
   await page.click('#zombieNewGameBtn');
   await page.click('#zombieStartBtn');
   await page.waitForTimeout(250);
@@ -118,7 +118,7 @@ test('Zombie Dash: zombies climb out, sweets and ball bonks score, and laps move
 test('Football: tap the goal to aim, KICK scores past a parked keeper, three kicks end the turn', async ({ page }) => {
   test.setTimeout(60000);
   const errors = watchErrors(page);
-  await openGame(page, 12, 'hoop');
+  await openGame(page, 14, 'hoop');
   const fb = () => page.evaluate(async () => (await import('/js/stages/stage13-hoopshot.js')).debugFootball());
   const shotsLeft = page.locator('#hoopShotsDisplay');
   const kick = page.locator('#hoopShootBtn');
@@ -161,7 +161,7 @@ test('Whack-a-Jelly: jellyfish swim up and tapping them scores; the teacher can 
   const errors = watchErrors(page);
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(13).evaluate((el) => el.click());
+  await page.locator('.step').nth(15).evaluate((el) => el.click());
   await page.click('#whackNewGameBtn');
   await page.click('#whackStartBtn');
   await page.waitForTimeout(250);
@@ -197,7 +197,7 @@ test('Whack-a-Jelly: every lane gets the same number of jellies, even when one l
   const errors = watchErrors(page);
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(13).evaluate((el) => el.click());
+  await page.locator('.step').nth(15).evaluate((el) => el.click());
   await page.click('#whackNewGameBtn');
   await page.click('#whackStartBtn');
   await page.waitForTimeout(250);
@@ -225,7 +225,7 @@ test('Whack-a-Jelly: every lane gets the same number of jellies, even when one l
 
 test('Balloon Pop: tapping balloons pops them and scores, and the round reaches the result modal', async ({ page }) => {
   const errors = watchErrors(page);
-  await openGame(page, 5, 'pop');
+  await openGame(page, 7, 'pop');
   await page.waitForTimeout(600);
   const box = await page.locator('#popCanvas').boundingBox();
   for (let i = 0; i < 4; i++) {
@@ -245,7 +245,7 @@ test('Balloon Pop: tapping balloons pops them and scores, and the round reaches 
 test('Jelly Maze: the keyboard steers Jack, a full turn reaches the result modal', async ({ page }) => {
   test.setTimeout(60000);
   const errors = watchErrors(page);
-  await openGame(page, 14, 'maze');
+  await openGame(page, 16, 'maze');
   await expect(page.locator('#mazeHint')).toBeVisible();
 
   // Swim around for a while: right along the bottom, then up, then hold
@@ -271,7 +271,7 @@ test('Jelly Maze: the keyboard steers Jack, a full turn reaches the result modal
 
 test('Jelly Maze: escaping ends the turn at once, with +10 and a time bonus', async ({ page }) => {
   const errors = watchErrors(page);
-  await openGame(page, 14, 'maze');
+  await openGame(page, 16, 'maze');
   await page.waitForTimeout(300);
   await page.evaluate(async () => (await import('/js/stages/stage15-maze.js')).debugMoveJackToExit());
   // Escaped with ~19s of a 20s round left: the result screen comes well
@@ -285,7 +285,7 @@ test('Jelly Maze: escaping ends the turn at once, with +10 and a time bonus', as
 test('Ninja Jump: running along the floor collects stars, a full turn reaches the result modal', async ({ page }) => {
   test.setTimeout(60000);
   const errors = watchErrors(page);
-  await openGame(page, 15, 'jump');
+  await openGame(page, 17, 'jump');
   await expect(page.locator('#jumpLeftBtn')).toBeVisible(); // touch buttons show during a turn
 
   // Level 1 has ninja stars sitting on the floor to the right of the
@@ -313,7 +313,7 @@ test('Ninja Jump: running along the floor collects stars, a full turn reaches th
 
 test('Ninja Jump: clearing the level ends the turn at once, with +5 and a time bonus', async ({ page }) => {
   const errors = watchErrors(page);
-  await openGame(page, 15, 'jump');
+  await openGame(page, 17, 'jump');
   await page.waitForTimeout(300);
   await page.evaluate(async () => (await import('/js/stages/stage16-ninjajump.js')).debugCollectAllStars());
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 4000 });
@@ -327,7 +327,7 @@ test('Ninja Jump: the teacher picks the round length between turns', async ({ pa
   const errors = watchErrors(page);
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(15).evaluate((el) => el.click());
+  await page.locator('.step').nth(17).evaluate((el) => el.click());
   await page.click('#jumpNewGameBtn');
   await page.click('#jumpStartBtn');
   await page.waitForTimeout(250);
@@ -345,7 +345,7 @@ test('Ninja Jump: the teacher picks the round length between turns', async ({ pa
 
 test('Jelly Maze and Ninja Jump stop their game loop when you leave mid-turn', async ({ page }) => {
   const errors = watchErrors(page);
-  for (const [step, prefix] of [[14, 'maze'], [15, 'jump']]) {
+  for (const [step, prefix] of [[16, 'maze'], [17, 'jump']]) {
     await openGame(page, step, prefix);
     await page.waitForTimeout(500);
     await page.locator('.step').nth(0).evaluate((el) => el.click());
@@ -372,7 +372,7 @@ test('Ninja Jump: the teacher can pick any level, easy ones first, and laps move
   const errors = watchErrors(page);
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(15).evaluate((el) => el.click());
+  await page.locator('.step').nth(17).evaluate((el) => el.click());
   await page.click('#jumpNewGameBtn');
   await page.click('#jumpStartBtn');
   await page.waitForTimeout(250);
@@ -402,7 +402,7 @@ test('Ninja Jump: every updraft carries the ninja up onto the plank above it', a
   const errors = watchErrors(page);
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(15).evaluate((el) => el.click());
+  await page.locator('.step').nth(17).evaluate((el) => el.click());
   await page.click('#jumpNewGameBtn');
   await page.click('#jumpStartBtn');
   await page.waitForTimeout(250);
@@ -428,7 +428,7 @@ test('Ninja Jump: every updraft carries the ninja up onto the plank above it', a
 
 test('Ninja Jump: pick-ups move between rounds, and the golden shuriken is worth 3', async ({ page }) => {
   const errors = watchErrors(page);
-  await openGame(page, 15, 'jump');
+  await openGame(page, 17, 'jump');
   // Every level has a golden shuriken; ones with several spots don't
   // always put it in the same place.
   const spread = await jumpInternals(page, `
@@ -451,7 +451,7 @@ test('Ninja Jump: pick-ups move between rounds, and the golden shuriken is worth
 
 test('Ninja Jump: the speed boost makes the ninja run faster, and side winds push', async ({ page }) => {
   const errors = watchErrors(page);
-  await openGame(page, 15, 'jump');
+  await openGame(page, 17, 'jump');
   const speedLevel = await jumpInternals(page, 'return J.levels.findIndex(l => l.speed);');
   await jumpInternals(page, 'J.loadLevel(a); Object.assign(J.ninja, { x: 3.5, y: 14, vx: 0, vy: 0 }); J.setInput({ right: true });', speedLevel);
   await page.waitForTimeout(500);
@@ -480,7 +480,7 @@ test('every other turn question is multiple choice, marked by the app', async ({
   // Whack-a-Jelly's "Which is correct?" questions always have options.
   await page.goto('/index.html');
   await page.locator('.lesson-card').nth(0).click();
-  await page.locator('.step').nth(13).evaluate((el) => el.click());
+  await page.locator('.step').nth(15).evaluate((el) => el.click());
   await page.click('#whackNewGameBtn');
   await page.click('#whackStartBtn');
   await page.waitForTimeout(250);
@@ -511,7 +511,7 @@ test('every other turn question is multiple choice, marked by the app', async ({
 test('Fruit Ninja: fruit comes from the bottom, the top and the sides', async ({ page }) => {
   test.setTimeout(40000);
   const errors = watchErrors(page);
-  await openGame(page, 11, 'fruit');
+  await openGame(page, 13, 'fruit');
   const seen = new Set();
   for (let i = 0; i < 50; i++) {
     const shapes = await page.evaluate(async () => (await import('/js/state.js')).state.fruitShapes.map((s) => ({ x: s.x, y: s.y, vy: s.vy, half: s.half })));

@@ -31,6 +31,7 @@ function createState(lessonId, muted){
     semiChecked: false,
     semiTimerRAF: null,
     semiStarted: false, // becomes true the first time the learner actually reaches stage 4
+    dictRevealed: new Set(), // Stage 6: which dictation sentences are showing
     qsStarted: false,   // Stage 9 worksheet set up for this lesson (keeps revealed answers on revisits)
     popTeams: [],
     popCurrentTeam: 0,

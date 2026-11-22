@@ -5,6 +5,7 @@
      of a screenshot of the app with buttons and a stepper on it. */
   #printableRules{ display:none; }
   #printableWorksheet{ display:none; }
+  #printableActivity{ display:none; }
 
   @media print{
     /* The active print target is whichever element has .active-print set
@@ -45,4 +46,30 @@
     #printableWorksheet .answer-key{ margin-top:10mm; border-top:2px solid #333; padding-top:4mm; }
     #printableWorksheet .answer-key h3{ font-size:11pt; margin-bottom:3mm; }
     #printableWorksheet .answer-key ol{ font-size:10pt; columns:2; column-gap:10mm; }
+
+    /* Running dictation: six big strips on one page, dashed to cut. */
+    #printableActivity .pa-small{ font-size:9pt; color:#777; text-align:center; margin:0 0 4mm; font-family:Arial, sans-serif; }
+    #printableActivity .pa-strip{
+      position:relative; display:flex; align-items:center; min-height:38mm;
+      border-top:2px dashed #888; padding:4mm 6mm 4mm 14mm; page-break-inside:avoid;
+      font-family:Arial, Helvetica, sans-serif; font-size:24pt; font-weight:700; line-height:1.25;
+    }
+    #printableActivity .pa-strip:last-child{ border-bottom:2px dashed #888; }
+    #printableActivity .pa-strip::before{ content:'\2702'; position:absolute; left:-1mm; top:-5.5mm; font-size:14pt; color:#888; }
+    #printableActivity .pa-strip-num{
+      position:absolute; left:3mm; top:3mm; font-size:11pt; font-weight:700; color:#999;
+    }
+
+    /* Class survey handout. */
+    #printableActivity .pa-survey{ font-family:Arial, Helvetica, sans-serif; }
+    #printableActivity .pa-survey h1{ font-size:22pt; text-align:center; margin:0 0 1mm; }
+    #printableActivity .pa-subtitle{ text-align:center; font-size:11pt; color:#555; margin:0 0 6mm; }
+    #printableActivity .pa-line{ font-size:12pt; margin:0 0 4mm; }
+    #printableActivity .pa-instructions{ font-size:13pt; font-weight:700; margin:0 0 5mm; }
+    #printableActivity .pa-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+    #printableActivity .pa-table th, #printableActivity .pa-table td{ border:1.5px solid #333; padding:2mm 3mm; vertical-align:top; text-align:left; }
+    #printableActivity .pa-table th{ font-size:12.5pt; background:#eee; }
+    #printableActivity .pa-table th:first-child{ width:22%; }
+    #printableActivity .pa-table td{ height:24mm; }
+    #printableActivity .pa-footer{ text-align:center; font-size:9pt; color:#888; margin-top:6mm; }
   }

@@ -46,6 +46,8 @@
     <link rel="modulepreload" href="js/content/stage7-stardefender.js" />
     <link rel="modulepreload" href="js/content/stage8-spinwheel.js" />
     <link rel="modulepreload" href="js/content/stage9-questions.js" />
+    <link rel="modulepreload" href="js/content/dictation.js" />
+    <link rel="modulepreload" href="js/content/survey.js" />
     <link rel="modulepreload" href="js/fpsMeter.js" />
     <link rel="modulepreload" href="js/fullscreenLayout.js" />
     <link rel="modulepreload" href="js/gameIntro.js" />
@@ -73,6 +75,9 @@
     <link rel="modulepreload" href="js/stages/stage7-stardefender.js" />
     <link rel="modulepreload" href="js/stages/stage8-spinwheel.js" />
     <link rel="modulepreload" href="js/stages/stage9-questions.js" />
+    <link rel="modulepreload" href="js/stages/dictation.js" />
+    <link rel="modulepreload" href="js/stages/survey.js" />
+    <link rel="modulepreload" href="js/stages/activityPrint.js" />
     <link rel="modulepreload" href="js/state.js" />
     <link rel="modulepreload" href="js/stepper.js" />
     <link rel="modulepreload" href="js/teamColorPicker.js" />
@@ -88,6 +93,7 @@
     <link rel="stylesheet" href="css/stage3-controlled.css" />
     <link rel="stylesheet" href="css/stage4-guided.css" />
     <link rel="stylesheet" href="css/stage5-free.css" />
+    <link rel="stylesheet" href="css/activities.css" />
     <link rel="stylesheet" href="css/stage6-ballpop.css" />
     <link rel="stylesheet" href="css/stage7-stardefender.css" />
     <link rel="stylesheet" href="css/stage8-spinwheel.css" />
@@ -138,6 +144,7 @@
     <!-- Only rendered when printing — the active-print class decides which one shows. -->
     <div id="printableRules"></div>
     <div id="printableWorksheet"></div>
+    <div id="printableActivity"></div>
 
     <!-- LESSON SELECT — shown first; picking a card reveals .wrap below and
          starts that lesson at Stage 1. See js/lessons.js. -->
@@ -379,14 +386,80 @@
           <div class="footer-actions">
             <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
             <button class="btn btn-primary" id="freeNextBtn">
-              Next: Balloon Pop →
+              Next: Running dictation →
             </button>
           </div>
         </div>
       </section>
 
-      <!-- STAGE 6: BALLOON POP -->
+      <!-- STAGE 6: RUNNING DICTATION (js/stages/dictation.js) -->
       <section class="stage hidden" id="stage6">
+        <h2>Running dictation</h2>
+        <div class="stage-body">
+          <div class="act-layout">
+            <div class="act-how">
+              <p class="act-eyebrow">How to play</p>
+              <ol class="act-steps">
+                <li><strong>Work in pairs:</strong> one runner and one writer.</li>
+                <li>The sentences are on the wall. The <strong>runner</strong> runs, reads ONE sentence and remembers it.</li>
+                <li>The runner runs back and <strong>says</strong> it. The <strong>writer</strong> writes it down.</li>
+                <li><strong>Swap jobs</strong> after every sentence. Can you get all six?</li>
+              </ol>
+              <p class="act-tip">The runner can't write, and the writer can't run!</p>
+            </div>
+            <div class="act-panel">
+              <div class="act-panel-head">
+                <h3>Check your sentences</h3>
+                <button class="btn btn-ghost" id="dictRevealAllBtn" type="button">Show all</button>
+              </div>
+              <ol class="dict-list" id="dictList"></ol>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="dictBackBtn">← Back</button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost" id="dictPrintBtn" type="button">Print sentences</button>
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="dictNextBtn" type="button">Next: Survey →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 7: CLASS SURVEY (js/stages/survey.js) -->
+      <section class="stage hidden" id="stage7">
+        <h2>Class survey</h2>
+        <div class="stage-body">
+          <div class="act-layout">
+            <div class="act-how">
+              <p class="act-eyebrow">How it works</p>
+              <ol class="act-steps">
+                <li><strong>Take a survey sheet</strong> and a pencil.</li>
+                <li><strong>Walk around the class.</strong> Ask your friends the questions.</li>
+                <li><strong>Write their name and their answers</strong> in full sentences.</li>
+                <li>Ask at least <strong>four friends</strong>. Then tell the class one thing you found out!</li>
+              </ol>
+            </div>
+            <div class="act-panel">
+              <div class="act-panel-head">
+                <h3>Example</h3>
+              </div>
+              <div id="surveyExample"></div>
+            </div>
+          </div>
+        </div>
+        <div class="stage-footer">
+          <button class="btn btn-ghost" id="surveyBackBtn">← Back</button>
+          <div class="footer-actions">
+            <button class="btn btn-ghost" id="surveyPrintBtn" type="button">Print survey</button>
+            <button class="btn btn-ghost restart-lesson-btn">↺ Restart lesson</button>
+            <button class="btn btn-primary" id="surveyNextBtn" type="button">Next: Balloon Pop →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 8: BALLOON POP -->
+      <section class="stage hidden" id="stage8">
         <h2>Balloon Pop</h2>
         <div class="stage-body">
           <div id="popSetup"></div>
@@ -471,8 +544,8 @@
         </div>
       </section>
 
-      <!-- STAGE 7: STAR DEFENDER -->
-      <section class="stage hidden" id="stage7">
+      <!-- STAGE 9: STAR DEFENDER -->
+      <section class="stage hidden" id="stage9">
         <h2>Star Defender</h2>
         <div class="stage-body">
           <div id="invSetup"></div>
@@ -555,8 +628,8 @@
         </div>
       </section>
 
-      <!-- STAGE 8: SPIN THE WHEEL -->
-      <section class="stage hidden" id="stage8">
+      <!-- STAGE 10: SPIN THE WHEEL -->
+      <section class="stage hidden" id="stage10">
         <h2>Spin the Wheel</h2>
         <div class="stage-body">
           <div id="wheelSetup"></div>
@@ -637,8 +710,8 @@
         </div>
       </section>
 
-      <!-- STAGE 9: PRACTICE QUESTIONS (the worksheet, on the board) -->
-      <section class="stage hidden" id="stage9">
+      <!-- STAGE 11: PRACTICE QUESTIONS (the worksheet, on the board) -->
+      <section class="stage hidden" id="stage11">
         <h2>Practice questions</h2>
         <div class="stage-body">
           <!-- The printed worksheet's sections side by side on one screen.
@@ -665,8 +738,8 @@
         </div>
       </section>
 
-      <!-- STAGE 10: BILLIARDS -->
-      <section class="stage hidden" id="stage10">
+      <!-- STAGE 12: BILLIARDS -->
+      <section class="stage hidden" id="stage12">
         <h2>Billiards</h2>
         <div class="stage-body">
           <div id="billiardsSetup"></div>
@@ -762,8 +835,8 @@
         </div>
       </section>
 
-      <!-- STAGE 11: NEON ARENA -->
-      <section class="stage hidden" id="stage11">
+      <!-- STAGE 13: NEON ARENA -->
+      <section class="stage hidden" id="stage13">
         <h2>Neon Arena</h2>
         <div class="stage-body">
           <div id="neonSetup"></div>
@@ -853,8 +926,8 @@
         </div>
       </section>
 
-      <!-- STAGE 12: FRUIT NINJA -->
-      <section class="stage hidden" id="stage12">
+      <!-- STAGE 14: FRUIT NINJA -->
+      <section class="stage hidden" id="stage14">
         <h2>Fruit Ninja</h2>
         <div class="stage-body">
           <div id="fruitSetup"></div>
@@ -937,8 +1010,8 @@
         </div>
       </section>
 
-      <!-- STAGE 13: FOOTBALL (rebuilt from Hoop Shot; ids keep the hoop prefix) -->
-      <section class="stage hidden" id="stage13">
+      <!-- STAGE 15: FOOTBALL (rebuilt from Hoop Shot; ids keep the hoop prefix) -->
+      <section class="stage hidden" id="stage15">
         <h2>Football</h2>
         <div class="stage-body">
           <div id="hoopSetup"></div>
@@ -1017,8 +1090,8 @@
         </div>
       </section>
 
-      <!-- STAGE 14: WHACK-A-MONSTER -->
-      <section class="stage hidden" id="stage14">
+      <!-- STAGE 16: WHACK-A-MONSTER -->
+      <section class="stage hidden" id="stage16">
         <h2>Whack-a-Jelly</h2>
         <div class="stage-body">
           <div id="whackSetup"></div>
@@ -1092,8 +1165,8 @@
         </div>
       </section>
 
-      <!-- STAGE 15: JELLY MAZE -->
-      <section class="stage hidden" id="stage15">
+      <!-- STAGE 17: JELLY MAZE -->
+      <section class="stage hidden" id="stage17">
         <h2>Jelly Maze</h2>
         <div class="stage-body">
           <div id="mazeSetup"></div>
@@ -1150,8 +1223,8 @@
         </div>
       </section>
 
-      <!-- STAGE 16: NINJA JUMP -->
-      <section class="stage hidden" id="stage16">
+      <!-- STAGE 18: NINJA JUMP -->
+      <section class="stage hidden" id="stage18">
         <h2>Ninja Jump</h2>
         <div class="stage-body">
           <div id="jumpSetup"></div>
@@ -1228,8 +1301,8 @@
         </div>
       </section>
 
-      <!-- STAGE 17: ZOMBIE DASH -->
-      <section class="stage hidden" id="stage17">
+      <!-- STAGE 19: ZOMBIE DASH -->
+      <section class="stage hidden" id="stage19">
         <h2>Zombie Dash</h2>
         <div class="stage-body">
           <div id="zombieSetup"></div>

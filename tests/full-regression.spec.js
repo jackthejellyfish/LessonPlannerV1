@@ -8,12 +8,12 @@ const { test, expect } = require('@playwright/test');
 // clicked via locator.evaluate(el => el.click()) to bypass Playwright's
 // visibility gate rather than treating that as a bug.
 //
-// .wrap (stepper + all 17 stages) stays hidden behind the lesson-select
+// .wrap (stepper + all 19 stages) stays hidden behind the lesson-select
 // screen (js/lessons.js) until a lesson card is picked — every test clicks
 // the first card right after goto() purely to get past that gate; which
 // lesson is picked doesn't matter for these structural assertions.
 
-test('all 17 stages are reachable with zero console/page errors', async ({ page }) => {
+test('all 19 stages are reachable with zero console/page errors', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`PAGEERROR: ${e.message}`));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`); });
@@ -22,9 +22,9 @@ test('all 17 stages are reachable with zero console/page errors', async ({ page 
   await page.click('.lesson-card >> nth=0');
 
   const steps = page.locator('.step');
-  await expect(steps).toHaveCount(17);
+  await expect(steps).toHaveCount(19);
 
-  for (let i = 0; i < 17; i++) {
+  for (let i = 0; i < 19; i++) {
     await steps.nth(i).evaluate((el) => el.click());
     await page.waitForTimeout(150);
   }
@@ -78,7 +78,7 @@ test('stage 6 Balloon Pop starts a round without errors', async ({ page }) => {
 
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(5).evaluate((el) => el.click());
+  await page.locator('.step').nth(7).evaluate((el) => el.click());
   // The setup screen opens on a menu now (New game / How to play).
   await page.click('#popNewGameBtn');
   await page.click('#popStartBtn');
@@ -91,7 +91,7 @@ test('stage 9 shows the worksheet on one screen and reveals answers on tap', asy
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(8).evaluate((el) => el.click());
+  await page.locator('.step').nth(10).evaluate((el) => el.click());
   await page.waitForTimeout(200);
   // Gap fill, unscramble and sentences; free writing is on paper only.
   await expect(page.locator('.ws-col')).toHaveCount(3);
@@ -114,7 +114,7 @@ test('the last stage has a Finish button that returns to the lesson picker', asy
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
   const steps = page.locator('.step');
-  await steps.nth(16).evaluate((el) => el.click());
+  await steps.nth(18).evaluate((el) => el.click());
   await page.locator('#zombieFinishBtn').evaluate((el) => el.click());
   await expect(page.locator('#lessonSelect')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wrap')).toHaveClass(/hidden/);
@@ -140,7 +140,7 @@ test('stage 5 shows the task first, then the timer with the useful language', as
   await expect(page.locator('#freeNextBtn')).toHaveClass(/nudge/);
 
   await page.click('#freeNextBtn');
-  await expect(page.locator('#stage6')).toBeVisible();
+  await expect(page.locator('#stage6')).toBeVisible(); // Running dictation
 });
 
 test('stage 5 slides fit without scrolling on a 1280x720 projector, in every lesson', async ({ page }) => {
@@ -236,10 +236,10 @@ test('opening the lesson picker stops a running stage 3 countdown', async ({ pag
 test('the stage 9 worksheet keeps revealed answers when you leave and come back', async ({ page }) => {
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(8).evaluate((el) => el.click());
+  await page.locator('.step').nth(10).evaluate((el) => el.click());
   await page.locator('.ws-item').nth(2).click();
-  await page.locator('.step').nth(7).evaluate((el) => el.click());
-  await page.locator('.step').nth(8).evaluate((el) => el.click());
+  await page.locator('.step').nth(9).evaluate((el) => el.click());
+  await page.locator('.step').nth(10).evaluate((el) => el.click());
   await expect(page.locator('.ws-item').nth(2)).toHaveClass(/revealed/);
 });
 
@@ -258,4 +258,35 @@ test('stage 5 countdown pauses when you leave, and Start works again after time 
 
   await page.locator('.step').nth(3).evaluate((el) => el.click());   // leave
   await expect(page.locator('#stopwatchToggle')).toHaveText('Start');
+});
+
+// Stages 6 and 7 (added 2026-11-22): running dictation and class survey.
+test('running dictation reveals its six sentences one at a time, and prints them for cutting out', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(5).evaluate((el) => el.click());
+  await expect(page.locator('.dict-item')).toHaveCount(6);
+  await expect(page.locator('.dict-item.revealed')).toHaveCount(0);
+  await page.locator('.dict-item').nth(1).click();
+  await expect(page.locator('.dict-item.revealed')).toHaveCount(1);
+  await page.click('#dictRevealAllBtn');
+  await expect(page.locator('.dict-item.revealed')).toHaveCount(6);
+  await page.evaluate(() => { window.print = () => {}; });
+  await page.click('#dictPrintBtn');
+  await expect(page.locator('#printableActivity .pa-strip')).toHaveCount(6);
+});
+
+test('the survey shows an example on the board, and the printed survey has no example', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(6).evaluate((el) => el.click());
+  const exampleName = await page.locator('#surveyExample .sv-example .sv-name').textContent();
+  expect(exampleName.trim().length).toBeGreaterThan(0);
+  await page.evaluate(() => { window.print = () => {}; });
+  await page.click('#surveyPrintBtn');
+  const printed = await page.locator('#printableActivity').innerText();
+  expect(printed).not.toContain(exampleName.trim());
+  await expect(page.locator('#printableActivity tbody tr')).toHaveCount(7);
+  await page.click('#surveyNextBtn');
+  await expect(page.locator('#stage8')).toBeVisible(); // Balloon Pop
 });

@@ -3,6 +3,8 @@ import { renderStepper } from './stepper.js';
 import { cancelMcTimer, resumeMc } from './stages/stage3-controlled.js';
 import { cancelSemiTimer, loadSemiItem, startSemiTimer } from './stages/stage4-guided.js';
 import { initQs } from './stages/stage9-questions.js';
+import { renderDictation } from './stages/dictation.js';
+import { renderSurvey } from './stages/survey.js';
 import { pauseStopwatch } from './stages/stage5-free.js';
 import { gameForStage, cancelAllRounds } from './games.js';
 import { enterFooterLayout, exitFooterLayout } from './fullscreenLayout.js';
@@ -53,7 +55,11 @@ export function goToStage(num){
   }
   // First visit only (per lesson): this used to run on every visit, so
   // popping to another stage and back wiped everything students had typed.
-  if(num === 9 && !state.qsStarted){ state.qsStarted = true; initQs(); }
+  // Built fresh on every visit (cheap, and always this lesson's content);
+  // the dictation's revealed sentences live in state.
+  if(num === 6) renderDictation();
+  if(num === 7) renderSurvey();
+  if(num === 11 && !state.qsStarted){ state.qsStarted = true; initQs(); }
   const game = gameForStage(num);
   if(game) game.ensureLayout();
 }

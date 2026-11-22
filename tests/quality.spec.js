@@ -28,7 +28,7 @@ test('lite mode: off by default, forced on with ?lite=1, and games still run', a
 
   await page.goto('/index.html?lite=1');
   await expect(page.locator('body')).toHaveClass(/low-quality/);
-  await startTurn(page, 11, 'fruit');
+  await startTurn(page, 13, 'fruit');
   await page.waitForTimeout(1500);
   // Smaller canvas buffer in lite mode (70% of the usual 820px cap).
   const w = await page.locator('#fruitCanvas').evaluate((c) => c.width);
@@ -38,7 +38,7 @@ test('lite mode: off by default, forced on with ?lite=1, and games still run', a
 
 test('lite mode switches itself on when a PC cannot keep up', async ({ page }) => {
   await page.goto('/index.html');
-  await startTurn(page, 11, 'fruit');
+  await startTurn(page, 13, 'fruit');
   await expect(page.locator('body')).not.toHaveClass(/low-quality/);
   // A heavy throttle stands in for a weak machine (~30-45fps here).
   const cdp = await page.context().newCDPSession(page);
@@ -56,7 +56,7 @@ test('?fps shows the frame meter; without it there is none', async ({ page }) =>
 
 test('billiards: the rack stays on the table when the board is resized mid-turn', async ({ page }) => {
   await page.goto('/index.html');
-  await startTurn(page, 9, 'billiards');
+  await startTurn(page, 11, 'billiards');
 
   const snapshot = () => page.evaluate(async () => {
     const { state } = await import('/js/state.js');
