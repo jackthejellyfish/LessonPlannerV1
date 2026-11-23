@@ -267,3 +267,11 @@
   }
 
   /* Five or six teams go 3 + 3: renderResultStandings() sets --cols. */
+
+  /* "Lane 2 of 4": whose question this is (Whack-a-Jelly asks one per lane). */
+  .modal-q-label{
+    display:inline-block; margin:0 0 clamp(8px,1.4vh,14px);
+    padding:clamp(4px,0.7vh,8px) clamp(14px,1.4vw,22px); border-radius:999px;
+    background:var(--primary); color:#fff;
+    font-family:var(--font-display); font-weight:800; font-size:clamp(15px,2.4vh,24px);
+  }

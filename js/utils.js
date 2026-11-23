@@ -73,13 +73,14 @@ export function scramble(items, { textOf = (x) => x, rand = Math.random } = {}){
 // multiple-choice question instead: the class taps an option, the right
 // one lights up green (and a wrong pick red), the full answer shows,
 // and Continue carries on. The app marks it, so there's no tick/cross.
-export function showQuestionModal(prompt, answer, { correctLabel = 'Correct', wrongLabel = 'Incorrect', showFollowup = false, choices = null } = {}){
-  if(choices) return showChoiceModal(prompt, answer, choices, showFollowup);
+export function showQuestionModal(prompt, answer, { correctLabel = 'Correct', wrongLabel = 'Incorrect', showFollowup = false, choices = null, label = '' } = {}){
+  if(choices) return showChoiceModal(prompt, answer, choices, showFollowup, label);
   return new Promise(resolve => {
     const modalBody = document.getElementById('popQuestionBody');
     modalBody.className = 'modal modal-question';
     modalBody.innerHTML = `
       <div class="modal-q-badge" aria-hidden="true">?</div>
+      ${label ? `<p class="modal-q-label">${escapeHtml(label)}</p>` : ''}
       <h3 class="modal-q-text">${escapeHtml(prompt)}</h3>
       <div class="modal-check-row" id="modalCheckRow">
         <button class="btn btn-primary btn-check-answer" id="popCheckBtn" type="button">Check answer</button>
@@ -117,7 +118,7 @@ const CHOICE_LETTERS = ['A', 'B', 'C', 'D'];
 // "Now make a sentence using ..." only makes sense after a word or a
 // short phrase, not after a whole sentence or "Yes, it's correct".
 const isWordOrPhrase = (t) => t.trim().split(/\s+/).length <= 3 && !/[.?!,]/.test(t);
-function showChoiceModal(prompt, answer, { correct, options }, showFollowup){
+function showChoiceModal(prompt, answer, { correct, options }, showFollowup, label = ''){
   return new Promise(resolve => {
     const modalBody = document.getElementById('popQuestionBody');
     modalBody.className = 'modal modal-question';
@@ -127,6 +128,7 @@ function showChoiceModal(prompt, answer, { correct, options }, showFollowup){
     const extra = norm(answer) !== norm(correct);
     modalBody.innerHTML = `
       <div class="modal-q-badge" aria-hidden="true">?</div>
+      ${label ? `<p class="modal-q-label">${escapeHtml(label)}</p>` : ''}
       <h3 class="modal-q-text">${escapeHtml(prompt)}</h3>
       <div class="mc-choices${options.length > 2 ? ' mc-three' : ''}" id="popMcChoices">
         ${options.map((o, i) => `

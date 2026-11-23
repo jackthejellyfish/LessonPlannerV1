@@ -55,16 +55,16 @@ quiz the same language.
 | 6 | Running dictation | How-to slide; **Print sentences** gives six big sentences on one A4 page to cut out; the teacher reveals them one by one so pairs can check (`js/stages/dictation.js`, content `js/content/dictation.js`) |
 | 7 | Class survey | How-to slide with a filled-in example row; **Print survey** gives the handout (same questions, empty rows, no example) (`js/stages/survey.js`, content `js/content/survey.js`) |
 | 8 | Reading | ~100-word reading and six graded questions; tap a card once for the question, again for the answer. Prints: reading + answer sheet (2 pages, double-sided) and the six questions as cut-out strips (`js/stages/reading.js`, content `js/content/reading.js`) |
-| 9 | Speaking dice | Six questions; click the 3D dice to roll; the question it lands on opens with phrases and a word bank; the same number twice in a row crosses that question out (`js/stages/dice.js`, content `js/content/dice.js`) |
+| 9 | Speaking dice | Six questions; click the felt tray to throw a colour-per-face dice (simulated bounces, spin and tip-overs); the question it lands on opens in the big card with phrases and a word bank; the same number twice in a row crosses that question out. Tiles can be opened by hand too (`js/stages/dice.js`, content `js/content/dice.js`) |
 | 10 | Balloon Pop | Team game, canvas: balloons float up with buoyancy, sway and springy strings; tap to pop |
 | 11 | Star Defender | Team game, canvas shooter: the ship follows the pointer, hold to fire, frequent power-ups (Rapid Fire, Spread Shot, Shield, Bomb) caught by shooting or flying into them |
 | 12 | Spin the Wheel | Team game, answer first: a right answer earns a spin and the slice's points (a wrong one: no spin); pegs and a flapping pointer, two ★ bonus slices a game (Double / Triple / Steal) |
 | 13 | Practice questions | The worksheet on the board: gap fill, unscramble and sentences side by side on one screen; tap a question (or a section's Show) to reveal its answer. Free writing is on the printed sheet only |
 | 14 | Billiards | Team game, canvas physics |
-| 15 | Neon Arena | Team game, canvas: hold to fire, timed power-ups (10s) that turn up often |
+| 15 | Neon Arena | Team game, canvas, 10s rounds (cut from 20s 2026-11-23): hold to fire, timed power-ups that turn up often |
 | 16 | Fruit Ninja | Team game, canvas (each volley comes from a random edge: bottom, top, left, right or a corner; bombs cost 5; a mega bomb halves the score; the blade never freezes) |
 | 17 | Football | Team game, canvas penalty shoot-out (rebuilt from Hoop Shot; ids keep the `hoop` prefix): tap the goal to aim, KICK, 3 kicks a turn; a swaying keeper who dives late, sometimes a hopping wall |
-| 18 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns); every lane gets the same deal |
+| 18 | Whack! (Whack-a-Jelly) | Team game, canvas: jellyfish pop out of a grid of reef holes, 1-5 lanes x 3 rows (teacher picks lanes between turns); every lane gets the same deal. One question per lane before each turn ("Lane 2 of 4"), then the team plays together |
 | 19 | Jelly Maze | Team game, canvas, 20s: Jack escapes a coral maze (escaping ends the turn, +1 per second left), sharks chase by BFS |
 | 20 | Ninja Jump | Team game, canvas platformer, 8 levels (3 easy, 3 medium, 2 hard). The teacher picks the level and the time (10/15/20/30s) between turns; each lap of turns moves on a level; clearing it ends the turn. Moving platforms, fans (updrafts and side winds), springs; triple jump, speed boost and a golden shuriken (+3) at random spots each round. 12 levels since 2026-11-22, with environment themes (jungle, desert, snow, volcano) |
 | 21 | Zombie Dash | Team game, canvas, top-down, for young classes: Pip collects sweets while goofy zombies shuffle after them; beach balls to kick (a fast one bonks a zombie, +2), Cure Potion / Super Sneakers / Bubble Blast, 10 levels incl. jungle, desert, snowy mountain and volcano (teacher picks; each lap moves on). Questions are a review mix from the other games. Ends with **Finish: choose a lesson** |
@@ -360,6 +360,18 @@ worst frame, and whether lite mode is on.
   so the next jelly goes to the lane that has had the fewest (never more
   than one ahead), and every lane draws the same jelly / golden / puffer
   sequence. Random free holes were fair only on average.
+- **One question per lane** (Whack-a-Jelly, 2026-11-23). Each player on
+  the team answers a question before the turn (`askTeamQuestion(q, bank,
+  n, { label: 'Lane 2 of 4' })`; `label` is shown above the question in
+  the shared modal). `state.whackQuestionsAsked` walks the shuffled bank
+  and reshuffles when it runs out; still 10 turns a game. Tests that
+  start a turn must answer until `#popQuestionOverlay` is hidden.
+- **Speaking dice physics** (2026-11-23). Each throw is simulated in full
+  before it plays (`simulate()` in `js/stages/dice.js`: 1/120 s steps,
+  bounces, rim, friction, tip-overs every dice-width) and played back as
+  transforms; the face sequence is built afterwards to end on the number
+  rolled. It always settles (hard cap 2.4 s, ~1.2 s typical) and is safe
+  with a constant `Math.random`, which the regression test relies on.
 - **Scrambles must be scrambled.** Use `scramble()` from `js/utils.js`,
   never `shuffle()`, for unscramble tasks: it guarantees the words don't
   come out in (or nearly in) the right order. Stage 9 seeds it with

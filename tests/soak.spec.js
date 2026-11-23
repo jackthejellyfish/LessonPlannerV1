@@ -40,13 +40,17 @@ async function metrics(cdp){
 async function answerQuestion(page){
   const overlay = page.locator('#popQuestionOverlay');
   await expect(overlay).not.toHaveClass(/hidden/, { timeout: 15000 });
-  const choice = page.locator('#popQuestionBody .mc-choice').first();
-  if(await choice.count()){
-    await choice.click();
-    await page.click('#popMcContinueBtn');
-  } else {
-    await page.click('#popCheckBtn');
-    await page.click('#popCorrectBtn');
+  // Whack-a-Jelly asks one per lane: keep answering until play starts.
+  for(let i = 0; i < 8 && !(await overlay.getAttribute('class')).includes('hidden'); i++){
+    const choice = page.locator('#popQuestionBody .mc-choice').first();
+    if(await choice.count()){
+      await choice.click();
+      await page.click('#popMcContinueBtn');
+    } else {
+      await page.click('#popCheckBtn');
+      await page.click('#popCorrectBtn');
+    }
+    await page.waitForTimeout(80);
   }
 }
 

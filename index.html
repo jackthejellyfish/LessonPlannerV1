@@ -503,17 +503,29 @@
         <div class="stage-body">
           <div class="dice-layout">
             <div class="dice-roller">
-              <div class="dice-scene" id="diceScene" tabindex="0" role="button" aria-label="Roll the dice">
-                <div class="dice-shadow" id="diceShadow" aria-hidden="true"></div>
-                <div class="dice-hop" id="diceHop">
-                  <div class="dice-cube" id="diceCube"></div>
+              <div class="dice-tray" id="diceScene" tabindex="0" role="button" aria-label="Roll the dice">
+                <div class="dice-felt" id="diceFelt">
+                  <p class="dice-hint" aria-hidden="true">Click to roll!</p>
+                  <div class="dice-shadow" id="diceShadow" aria-hidden="true"></div>
+                  <div class="dice-body" id="diceBody" aria-hidden="true">
+                    <div class="dice-top" id="diceTop" data-face="5">
+                      <div class="dice-pips" id="dicePips"></div>
+                      <div class="dice-shade" id="diceShade"></div>
+                    </div>
+                  </div>
+                  <div class="dice-burst" id="diceBurst" aria-hidden="true"></div>
                 </div>
               </div>
-              <button class="btn btn-primary dice-roll-btn" id="diceRollBtn" type="button">Roll the dice!</button>
-              <p class="dice-message" id="diceMessage" aria-live="polite">Click the dice to roll!</p>
-              <button class="gi-back-link" id="diceResetBtn" type="button">↺ Start again</button>
+              <div class="dice-controls">
+                <button class="btn btn-primary dice-roll-btn" id="diceRollBtn" type="button">Roll the dice!</button>
+                <button class="gi-back-link" id="diceResetBtn" type="button">↺ Start again</button>
+              </div>
             </div>
-            <ol class="dice-list" id="diceList"></ol>
+            <div class="dice-side">
+              <p class="dice-message" id="diceMessage" aria-live="polite">Click the tray to roll!</p>
+              <div class="dice-spot" id="diceSpot"></div>
+              <ol class="dice-list" id="diceList"></ol>
+            </div>
           </div>
         </div>
         <div class="stage-footer">

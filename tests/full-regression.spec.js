@@ -326,7 +326,9 @@ test('speaking dice: a roll opens its question with help; the same number twice 
   await page.evaluate(() => { Math.random = () => 0.5; }); // always rolls a 4
   await page.click('#diceRollBtn');
   await expect(page.locator('.dq.active')).toHaveAttribute('data-n', '4', { timeout: 3000 });
-  await expect(page.locator('.dq.active .dq-phrases li').first()).toBeVisible();
+  await expect(page.locator('#diceSpot .dq-phrases li').first()).toBeVisible();
+  // It lands showing the number it rolled.
+  expect(await page.evaluate(async () => (await import('/js/stages/dice.js')).debugDice().face)).toBe(4);
   await expect(page.locator('.dq.done')).toHaveCount(0);
   await page.click('#diceRollBtn');
   await expect(page.locator('.dq.done')).toHaveCount(1, { timeout: 3000 });

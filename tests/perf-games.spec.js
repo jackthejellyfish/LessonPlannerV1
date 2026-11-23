@@ -87,8 +87,12 @@ async function openGame(page, stepIndex, prefix) {
 async function beginTurn(page, prefix) {
   await page.click(`#${prefix}BeginTurnBtn`);
   await expect(page.locator('#popQuestionOverlay')).not.toHaveClass(/hidden/);
-  await page.click('#popCheckBtn');
-  await page.click('#popCorrectBtn');
+  // Whack-a-Jelly asks one question per lane: answer until play starts.
+  for (let i = 0; i < 8 && await page.locator('#popCheckBtn, .mc-choice').first().isVisible().catch(() => false); i++) {
+    if (await page.locator('#popCheckBtn').isVisible()) { await page.click('#popCheckBtn'); await page.click('#popCorrectBtn'); }
+    else { await page.locator('.mc-choice').first().click(); await page.click('#popMcContinueBtn'); }
+    await page.waitForTimeout(80);
+  }
   // Star Defender asks "play now or bank the time?" before its round.
   if (prefix === 'inv') await page.click('#confirmOkBtn');
   await page.waitForTimeout(250);

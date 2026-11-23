@@ -158,7 +158,9 @@ export function buildChoices(q, bank){
 // (the 2nd, 4th, ...) is multiple choice when the question allows it, so
 // a game always mixes the two, and a game's first question is always
 // the open kind.
-export function askTeamQuestion(q, bank, turnIndex){
+// `label` is an optional line above the question (Whack-a-Jelly uses it
+// for "Lane 2 of 4": one question per student before the team plays).
+export function askTeamQuestion(q, bank, turnIndex, { label = '' } = {}){
   const choices = turnIndex % 2 === 1 ? buildChoices(q, bank) : null;
-  return showQuestionModal(q.prompt, q.answer, { showFollowup: true, choices });
+  return showQuestionModal(q.prompt, q.answer, { showFollowup: true, choices, label });
 }

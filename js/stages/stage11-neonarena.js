@@ -56,7 +56,7 @@ let neonShockwaves = [];
    same scheme Balloon Pop and Whack-a-Jelly use. One unit is the same
    distance in every direction.
 ========================================================= */
-const NEON_ROUND_SECONDS = 20;
+const NEON_ROUND_SECONDS = 10;   // was 20 (cut 2026-11-23)
 const NEON_MAX_LIVES = 3;
 const NEON_PLAYER_R = 3.2;
 const NEON_PLAYER_SPEED = 62;     // units/second
@@ -216,7 +216,7 @@ renderGameIntro('neonSetup', {
   steps: [
     'One team answers a question.',
     'Move with WASD or the arrow keys. Hold the mouse (or SPACE) to shoot.',
-    'Survive and score for 20 seconds.'
+    'Survive and score for 10 seconds.'
   ],
   scoring: [
     { swatch: '<span class="neon-legend-swatch drifter"></span>', label: 'Drifter', points: '+1' },

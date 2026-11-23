@@ -80,8 +80,8 @@ renderGameIntro('whackSetup', {
   prefix: 'whack',
   title: 'Whack-a-Jelly',
   steps: [
-    'One team answers a question.',
-    'Jellyfish pop out of holes in the reef. Tap them before they hide again!',
+    'Each player in the team answers a question: one for each lane.',
+    'Then everyone plays together, one per lane. Tap the jellyfish before they hide again!',
     'Bop as many as you can in 15 seconds. The teacher picks 1 to 5 lanes.'
   ],
   scoring: [
@@ -103,6 +103,7 @@ document.getElementById('whackStartBtn').addEventListener('click', () => {
   state.whackCurrentTeam = 0;
   state.whackTurnsPlayed = 0;
   state.whackQuestionOrder = shuffle(WHACK_QUESTIONS.map((_, i) => i));
+  state.whackQuestionsAsked = 0;
 
   showGameScreen('whack');
   renderWhackScoreboard();
@@ -115,7 +116,7 @@ function renderWhackScoreboard(){
   renderTeamScoreboard('whackTeamList', state.whackTeams, state.whackCurrentTeam);
 }
 function renderWhackTurnBanner(){
-  renderTurnBanner('whack', state.whackTeams[state.whackCurrentTeam], state.whackTurnsPlayed + 1, WHACK_QUESTIONS.length);
+  renderTurnBanner('whack', state.whackTeams[state.whackCurrentTeam], state.whackTurnsPlayed + 1, WHACK_QUESTIONS.length, 'turn');
 }
 
 /* ---- The teacher's lane picker (shown between turns) ---- */
@@ -139,14 +140,28 @@ document.querySelectorAll('#whackLanes [data-lanes]').forEach(btn => {
 /* =========================================================
    QUESTION + TURN FLOW
 ========================================================= */
-function askWhackQuestion(){
-  const q = WHACK_QUESTIONS[state.whackQuestionOrder[state.whackTurnsPlayed]];
-  return askTeamQuestion(q, WHACK_QUESTIONS, state.whackTurnsPlayed);
+// One question per lane (2026-11-23): each student on the team answers a
+// question, then they all play together, one per lane. Questions run
+// through the shuffled bank and reshuffle once it's used up, so a long
+// game with five lanes doesn't repeat one straight after itself.
+function nextWhackQuestion(){
+  if(state.whackQuestionsAsked >= state.whackQuestionOrder.length){
+    state.whackQuestionOrder = state.whackQuestionOrder.concat(shuffle(WHACK_QUESTIONS.map((_, i) => i)));
+  }
+  const n = state.whackQuestionsAsked++;
+  return { q: WHACK_QUESTIONS[state.whackQuestionOrder[n]], n };
+}
+async function askWhackQuestions(){
+  const count = lanes();
+  for(let i = 0; i < count; i++){
+    const { q, n } = nextWhackQuestion();
+    await askTeamQuestion(q, WHACK_QUESTIONS, n, { label: count > 1 ? `Lane ${i + 1} of ${count}` : '' });
+  }
 }
 
 document.getElementById('whackBeginTurnBtn').addEventListener('click', async () => {
   document.getElementById('whackBeginTurnBtn').disabled = true;
-  await askWhackQuestion();
+  await askWhackQuestions();
   startWhackRound();
 });
 

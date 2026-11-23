@@ -127,6 +127,7 @@ function createState(lessonId, muted){
     whackTeams: [],
     whackCurrentTeam: 0,
     whackQuestionOrder: [],
+    whackQuestionsAsked: 0, // one per lane each turn, so this runs ahead of the turn count
     whackTurnsPlayed: 0,
     whackScore: 0,
     whackRoundActive: false,

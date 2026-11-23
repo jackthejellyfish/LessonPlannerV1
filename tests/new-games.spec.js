@@ -25,6 +25,23 @@ async function openGame(page, step, prefix) {
   await page.waitForTimeout(300);
 }
 
+// Answers every turn question until the play starts (Whack-a-Jelly asks
+// one per lane), open or multiple choice.
+async function answerAll(page) {
+  const overlay = page.locator('#popQuestionOverlay');
+  await expect(overlay).not.toHaveClass(/hidden/);
+  for (let i = 0; i < 8 && !(await overlay.getAttribute('class')).includes('hidden'); i++) {
+    if (await page.locator('#popCheckBtn').isVisible()) {
+      await page.click('#popCheckBtn');
+      await page.click('#popCorrectBtn');
+    } else {
+      await page.locator('.mc-choice').first().click();
+      await page.click('#popMcContinueBtn');
+    }
+    await page.waitForTimeout(80);
+  }
+}
+
 function watchErrors(page) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -228,8 +245,17 @@ test('Whack-a-Jelly: every lane gets the same number of jellies, even when one l
   await page.waitForTimeout(250);
   await page.click('#whackLanes [data-lanes="4"]');
   await page.click('#whackBeginTurnBtn');
-  await page.click('#popCheckBtn');
-  await page.click('#popCorrectBtn');
+  // Four lanes: four questions, one per player, before anyone plays.
+  const labels = [];
+  for (let i = 0; i < 4; i++) {
+    await expect(page.locator('#popQuestionOverlay')).not.toHaveClass(/hidden/);
+    labels.push((await page.locator('.modal-q-label').textContent()).trim());
+    if (await page.locator('#popCheckBtn').isVisible()) { await page.click('#popCheckBtn'); await page.click('#popCorrectBtn'); }
+    else { await page.locator('.mc-choice').first().click(); await page.click('#popMcContinueBtn'); }
+    await page.waitForTimeout(80);
+  }
+  expect(labels).toEqual(['Lane 1 of 4', 'Lane 2 of 4', 'Lane 3 of 4', 'Lane 4 of 4']);
+  await expect(page.locator('#popQuestionOverlay')).toHaveClass(/hidden/);
 
   // Only lane 0 plays (and plays fast); the other three never tap.
   const box = await page.locator('#whackCanvas').boundingBox();
@@ -509,6 +535,7 @@ test('every other turn question is multiple choice, marked by the app', async ({
   await page.click('#whackNewGameBtn');
   await page.click('#whackStartBtn');
   await page.waitForTimeout(250);
+  await page.click('#whackLanes [data-lanes="1"]'); // one lane, one question a turn
   // Turn 1: the usual open question.
   await page.click('#whackBeginTurnBtn');
   await expect(page.locator('#popCheckBtn')).toBeVisible();
