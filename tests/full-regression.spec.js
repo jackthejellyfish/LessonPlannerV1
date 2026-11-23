@@ -8,12 +8,12 @@ const { test, expect } = require('@playwright/test');
 // clicked via locator.evaluate(el => el.click()) to bypass Playwright's
 // visibility gate rather than treating that as a bug.
 //
-// .wrap (stepper + all 19 stages) stays hidden behind the lesson-select
+// .wrap (stepper + all 21 stages) stays hidden behind the lesson-select
 // screen (js/lessons.js) until a lesson card is picked — every test clicks
 // the first card right after goto() purely to get past that gate; which
 // lesson is picked doesn't matter for these structural assertions.
 
-test('all 19 stages are reachable with zero console/page errors', async ({ page }) => {
+test('all 21 stages are reachable with zero console/page errors', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`PAGEERROR: ${e.message}`));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`); });
@@ -22,9 +22,9 @@ test('all 19 stages are reachable with zero console/page errors', async ({ page 
   await page.click('.lesson-card >> nth=0');
 
   const steps = page.locator('.step');
-  await expect(steps).toHaveCount(19);
+  await expect(steps).toHaveCount(21);
 
-  for (let i = 0; i < 19; i++) {
+  for (let i = 0; i < 21; i++) {
     await steps.nth(i).evaluate((el) => el.click());
     await page.waitForTimeout(150);
   }
@@ -78,7 +78,7 @@ test('stage 6 Balloon Pop starts a round without errors', async ({ page }) => {
 
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(7).evaluate((el) => el.click());
+  await page.locator('.step').nth(9).evaluate((el) => el.click());
   // The setup screen opens on a menu now (New game / How to play).
   await page.click('#popNewGameBtn');
   await page.click('#popStartBtn');
@@ -91,7 +91,7 @@ test('stage 9 shows the worksheet on one screen and reveals answers on tap', asy
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(10).evaluate((el) => el.click());
+  await page.locator('.step').nth(12).evaluate((el) => el.click());
   await page.waitForTimeout(200);
   // Gap fill, unscramble and sentences; free writing is on paper only.
   await expect(page.locator('.ws-col')).toHaveCount(3);
@@ -114,7 +114,7 @@ test('the last stage has a Finish button that returns to the lesson picker', asy
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
   const steps = page.locator('.step');
-  await steps.nth(18).evaluate((el) => el.click());
+  await steps.nth(20).evaluate((el) => el.click());
   await page.locator('#zombieFinishBtn').evaluate((el) => el.click());
   await expect(page.locator('#lessonSelect')).not.toHaveClass(/hidden/);
   await expect(page.locator('#wrap')).toHaveClass(/hidden/);
@@ -239,10 +239,10 @@ test('opening the lesson picker stops a running stage 3 countdown', async ({ pag
 test('the stage 9 worksheet keeps revealed answers when you leave and come back', async ({ page }) => {
   await page.goto('/index.html');
   await page.click('.lesson-card >> nth=0');
-  await page.locator('.step').nth(10).evaluate((el) => el.click());
+  await page.locator('.step').nth(12).evaluate((el) => el.click());
   await page.locator('.ws-item').nth(2).click();
-  await page.locator('.step').nth(9).evaluate((el) => el.click());
-  await page.locator('.step').nth(10).evaluate((el) => el.click());
+  await page.locator('.step').nth(11).evaluate((el) => el.click());
+  await page.locator('.step').nth(12).evaluate((el) => el.click());
   await expect(page.locator('.ws-item').nth(2)).toHaveClass(/revealed/);
 });
 
@@ -291,5 +291,49 @@ test('the survey shows an example on the board, and the printed survey has no ex
   expect(printed).not.toContain(exampleName.trim());
   await expect(page.locator('#printableActivity tbody tr')).toHaveCount(7);
   await page.click('#surveyNextBtn');
-  await expect(page.locator('#stage8')).toBeVisible(); // Balloon Pop
+  await expect(page.locator('#stage8')).toBeVisible(); // Reading
+});
+
+// Stages 8 and 9 (added 2026-11-23): reading and speaking dice.
+test('reading: each card shows its question, then its answer; two printouts', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(7).evaluate((el) => el.click());
+  await expect(page.locator('.rd-q')).toHaveCount(6);
+  const first = page.locator('.rd-q').first();
+  await expect(first).toHaveAttribute('data-level', '0');
+  await first.click();
+  await expect(first.locator('.rd-q-text')).toBeVisible();
+  await expect(first.locator('.rd-q-answer')).toBeHidden();
+  await first.click();
+  await expect(first.locator('.rd-q-answer')).toBeVisible();
+  await page.evaluate(() => { window.print = () => {}; });
+  await page.click('#readingPrintBtn');
+  await expect(page.locator('#printableActivity .pa-reading .pa-text p').first()).not.toBeEmpty();
+  await expect(page.locator('#printableActivity .pa-answer-list li')).toHaveCount(6);
+  // The answer sheet carries numbers and lines only, never the questions.
+  const q1 = (await first.locator('.rd-q-text').textContent()).trim();
+  expect(await page.locator('#printableActivity .pa-answersheet').innerText()).not.toContain(q1);
+  await page.click('#readingQuestionsPrintBtn');
+  await expect(page.locator('#printableActivity .pa-strip')).toHaveCount(6);
+});
+
+test('speaking dice: a roll opens its question with help; the same number twice crosses it out', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.lesson-card >> nth=0');
+  await page.locator('.step').nth(8).evaluate((el) => el.click());
+  await expect(page.locator('.dq')).toHaveCount(6);
+  await page.evaluate(() => { Math.random = () => 0.5; }); // always rolls a 4
+  await page.click('#diceRollBtn');
+  await expect(page.locator('.dq.active')).toHaveAttribute('data-n', '4', { timeout: 3000 });
+  await expect(page.locator('.dq.active .dq-phrases li').first()).toBeVisible();
+  await expect(page.locator('.dq.done')).toHaveCount(0);
+  await page.click('#diceRollBtn');
+  await expect(page.locator('.dq.done')).toHaveCount(1, { timeout: 3000 });
+  await expect(page.locator('.dq.done')).toHaveAttribute('data-n', '4');
+  // Leaving mid-roll stops it (no landing over the next stage).
+  await page.click('#diceRollBtn');
+  await page.locator('.step').nth(9).evaluate((el) => el.click());
+  const rolling = await page.evaluate(async () => (await import('/js/stages/dice.js')).debugDice().rolling);
+  expect(rolling).toBe(false);
 });

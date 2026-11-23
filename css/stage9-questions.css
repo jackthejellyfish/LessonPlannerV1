@@ -2,7 +2,7 @@
      Three sections side by side, five questions each, all on one screen
      at 1280x720. Text is sized off the viewport height (the scarce
      dimension on a 16:9 board), capped so a 4K board isn't comical. */
-  #stage11 h2{ margin-bottom:clamp(8px,1.6vh,22px); }
+  #stage13 h2{ margin-bottom:clamp(8px,1.6vh,22px); }
   .ws-board{
     flex:1; min-height:0;
     display:grid; grid-template-columns:repeat(3, minmax(0,1fr));

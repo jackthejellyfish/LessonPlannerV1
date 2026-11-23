@@ -178,4 +178,4 @@ function renderPrintableWorksheet(){
     <p class="print-footer">${lesson.printFooter}</p>`;
 }
 
-document.getElementById('qsBackBtn').addEventListener('click', () => goToStage(10));
+document.getElementById('qsBackBtn').addEventListener('click', () => goToStage(12));

@@ -893,8 +893,8 @@ wireTeamManagementButtons({
   cancelRound: cancelFruitRound
 });
 
-document.getElementById('fruitBackBtn').addEventListener('click', () => goToStage(13));
+document.getElementById('fruitBackBtn').addEventListener('click', () => goToStage(15));
 // Wired here (the target stage's own file), not in stage11 — same
 // existing convention as billiardsNextStageBtn: a "Next" button's
 // click handler lives in the file for the stage it goes TO.
-document.getElementById('neonNextStageBtn').addEventListener('click', () => goToStage(14));
+document.getElementById('neonNextStageBtn').addEventListener('click', () => goToStage(16));

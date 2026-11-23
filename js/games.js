@@ -33,17 +33,17 @@ import { cancelJumpRound, renderJumpTeamInputs, ensureJumpLayout } from './stage
 import { cancelZombieRound, renderZombieTeamInputs, ensureZombieLayout } from './stages/stage17-zombies.js';
 
 export const GAMES = [
-  { stage: 8,  prefix: 'pop',       ensureLayout: resizePopCanvas,       cancelRound: cancelPopRound,       renderTeamInputs: renderPopTeamInputs },
-  { stage: 9,  prefix: 'inv',       ensureLayout: ensureInvLayout,       cancelRound: cancelInvRound,       renderTeamInputs: renderInvTeamInputs },
-  { stage: 10, prefix: 'wheel',     ensureLayout: ensureWheelLayout,     cancelRound: cancelWheelRound,     renderTeamInputs: renderWheelTeamInputs },
-  { stage: 12, prefix: 'billiards', ensureLayout: ensureBilliardsLayout, cancelRound: cancelBilliardsRound, renderTeamInputs: renderBilliardsTeamInputs },
-  { stage: 13, prefix: 'neon',      ensureLayout: ensureNeonLayout,      cancelRound: cancelNeonRound,      renderTeamInputs: renderNeonTeamInputs },
-  { stage: 14, prefix: 'fruit',     ensureLayout: ensureFruitLayout,     cancelRound: cancelFruitRound,     renderTeamInputs: renderFruitTeamInputs },
-  { stage: 15, prefix: 'hoop',      ensureLayout: ensureHoopLayout,      cancelRound: cancelHoopRound,      renderTeamInputs: renderHoopTeamInputs },
-  { stage: 16, prefix: 'whack',     ensureLayout: ensureWhackLayout,     cancelRound: cancelWhackRound,     renderTeamInputs: renderWhackTeamInputs },
-  { stage: 17, prefix: 'maze',      ensureLayout: ensureMazeLayout,      cancelRound: cancelMazeRound,      renderTeamInputs: renderMazeTeamInputs },
-  { stage: 18, prefix: 'jump',      ensureLayout: ensureJumpLayout,      cancelRound: cancelJumpRound,      renderTeamInputs: renderJumpTeamInputs },
-  { stage: 19, prefix: 'zombie',    ensureLayout: ensureZombieLayout,    cancelRound: cancelZombieRound,    renderTeamInputs: renderZombieTeamInputs }
+  { stage: 10,  prefix: 'pop',       ensureLayout: resizePopCanvas,       cancelRound: cancelPopRound,       renderTeamInputs: renderPopTeamInputs },
+  { stage: 11,  prefix: 'inv',       ensureLayout: ensureInvLayout,       cancelRound: cancelInvRound,       renderTeamInputs: renderInvTeamInputs },
+  { stage: 12, prefix: 'wheel',     ensureLayout: ensureWheelLayout,     cancelRound: cancelWheelRound,     renderTeamInputs: renderWheelTeamInputs },
+  { stage: 14, prefix: 'billiards', ensureLayout: ensureBilliardsLayout, cancelRound: cancelBilliardsRound, renderTeamInputs: renderBilliardsTeamInputs },
+  { stage: 15, prefix: 'neon',      ensureLayout: ensureNeonLayout,      cancelRound: cancelNeonRound,      renderTeamInputs: renderNeonTeamInputs },
+  { stage: 16, prefix: 'fruit',     ensureLayout: ensureFruitLayout,     cancelRound: cancelFruitRound,     renderTeamInputs: renderFruitTeamInputs },
+  { stage: 17, prefix: 'hoop',      ensureLayout: ensureHoopLayout,      cancelRound: cancelHoopRound,      renderTeamInputs: renderHoopTeamInputs },
+  { stage: 18, prefix: 'whack',     ensureLayout: ensureWhackLayout,     cancelRound: cancelWhackRound,     renderTeamInputs: renderWhackTeamInputs },
+  { stage: 19, prefix: 'maze',      ensureLayout: ensureMazeLayout,      cancelRound: cancelMazeRound,      renderTeamInputs: renderMazeTeamInputs },
+  { stage: 20, prefix: 'jump',      ensureLayout: ensureJumpLayout,      cancelRound: cancelJumpRound,      renderTeamInputs: renderJumpTeamInputs },
+  { stage: 21, prefix: 'zombie',    ensureLayout: ensureZombieLayout,    cancelRound: cancelZombieRound,    renderTeamInputs: renderZombieTeamInputs }
 ];
 
 export function gameForStage(num){

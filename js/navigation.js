@@ -5,6 +5,8 @@ import { cancelSemiTimer, loadSemiItem, startSemiTimer } from './stages/stage4-g
 import { initQs } from './stages/stage9-questions.js';
 import { renderDictation } from './stages/dictation.js';
 import { renderSurvey } from './stages/survey.js';
+import { renderReading } from './stages/reading.js';
+import { renderDice, cancelDiceRoll } from './stages/dice.js';
 import { pauseStopwatch } from './stages/stage5-free.js';
 import { gameForStage, cancelAllRounds } from './games.js';
 import { enterFooterLayout, exitFooterLayout } from './fullscreenLayout.js';
@@ -26,6 +28,7 @@ export function stopStageActivity(){
   cancelMcTimer();
   cancelSemiTimer();
   pauseStopwatch();
+  cancelDiceRoll();
   cancelAllRounds();
 }
 
@@ -59,7 +62,9 @@ export function goToStage(num){
   // the dictation's revealed sentences live in state.
   if(num === 6) renderDictation();
   if(num === 7) renderSurvey();
-  if(num === 11 && !state.qsStarted){ state.qsStarted = true; initQs(); }
+  if(num === 8) renderReading();
+  if(num === 9) renderDice();
+  if(num === 13 && !state.qsStarted){ state.qsStarted = true; initQs(); }
   const game = gameForStage(num);
   if(game) game.ensureLayout();
 }

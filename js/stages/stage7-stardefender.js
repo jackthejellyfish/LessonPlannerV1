@@ -322,6 +322,29 @@ function spawnInvEnemy(W){
   });
 }
 
+// A formation (2026-11-23: "needs more enemies"): four or five scouts in
+// a V that sway together, now and then darts instead. Waves on top of the
+// steady stream give the class a group to aim into without the screen
+// turning to noise.
+function spawnInvWave(W){
+  const n = 4 + Math.floor(Math.random() * 2);
+  const darts = Math.random() < 0.25;
+  const spread = Math.min(12, W * 0.07);
+  const centre = W * 0.2 + Math.random() * W * 0.6;
+  const phase = Math.random() * 6;
+  const vy = darts ? 30 : 20 + Math.random() * 6;
+  for(let i = 0; i < n; i++){
+    const off = i - (n - 1) / 2;
+    const x = Math.max(6, Math.min(W - 6, centre + off * spread));
+    const r = darts ? 2.4 : 4.2;
+    state.invEnemies.push({
+      x, baseX: x, y: -6 - Math.abs(off) * 7, vy, vx: 0,
+      hp: 1, maxHp: 1, type: darts ? 'dart' : 'scout', r, baseR: r, points: darts ? 2 : 1, hitFlash: 0, dead: false,
+      phase, sway: darts ? 0 : 7, ky: 0, angle: 0, born: performance.now()
+    });
+  }
+}
+
 function spawnInvBoss(){
   if(!state.invRoundActive || state.invBossSpawnedThisRound) return;
   state.invBossSpawnedThisRound = true;
@@ -855,7 +878,8 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
   scheduleBossForRound(durationSeconds);
 
   const between = (r) => r[0] + Math.random() * (r[1] - r[0]);
-  let nextEnemyAt = 500;
+  let nextEnemyAt = 400;
+  let nextWaveAt = 2200 + Math.random() * 1000;
   let nextPickupAt = between(INV_PICKUP_FIRST_MS);
   const start = performance.now();
   let lastTime = start;
@@ -869,7 +893,10 @@ function startInvRound(durationSeconds = INV_ROUND_SECONDS){
     const remaining = Math.max(0, durationSeconds - elapsedMs / 1000);
     updateTimerHud(remaining);
     const W = invWorldW(invCanvasResizer.getCanvas());
-    if(elapsedMs >= nextEnemyAt){ spawnInvEnemy(W); nextEnemyAt = elapsedMs + (500 + Math.random() * 500); }
+    // More enemies (2026-11-23): a steady stream about 50% denser than
+    // before (was every 500-1000ms), plus a formation every 3-4.5s.
+    if(elapsedMs >= nextEnemyAt){ spawnInvEnemy(W); nextEnemyAt = elapsedMs + (330 + Math.random() * 330); }
+    if(elapsedMs >= nextWaveAt){ spawnInvWave(W); nextWaveAt = elapsedMs + (3000 + Math.random() * 1500); }
     if(elapsedMs >= nextPickupAt){ spawnInvPickup(W); nextPickupAt = elapsedMs + between(INV_PICKUP_GAP_MS); }
     updateInvGame(dt);
     renderInvCanvas();
@@ -943,5 +970,5 @@ wireTeamManagementButtons({
   cancelRound: cancelInvRound
 });
 
-document.getElementById('invBackBtn').addEventListener('click', () => goToStage(8));
-document.getElementById('invNextBtn').addEventListener('click', () => goToStage(10));
+document.getElementById('invBackBtn').addEventListener('click', () => goToStage(10));
+document.getElementById('invNextBtn').addEventListener('click', () => goToStage(12));

@@ -1230,6 +1230,6 @@ wireTeamManagementButtons({
   cancelRound: cancelZombieRound
 });
 
-document.getElementById('zombieBackBtn').addEventListener('click', () => goToStage(18));
+document.getElementById('zombieBackBtn').addEventListener('click', () => goToStage(20));
 // A "Next" button's click handler lives in the file for the stage it goes TO.
-document.getElementById('jumpNextStageBtn').addEventListener('click', () => goToStage(19));
+document.getElementById('jumpNextStageBtn').addEventListener('click', () => goToStage(21));

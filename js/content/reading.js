@@ -1,0 +1,156 @@
+/* =========================================================
+   LESSON CONTENT — Stage 8 (Reading)
+   A short reading (about 100 words) using the lesson's language, and
+   six questions graded from easy to harder: two "find it in the text",
+   two details, one "why", and a last one about the students themselves
+   (its answer is an example; any sensible answer is right).
+   `paragraphs` are separate paragraphs of the text.
+========================================================= */
+const OWN = 'Students’ own answers';
+const LESSON_CONTENT = {
+  comparatives: {
+    title: 'My Two Pets',
+    paragraphs: [
+      'My name is Lucy and I have got two pets, a dog called Max and a cat called Bella. Max is bigger than Bella, and he is much louder too! Bella is smaller and quieter, but she is cleverer than Max. She can open the kitchen door!',
+      'Max is faster than Bella in the garden, but Bella is better at climbing trees. In winter, Max is happier than Bella because he loves the snow. Bella thinks the snow is colder and wetter than her warm bed. Who is my favourite? That’s easy: they are both the best!'
+    ],
+    questions: [
+      { q: 'What are the names of Lucy’s pets?', a: 'Max (a dog) and Bella (a cat).' },
+      { q: 'Who is bigger, Max or Bella?', a: 'Max is bigger than Bella.' },
+      { q: 'Which pet is quieter?', a: 'Bella is quieter than Max.' },
+      { q: 'What can Bella open?', a: 'The kitchen door.' },
+      { q: 'Why is Max happier in winter?', a: 'Because he loves the snow.' },
+      { q: 'Which pet would you like, Max or Bella? Why?', a: `${OWN}, e.g. I’d like Bella because she is cleverer.` }
+    ]
+  },
+  health: {
+    title: 'A Bad Day for Tom',
+    paragraphs: [
+      'Tom woke up on Monday and he didn’t feel well. He had a headache and a sore throat. His mum took his temperature. “You’ve got a fever,” she said. “You shouldn’t go to school today. You should stay in bed.” Tom drank some hot lemon tea and took some medicine.',
+      'In the afternoon his friend Sam called. “Can you play football?” he asked. “No, I can’t,” said Tom. “I’m ill. I should rest.” By Wednesday, Tom felt much better. He went back to school, but his teacher said, “You shouldn’t run too much today!”'
+    ],
+    questions: [
+      { q: 'On which day did Tom feel ill?', a: 'On Monday.' },
+      { q: 'What two problems did Tom have?', a: 'A headache and a sore throat.' },
+      { q: 'What did his mum say he should do?', a: 'He should stay in bed (and not go to school).' },
+      { q: 'What did Tom drink?', a: 'Hot lemon tea.' },
+      { q: 'Why couldn’t Tom play football with Sam?', a: 'Because he was ill and he should rest.' },
+      { q: 'What should you do when you have a cold?', a: `${OWN}, e.g. You should drink water and rest.` }
+    ]
+  },
+  'comparatives-superlatives': {
+    title: 'The Animal Sports Day',
+    paragraphs: [
+      'Every year the animals have a big sports day. This year the cheetah was the fastest animal in the race. She was faster than the horse and much faster than the tortoise! In the high jump, the kangaroo jumped higher than the frog.',
+      'The elephant was the strongest animal. It lifted a heavy tree! The tortoise was the slowest, but he was the happiest animal at the end because everyone cheered for him. “This is the best day of my life!” he said.'
+    ],
+    questions: [
+      { q: 'Who was the fastest animal in the race?', a: 'The cheetah.' },
+      { q: 'Was the horse faster than the cheetah?', a: 'No, it wasn’t. The cheetah was faster.' },
+      { q: 'Who jumped higher, the kangaroo or the frog?', a: 'The kangaroo.' },
+      { q: 'What did the elephant lift?', a: 'A heavy tree.' },
+      { q: 'Why was the tortoise the happiest animal?', a: 'Because everyone cheered for him.' },
+      { q: 'What is the best sport, in your opinion? Why?', a: `${OWN}, e.g. Football is the best sport because it’s the most exciting.` }
+    ]
+  },
+  'will-wont': {
+    title: 'Life in 2050',
+    paragraphs: [
+      'What will life be like in 2050? My grandpa thinks robots will do all the housework. He says people won’t wash the dishes or clean their rooms any more! My sister thinks cars will fly, so there won’t be any traffic jams.',
+      'I think children will still go to school, but they will learn with computers, not books. Maybe we will go on holiday to the Moon! I hope people will look after the planet, and the air will be cleaner. One thing is sure: I won’t stop eating pizza!'
+    ],
+    questions: [
+      { q: 'Which year is the text about?', a: '2050.' },
+      { q: 'What does grandpa think robots will do?', a: 'All the housework.' },
+      { q: 'Why won’t there be any traffic jams?', a: 'Because cars will fly.' },
+      { q: 'How will children learn?', a: 'With computers, not books.' },
+      { q: 'What does the writer hope?', a: 'That people will look after the planet and the air will be cleaner.' },
+      { q: 'What will you do in 2050?', a: `${OWN}, e.g. I will be a doctor.` }
+    ]
+  },
+  'present-perfect': {
+    title: 'Ella’s Adventures',
+    paragraphs: [
+      'Ella is twelve, but she has already had lots of adventures. She has been to six countries. She has seen the Eiffel Tower in Paris and she has swum in the sea in Greece. She has never been on a very long flight, but she wants to fly to Australia one day.',
+      'Ella has tried lots of different foods too. She has eaten sushi in Japan, but she has never tried snails! Her brother Ben has never left his country, but he has just bought a map of the world. “Have you ever been to China?” he asks Ella. “Not yet!” she says.'
+    ],
+    questions: [
+      { q: 'How old is Ella?', a: 'Twelve.' },
+      { q: 'How many countries has Ella been to?', a: 'Six.' },
+      { q: 'Where has she swum in the sea?', a: 'In Greece.' },
+      { q: 'Which food has Ella never tried?', a: 'Snails.' },
+      { q: 'What has Ben just bought?', a: 'A map of the world.' },
+      { q: 'Have you ever been to another country? Where?', a: `${OWN}, e.g. Yes, I have. I’ve been to Spain.` }
+    ]
+  },
+  'amusement-park': {
+    title: 'A Day at Fun Land',
+    paragraphs: [
+      'Last Saturday, Mia and her family went to Fun Land. First they went on the roller coaster. It was really exciting, but Mia’s dad was frightened! Then they rode the bumper cars. Mia laughed a lot because her brother crashed into everyone. At lunchtime they ate hot dogs and candy floss.',
+      'In the afternoon they waited in a long queue for the ghost train. The queue was boring, but the ride was amazing. Mia screamed when a skeleton jumped out! In the evening they watched the fireworks. Everyone was tired but happy when they got home.'
+    ],
+    questions: [
+      { q: 'When did Mia go to Fun Land?', a: 'Last Saturday.' },
+      { q: 'Who was frightened on the roller coaster?', a: 'Mia’s dad.' },
+      { q: 'Why did Mia laugh on the bumper cars?', a: 'Because her brother crashed into everyone.' },
+      { q: 'What did they eat at lunchtime?', a: 'Hot dogs and candy floss.' },
+      { q: 'How did they feel when they got home?', a: 'They were tired but happy.' },
+      { q: 'Which ride would you like to go on? Why?', a: `${OWN}, e.g. The roller coaster, because it’s exciting.` }
+    ]
+  },
+  'party-fun': {
+    title: 'The Class Party',
+    paragraphs: [
+      'Our class party is on Friday and everyone will help. Who will bring the food? Lily will make a big chocolate cake, and Tom will bring pizza. Will Jack bring drinks? Yes, he will. He’ll bring orange juice and lemonade. Anna and Sophie will decorate the classroom with balloons and a big poster.',
+      'What will our teacher do? She will play the music! Will we play games? Yes, we will. We’ll play musical chairs and pass the parcel. Ben won’t dance because he’s shy, but he will take photos. It will be the best party ever!'
+    ],
+    questions: [
+      { q: 'When is the class party?', a: 'On Friday.' },
+      { q: 'What will Lily make?', a: 'A big chocolate cake.' },
+      { q: 'Will Jack bring drinks?', a: 'Yes, he will. (Orange juice and lemonade.)' },
+      { q: 'What will the teacher do?', a: 'She will play the music.' },
+      { q: 'Why won’t Ben dance?', a: 'Because he’s shy.' },
+      { q: 'What will you do at a party?', a: `${OWN}, e.g. I will make a poster and dance.` }
+    ]
+  },
+  'at-school': {
+    title: 'Sam’s School Bag',
+    paragraphs: [
+      'Sam has got a big blue school bag. Inside, he has got three books, a pencil case and a lunch box. In his pencil case, he has got two pencils, a rubber, a ruler and some colouring pencils, but he hasn’t got a sharpener. His friend Kate has got a pink school bag with a glue stick and some scissors.',
+      'Today is Sam’s birthday. He wants a new football and a computer game. Kate wants a puppy for her birthday! At lunchtime, Sam has got sandwiches and an apple. He wants chocolate too, but his mum says no!'
+    ],
+    questions: [
+      { q: 'What colour is Sam’s school bag?', a: 'Blue.' },
+      { q: 'What has Sam got in his school bag?', a: 'Three books, a pencil case and a lunch box.' },
+      { q: 'What hasn’t Sam got in his pencil case?', a: 'A sharpener.' },
+      { q: 'What does Sam want for his birthday?', a: 'A new football and a computer game.' },
+      { q: 'What does Kate want for her birthday?', a: 'A puppy.' },
+      { q: 'What have you got in your school bag?', a: `${OWN}, e.g. I’ve got a pencil case and two books.` }
+    ]
+  },
+  'months-weather': {
+    title: 'Max’s Year',
+    paragraphs: [
+      'Hi, I’m Max. My favourite month is July because my birthday is on the twentieth of July. In summer it’s hot and sunny, and I swim in the sea. In autumn, in September and October, it’s windy and the leaves fall from the trees. I go back to school on the fifth of September.',
+      'Winter is very cold here. In December it’s snowy and we build snowmen. My sister’s birthday is on the first of December. In spring, in April, it’s rainy, so I take my umbrella everywhere. What’s the weather like today? It’s cloudy!'
+    ],
+    questions: [
+      { q: 'What is Max’s favourite month?', a: 'July.' },
+      { q: 'When is Max’s birthday?', a: 'On the twentieth of July.' },
+      { q: 'What’s the weather like in autumn?', a: 'It’s windy (and the leaves fall from the trees).' },
+      { q: 'When does Max go back to school?', a: 'On the fifth of September.' },
+      { q: 'Why does Max take his umbrella everywhere in April?', a: 'Because it’s rainy.' },
+      { q: 'When is your birthday? What’s the weather like then?', a: `${OWN}, e.g. It’s on the third of May. It’s sunny.` }
+    ]
+  }
+};
+
+export const READING = { title: '', paragraphs: [], questions: [] };
+
+export function applyLesson(id){
+  const data = LESSON_CONTENT[id] || LESSON_CONTENT.comparatives;
+  READING.title = data.title;
+  READING.paragraphs = data.paragraphs.slice();
+  READING.questions = data.questions.map(x => ({ ...x }));
+}
+applyLesson('comparatives');

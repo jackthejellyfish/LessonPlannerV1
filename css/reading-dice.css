@@ -1,0 +1,126 @@
+  /* ---- Reading (Stage 8) ---- */
+  #stage8 .stage-body, #stage9 .stage-body{ justify-content:safe center; }
+  .rd-layout{
+    display:grid; grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr);
+    gap:clamp(16px,2.6vw,40px); align-items:center;
+    width:100%; max-width:1360px; margin:0 auto;
+  }
+  .rd-text{
+    background:var(--paper); border-radius:18px;
+    padding:clamp(14px,2.6vh,32px) clamp(18px,2.2vw,36px);
+    border-left:6px solid var(--rule-a);
+  }
+  .rd-title{ margin:0 0 clamp(8px,1.4vh,16px); font-size:clamp(20px,3.4vh,36px); color:var(--ink); }
+  .rd-text p{ margin:0 0 clamp(8px,1.4vh,16px); font-size:clamp(15px,2.45vh,27px); line-height:1.5; color:var(--ink); }
+  .rd-text p:last-child{ margin-bottom:0; }
+
+  .rd-questions{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:clamp(5px,0.9vh,10px); }
+  .rd-q{
+    display:flex; align-items:center; gap:clamp(10px,1vw,14px);
+    min-height:clamp(38px,6vh,60px);
+    background:var(--surface); border:2px solid var(--line); border-radius:12px;
+    padding:clamp(5px,0.8vh,9px) clamp(10px,1vw,14px); cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  .rd-q:hover, .rd-q:focus-visible{ border-color:var(--primary); outline:none; }
+  .rd-q-num{
+    flex-shrink:0; width:clamp(26px,3.6vh,36px); height:clamp(26px,3.6vh,36px); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--line); color:var(--muted); font-family:var(--font-display); font-weight:800; font-size:clamp(13px,1.9vh,18px);
+  }
+  .rd-q-body{ display:flex; flex-direction:column; min-width:0; }
+  .rd-q-hidden{ color:var(--muted); font-style:italic; font-weight:600; font-size:clamp(13px,1.8vh,17px); }
+  .rd-q-text{ display:none; font-weight:700; color:var(--ink); font-size:clamp(14px,2.2vh,23px); line-height:1.25; }
+  .rd-q-answer{ display:none; font-weight:700; color:var(--success); font-size:clamp(13px,2vh,21px); line-height:1.25; margin-top:2px; }
+  .rd-q[data-level="1"] .rd-q-hidden, .rd-q[data-level="2"] .rd-q-hidden{ display:none; }
+  .rd-q[data-level="1"] .rd-q-text, .rd-q[data-level="2"] .rd-q-text,
+  .rd-q[data-level="2"] .rd-q-answer{ display:block; }
+  .rd-q[data-level="1"] .rd-q-num{ background:var(--primary); border-color:var(--primary); color:#fff; }
+  .rd-q[data-level="2"]{ border-color:color-mix(in srgb, var(--success) 50%, var(--line)); }
+  .rd-q[data-level="2"] .rd-q-num{ background:var(--success); border-color:var(--success); color:#fff; }
+  .rd-hint{ margin:clamp(6px,1.2vh,12px) 0 0; font-size:clamp(12px,1.6vh,15px); color:var(--muted); font-style:italic; }
+
+  /* ---- Speaking dice (Stage 9) ---- */
+  .dice-layout{
+    display:grid; grid-template-columns:minmax(0, 0.75fr) minmax(0, 1.5fr);
+    gap:clamp(16px,3vw,48px); align-items:center;
+    width:100%; max-width:1360px; margin:0 auto;
+  }
+  .dice-roller{ display:flex; flex-direction:column; align-items:center; gap:clamp(10px,1.8vh,20px); }
+  .dice-scene{
+    --d:clamp(110px,22vh,210px);
+    position:relative;
+    width:var(--d); height:var(--d); perspective:calc(var(--d) * 5);
+    cursor:pointer; outline:none; border-radius:20%;
+  }
+  /* The shadow on the table, under the dice; it shrinks as the dice rises. */
+  .dice-shadow{
+    position:absolute; left:12%; right:12%; bottom:calc(var(--d) * -0.14); height:calc(var(--d) * 0.16);
+    border-radius:50%; background:radial-gradient(closest-side, rgba(30,36,51,0.32), rgba(30,36,51,0));
+  }
+  .dice-scene:focus-visible{ box-shadow:0 0 0 4px color-mix(in srgb, var(--primary) 45%, transparent); }
+  /* preserve-3d all the way down, so the scene's perspective reaches the
+     cube through the hop (without it the cube was flattened). The roll
+     is a Web Animation (js/stages/dice.js), not a CSS transition. */
+  .dice-hop{ position:relative; width:100%; height:100%; transform-style:preserve-3d; }
+  .dice-cube{
+    position:relative; width:100%; height:100%; transform-style:preserve-3d;
+  }
+  .dice-face{
+    position:absolute; inset:0; border-radius:18%;
+    background:#FFFFFF; border:3px solid #E3E7EE;
+    box-shadow:inset 0 0 calc(var(--d) * 0.12) rgba(30,36,51,0.18);
+    display:grid; grid-template:repeat(3, 1fr) / repeat(3, 1fr); padding:13%;
+    backface-visibility:hidden;
+  }
+  .dice-core{ position:absolute; inset:4%; background:#E9ECF1; border-radius:12%; }
+  .dice-core.y{ transform:rotateY(90deg); }
+  .dice-core.x{ transform:rotateX(90deg); }
+  .dice-face.f1{ transform:rotateY(0deg) translateZ(calc(var(--d) / 2)); }
+  .dice-face.f6{ transform:rotateY(180deg) translateZ(calc(var(--d) / 2)); }
+  .dice-face.f3{ transform:rotateY(90deg) translateZ(calc(var(--d) / 2)); }
+  .dice-face.f4{ transform:rotateY(-90deg) translateZ(calc(var(--d) / 2)); }
+  .dice-face.f5{ transform:rotateX(90deg) translateZ(calc(var(--d) / 2)); }
+  .dice-face.f2{ transform:rotateX(-90deg) translateZ(calc(var(--d) / 2)); }
+  .pip{ border-radius:50%; margin:16%; }
+  .pip.on{ background:#1E2433; }
+  .dice-face.f1 .pip.on{ background:#E8453C; margin:4%; }
+  .dice-roll-btn{ font-size:clamp(16px,2.4vh,22px); padding:clamp(10px,1.6vh,14px) clamp(22px,2.6vw,34px); }
+  .dice-scene.rolling + .dice-roll-btn{ opacity:0.5; pointer-events:none; }
+  .dice-message{ margin:0; min-height:2.6em; text-align:center; font-weight:700; color:var(--ink); font-size:clamp(15px,2.3vh,22px); }
+
+  .dice-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:clamp(5px,0.9vh,10px); }
+  .dq{
+    display:flex; align-items:flex-start; gap:clamp(10px,1.2vw,16px);
+    background:var(--surface); border:2px solid var(--line); border-radius:14px;
+    padding:clamp(6px,1vh,10px) clamp(10px,1.2vw,16px);
+    transition:border-color .2s ease, background-color .2s ease;
+  }
+  .dq-face{
+    flex-shrink:0; width:clamp(30px,4.6vh,44px); height:clamp(30px,4.6vh,44px);
+    /* Padding in px: a % padding is a share of the PARENT's width (the
+       whole row here), which blew this little face up to 200px. */
+    display:grid; grid-template:repeat(3,1fr)/repeat(3,1fr); padding:clamp(3px,0.5vh,5px);
+    background:#FFFFFF; border:2px solid var(--line); border-radius:22%;
+  }
+  .dq-face .pip{ margin:1.5px; }
+  .dq-body{ min-width:0; flex:1; }
+  .dq-question{ margin:0; font-weight:700; color:var(--ink); font-size:clamp(15px,2.3vh,24px); line-height:1.25; padding-top:clamp(2px,0.6vh,8px); }
+  .dq-help{ display:none; }
+  .dq.active{ border-color:var(--primary); background:color-mix(in srgb, var(--primary) 8%, var(--surface)); }
+  .dq.active .dq-face{ border-color:var(--primary); }
+  .dq.active .dq-question{ font-size:clamp(18px,3vh,32px); }
+  .dq.active .dq-help{ display:block; margin-top:clamp(6px,1.2vh,12px); }
+  .dq-phrases{ margin:0 0 clamp(6px,1.1vh,12px); padding-left:1.2em; }
+  .dq-phrases li{ font-size:clamp(14px,2.2vh,22px); font-weight:600; color:var(--primary-dark, var(--primary)); line-height:1.35; }
+  .dq-words{ display:flex; flex-wrap:wrap; gap:6px; }
+  .dq-words span{
+    background:var(--paper); border:1px solid var(--line); border-radius:999px;
+    padding:2px 12px; font-size:clamp(13px,1.9vh,19px); font-weight:600; color:var(--ink);
+  }
+  .dq.done .dq-question{ text-decoration:line-through; text-decoration-thickness:3px; color:var(--muted); }
+  .dq.done:not(.active){ opacity:0.55; }
+
+  @media (max-width:900px){
+    .rd-layout, .dice-layout{ grid-template-columns:1fr; }
+  }

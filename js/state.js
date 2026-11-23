@@ -32,6 +32,10 @@ function createState(lessonId, muted){
     semiTimerRAF: null,
     semiStarted: false, // becomes true the first time the learner actually reaches stage 4
     dictRevealed: new Set(), // Stage 6: which dictation sentences are showing
+    readingSteps: [],        // Stage 8: per question 0 hidden / 1 question / 2 answer
+    diceLast: null,          // Stage 9: the previous roll (rolling it again crosses it out)
+    diceActive: null,        // Stage 9: the question the dice is on
+    diceDone: new Set(),     // Stage 9: crossed-out questions
     qsStarted: false,   // Stage 9 worksheet set up for this lesson (keeps revealed answers on revisits)
     popTeams: [],
     popCurrentTeam: 0,

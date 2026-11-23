@@ -60,6 +60,15 @@
       position:absolute; left:3mm; top:3mm; font-size:11pt; font-weight:700; color:#999;
     }
 
+    /* Reading (page 1) and its answer sheet (page 2: print double-sided). */
+    #printableActivity .pa-reading, #printableActivity .pa-answersheet{ font-family:Arial, Helvetica, sans-serif; }
+    #printableActivity .pa-reading h1, #printableActivity .pa-answersheet h1{ font-size:22pt; text-align:center; margin:0 0 1mm; }
+    #printableActivity .pa-text p{ font-size:15pt; line-height:1.6; margin:0 0 5mm; }
+    #printableActivity .pa-answersheet{ page-break-before:always; break-before:page; }
+    #printableActivity .pa-answer-list{ margin:6mm 0 0; padding-left:9mm; font-size:16pt; font-weight:700; }
+    #printableActivity .pa-answer-list li{ margin-bottom:7mm; page-break-inside:avoid; }
+    #printableActivity .pa-answer-line{ border-bottom:1.5px solid #555; height:12mm; }
+
     /* Class survey handout. */
     #printableActivity .pa-survey{ font-family:Arial, Helvetica, sans-serif; }
     #printableActivity .pa-survey h1{ font-size:22pt; text-align:center; margin:0 0 1mm; }
