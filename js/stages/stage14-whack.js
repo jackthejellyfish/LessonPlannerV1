@@ -104,6 +104,7 @@ document.getElementById('whackStartBtn').addEventListener('click', () => {
   state.whackTurnsPlayed = 0;
   state.whackQuestionOrder = shuffle(WHACK_QUESTIONS.map((_, i) => i));
   state.whackQuestionsAsked = 0;
+  showWhackReady(false);
 
   showGameScreen('whack');
   renderWhackScoreboard();
@@ -159,9 +160,29 @@ async function askWhackQuestions(){
   }
 }
 
+// After the last question the round waits for the teacher: "Get
+// ready!" gives the players time to get to their lanes, and Go starts
+// it (it used to start the moment the last question closed).
+function showWhackReady(on){
+  document.getElementById('whackReady').classList.toggle('hidden', !on);
+  document.getElementById('whackPlayArea').classList.toggle('ready', on);
+  if(on){
+    const n = lanes();
+    document.getElementById('whackReadySub').textContent = n > 1
+      ? `${n} players: one on each lane.`
+      : 'One player, one lane.';
+    document.getElementById('whackGoBtn').focus({ preventScroll: true });
+  }
+}
+
 document.getElementById('whackBeginTurnBtn').addEventListener('click', async () => {
   document.getElementById('whackBeginTurnBtn').disabled = true;
   await askWhackQuestions();
+  showWhackReady(true);
+});
+document.getElementById('whackGoBtn').addEventListener('click', () => {
+  if(state.whackRoundActive) return;
+  showWhackReady(false);
   startWhackRound();
 });
 

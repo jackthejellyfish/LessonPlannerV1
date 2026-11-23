@@ -120,6 +120,20 @@ export const LESSONS = [
     printWorksheetTitle: 'Months, Weather and Seasons — Practice Worksheet',
     printFooter: 'Months, Weather and Seasons — Teacher Jack\u2019s Lesson Planner',
     mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
+  },
+  {
+    // Food and drink (2026-11-23): countable / uncountable nouns with
+    // a / an, some / any and there is / are, plus ordering in a restaurant.
+    id: 'food-drink',
+    title: 'Food and Drink: Some and Any',
+    tagline: 'Countable and uncountable food, some and any, and ordering in a restaurant.',
+    objective: 'By the end of this lesson, you will be able to ask and answer Is there any…? / Are there any…? with a, an, some and any, and order food in a restaurant (Can I have…, please? / I’d like…).',
+    pageTitle: 'Food and Drink: Some and Any — Teacher Jack’s Lesson Planner',
+    printRulesTitle: 'Food and Drink — Rules Reference',
+    printRulesSubtitle: 'Countable and uncountable nouns, a / an, some / any, and restaurant phrases',
+    printWorksheetTitle: 'Food and Drink — Practice Worksheet',
+    printFooter: 'Food and Drink: Some and Any — Teacher Jack’s Lesson Planner',
+    mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
   }
 ];
 

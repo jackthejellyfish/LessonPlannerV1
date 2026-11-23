@@ -393,6 +393,32 @@ export function buildCompareIcon(type, valuePct, color){
       <circle cx="35" cy="28" r="${r * 0.75}" fill="var(--rule-d)"/>
     </svg>`;
   }
+  // --- Food and drink lesson icons (2026-11-23).
+  if(type === 'apple'){
+    const r = 14 + 8 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M35 ${40 - r * 0.75} q1 -8 7 -11" stroke="var(--ink)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="45" cy="${30 - r * 0.85}" rx="7" ry="3.5" transform="rotate(-25 45 ${30 - r * 0.85})" fill="var(--success)"/>
+      <circle cx="${35 - r * 0.36}" cy="42" r="${r * 0.72}" fill="${color}"/>
+      <circle cx="${35 + r * 0.36}" cy="42" r="${r * 0.72}" fill="${color}"/>
+      <ellipse cx="${35 - r * 0.5}" cy="${42 - r * 0.3}" rx="2.5" ry="4.5" fill="var(--paper)" opacity="0.55"/>
+    </svg>`;
+  }
+  if(type === 'bread'){
+    const w = 22 + 6 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <rect x="${35 - w}" y="26" width="${w * 2}" height="28" rx="13" fill="${color}"/>
+      <path d="M${35 - w * 0.55} 31 l6 16 M35 31 l6 16 M${35 + w * 0.55} 31 l6 16" stroke="var(--paper)" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+    </svg>`;
+  }
+  if(type === 'water'){
+    const h = 36 + 6 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M22 ${64 - h} L48 ${64 - h} L45 64 L25 64 Z" fill="var(--paper)" stroke="var(--muted)" stroke-width="2"/>
+      <path d="M23.2 ${64 - h * 0.75} L46.8 ${64 - h * 0.75} L45 64 L25 64 Z" fill="${color}" opacity="0.75"/>
+      <path d="M28 ${64 - h * 0.5} q3 -3 6 0 q3 3 6 0" stroke="var(--paper)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }
   if(type === 'leaf'){
     const s = 0.85 + 0.15 * scale;
     return `<svg viewBox="0 0 70 70" width="70" height="70"><g transform="translate(35 36) scale(${s}) rotate(-30)">

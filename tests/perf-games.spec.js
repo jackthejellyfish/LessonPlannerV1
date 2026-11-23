@@ -93,6 +93,8 @@ async function beginTurn(page, prefix) {
     else { await page.locator('.mc-choice').first().click(); await page.click('#popMcContinueBtn'); }
     await page.waitForTimeout(80);
   }
+  // Whack-a-Jelly waits on "Get ready!" for the teacher's Go.
+  if (prefix === 'whack') await page.click('#whackGoBtn');
   // Star Defender asks "play now or bank the time?" before its round.
   if (prefix === 'inv') await page.click('#confirmOkBtn');
   await page.waitForTimeout(250);

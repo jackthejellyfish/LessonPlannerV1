@@ -77,6 +77,14 @@ const LESSON_CONTENT = {
     'It’s hot and sunny in summer.',
     'The leaves fall from the trees in autumn.',
     'It’s windy and rainy today.'
+  ],
+  'food-drink': [
+    'Is there any bread on the table?',
+    'There are some cookies, but there aren’t any cakes.',
+    'Can I have a chicken sandwich, please?',
+    'I’d like some orange juice, please.',
+    'Put the fork on the left of the plate.',
+    'There isn’t any milk, but there’s some water.'
   ]
 };
 

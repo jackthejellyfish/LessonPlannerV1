@@ -309,6 +309,40 @@ const LESSON_CONTENT = {
           {prompt:"Write a weather report for this week. What’s the weather like on each day?"},
         ]},
     ]
+  },
+  'food-drink': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Complete each sentence with a, an, some, any or a restaurant word.",
+        questions:[
+          {prompt:"Is there ___ milk in the fridge?", answer:"any"},
+          {prompt:"There are ___ potatoes on the plate.", answer:"some"},
+          {prompt:"Is there ___ orange in your bag?", answer:"an"},
+          {prompt:"There aren’t ___ cookies.", answer:"any"},
+          {prompt:"Can I ___ a sandwich, please?", answer:"have"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
+        questions:[
+          {chips:["Are","there","any","cookies","?"],answer:"Are there any cookies ?"},
+          {chips:["There's","some","juice","in","the","glass","."],answer:"There's some juice in the glass ."},
+          {chips:["Is","there","a","banana","?"],answer:"Is there a banana ?"},
+          {chips:["I'll","have","a","cheese","pizza","."],answer:"I'll have a cheese pizza ."},
+          {chips:["There","isn't","any","bread","."],answer:"There isn't any bread ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence or question about food, some and any.",
+        questions:[
+          {prompt:'Write what is in your fridge at home.',        hint:'There’s some ___. There are some ___.'},
+          {prompt:'Write a question with “any” about food.',      hint:'Is there any ___? / Are there any ___?'},
+          {prompt:'Write what there isn’t in your kitchen.',      hint:'There isn’t any ___.'},
+          {prompt:'Order your favourite food in a restaurant.',   hint:'Can I have ___, please?'},
+          {prompt:'Order a drink.',                               hint:'I’d like ___, please.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3–5 sentences about food and restaurants.",
+        questions:[
+          {prompt:"Write a menu for your own café. What food and drinks are there? Write at least 3 sentences."},
+          {prompt:"Write a conversation between a waiter and a customer. Use 'Can I help you?' and 'I’d like…'."},
+          {prompt:"What’s in your lunch box today? Write what there is and what there isn’t."},
+        ]},
+    ]
   }
 };
 

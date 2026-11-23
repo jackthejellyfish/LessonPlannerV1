@@ -142,6 +142,21 @@ const LESSON_CONTENT = {
       { q: 'Why does Max take his umbrella everywhere in April?', a: 'Because it’s rainy.' },
       { q: 'When is your birthday? What’s the weather like then?', a: `${OWN}, e.g. It’s on the third of May. It’s sunny.` }
     ]
+  },
+  'food-drink': {
+    title: 'Lunch at Luca’s Café',
+    paragraphs: [
+      'Hi, I’m Sofia. On Saturday I go to Luca’s Café with my dad. The waiter says, “Hi. Can I help you? Are you ready to order?” My dad says, “Yes, thanks. I’ll have a cheese pizza, please.” I’m very hungry. Is there any pasta? Yes, there is! So I have some pasta with tomato sauce.',
+      'Then the waiter asks, “What would you like to drink?” I’m thirsty. I’d like some orange juice, but there isn’t any juice today, so I have water. For dessert there are some chocolate cookies, but there aren’t any cakes. Yum!'
+    ],
+    questions: [
+      { q: 'Where do Sofia and her dad go on Saturday?', a: 'To Luca’s Café.' },
+      { q: 'What does her dad order?', a: 'A cheese pizza.' },
+      { q: 'Is there any pasta at the café?', a: 'Yes, there is.' },
+      { q: 'Why does Sofia have water?', a: 'Because there isn’t any orange juice today.' },
+      { q: 'Are there any cakes for dessert? What is there?', a: 'No, there aren’t. There are some chocolate cookies.' },
+      { q: 'What would you like to order at a café?', a: `${OWN}, e.g. I’d like a sandwich and some juice, please.` }
+    ]
   }
 };
 

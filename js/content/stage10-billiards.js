@@ -127,6 +127,20 @@ const LESSON_CONTENT = {
       { prompt: "Answer: 'What's the weather like?' (wind)", answer: "It's windy." },
       { prompt: "Answer: 'What season is it?' (April)", answer: "It's spring." }
     ]
+  },
+  'food-drink': {
+    BILLIARDS_QUESTIONS: [
+      { prompt: "Answer: 'Is there any milk?' (yes)", answer: "Yes, there is." },
+      { prompt: "Answer: 'Are there any cookies?' (no)", answer: "No, there aren't." },
+      { prompt: "Answer: 'Is there a banana?' (no)", answer: "No, there isn't." },
+      { prompt: "Answer: 'Are there any carrots?' (yes)", answer: "Yes, there are." },
+      { prompt: "Answer: 'Is there any bread?' (no — rice)", answer: "No, there isn't any bread. But there's some rice." },
+      { prompt: "Answer: 'What would you like to drink?' (water)", answer: "I'd like water, please." },
+      { prompt: "Answer: 'Are you ready to order?' (a pizza)", answer: "Yes, I'll have a pizza, please." },
+      { prompt: "Answer: 'Is there any juice?' (yes)", answer: "Yes, there is." },
+      { prompt: "Answer: 'Are there any potatoes?' (no — carrots)", answer: "No, there aren't any potatoes. But there are some carrots." },
+      { prompt: "Answer: 'Can I help you?' (a sandwich)", answer: "Can I have a sandwich, please?" }
+    ]
   }
 };
 

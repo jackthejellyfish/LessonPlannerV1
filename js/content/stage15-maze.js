@@ -130,6 +130,20 @@ const LESSON_CONTENT = {
       { prompt: "Fill the gap: 'It's cold and ___ in winter.' (snowy)", answer: "snowy" },
       { prompt: "Fill the gap: 'We swim in the sea in ___.' (summer)", answer: "summer" }
     ]
+  },
+  'food-drink': {
+    MAZE_QUESTIONS: [
+      { prompt: "Fill the gap: 'Is there ___ bread?' (any)", answer: "any" },
+      { prompt: "Fill the gap: 'There are ___ apples.' (some)", answer: "some" },
+      { prompt: "Fill the gap: 'Is there ___ egg?' (an)", answer: "an" },
+      { prompt: "Fill the gap: 'Are you ready to ___?' (order)", answer: "order" },
+      { prompt: "Fill the gap: 'What would you like to ___?' (drink)", answer: "drink" },
+      { prompt: "Fill the gap: 'Can I ___ a sandwich, please?' (have)", answer: "have" },
+      { prompt: "Fill the gap: 'I'd ___ some soup, please.' (like)", answer: "like" },
+      { prompt: "Fill the gap: 'Put the fork on the ___ of the plate.' (left)", answer: "left" },
+      { prompt: "Fill the gap: 'Can you pass the salt and ___, please?' (pepper)", answer: "pepper" },
+      { prompt: "Fill the gap: 'There ___ any cookies.' (aren't)", answer: "aren't" }
+    ]
   }
 };
 

@@ -187,6 +187,16 @@ function buildAimIcon(type){
       }).join('')}
     </svg>`;
   }
+  // --- Food and drink lesson (2026-11-23).
+  if(type === 'apple'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M50 22 q1 -10 8 -14" stroke="var(--ink)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="62" cy="12" rx="8" ry="4" transform="rotate(-25 62 12)" fill="var(--success)"/>
+      <circle cx="41" cy="42" r="20" fill="var(--error)"/>
+      <circle cx="59" cy="42" r="20" fill="var(--error)"/>
+      <ellipse cx="37" cy="35" rx="4" ry="7" fill="var(--paper)" opacity="0.55"/>
+    </svg>`;
+  }
   if(type === 'snowflake'){
     return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
       ${[0, 60, 120].map(a => `<g transform="rotate(${a} 50 35)" stroke="var(--rule-b)" stroke-width="4" stroke-linecap="round" fill="none">

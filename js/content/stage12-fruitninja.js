@@ -127,6 +127,20 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'It's rainy and windy.'", answer: "Yes — that's correct!" },
       { prompt: "Is this correct? 'Christmas is in the 25th of December.'", answer: "No — 'on the 25th of December.'" }
     ]
+  },
+  'food-drink': {
+    FRUIT_QUESTIONS: [
+      { prompt: "Is this correct? 'Is there any bread?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'There are some water.'", answer: "No — 'There's some water.'" },
+      { prompt: "Is this correct? 'Is there a apple?'", answer: "No — 'Is there an apple?'" },
+      { prompt: "Is this correct? 'There aren't any cookies.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Can I have some breads, please?'", answer: "No — 'Can I have some bread, please?'" },
+      { prompt: "Is this correct? 'There's some juice in the fridge.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Are there any rice?'", answer: "No — 'Is there any rice?'" },
+      { prompt: "Is this correct? 'I'd like water, please.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'There isn't some milk.'", answer: "No — 'There isn't any milk.'" },
+      { prompt: "Is this correct? 'Are there any potatoes?'", answer: "Yes — that's correct!" }
+    ]
   }
 };
 

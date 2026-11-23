@@ -137,6 +137,20 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'It's windy / windly today.'", answer: "windy" },
       { prompt: "Which is correct? 'Flowers grow in spring / autumn.'", answer: "spring" }
     ]
+  },
+  'food-drink': {
+    WHACK_QUESTIONS: [
+      { prompt: "Which is correct? 'Is there a / any bread?'", answer: "any" },
+      { prompt: "Which is correct? 'There are some / any cookies.'", answer: "some" },
+      { prompt: "Which is correct? 'Is there a / an apple?'", answer: "an" },
+      { prompt: "Which is correct? 'There isn't some / any juice.'", answer: "any" },
+      { prompt: "Which is correct? 'Is / Are there any carrots?'", answer: "Are" },
+      { prompt: "Which is correct? 'I'd like / likes water, please.'", answer: "like" },
+      { prompt: "Which is correct? 'Can I have / has a pizza, please?'", answer: "have" },
+      { prompt: "Which is correct? 'There's some rice / rices.'", answer: "rice" },
+      { prompt: "Which is correct? 'Are there any potato / potatoes?'", answer: "potatoes" },
+      { prompt: "Which is correct? 'Is / Are there any milk?'", answer: "Is" }
+    ]
   }
 };
 

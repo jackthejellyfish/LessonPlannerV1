@@ -127,6 +127,20 @@ const LESSON_CONTENT = {
       { prompt: "Which month comes before October?", answer: "September" },
       { prompt: "Which month comes after December?", answer: "January" }
     ]
+  },
+  'food-drink': {
+    POP_QUESTIONS: [
+      { prompt: "Countable or uncountable? 'water'", answer: "uncountable" },
+      { prompt: "Countable or uncountable? 'apple'", answer: "countable" },
+      { prompt: "Countable or uncountable? 'bread'", answer: "uncountable" },
+      { prompt: "Countable or uncountable? 'cookie'", answer: "countable" },
+      { prompt: "Countable or uncountable? 'rice'", answer: "uncountable" },
+      { prompt: "Countable or uncountable? 'carrot'", answer: "countable" },
+      { prompt: "Countable or uncountable? 'juice'", answer: "uncountable" },
+      { prompt: "Countable or uncountable? 'potato'", answer: "countable" },
+      { prompt: "Countable or uncountable? 'sugar'", answer: "uncountable" },
+      { prompt: "Countable or uncountable? 'sandwich'", answer: "countable" }
+    ]
   }
 };
 

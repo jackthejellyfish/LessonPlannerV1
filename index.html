@@ -1223,6 +1223,12 @@
                 <button class="btn btn-primary" id="whackBeginTurnBtn" type="button">
                   Begin turn
                 </button>
+                <!-- After the questions: a pause so the players can get to their lanes. -->
+                <div class="whack-ready hidden" id="whackReady" role="dialog" aria-label="Get ready">
+                  <p class="whack-ready-title">Get ready!</p>
+                  <p class="whack-ready-sub" id="whackReadySub"></p>
+                  <button class="btn btn-primary whack-go-btn" id="whackGoBtn" type="button">Go!</button>
+                </div>
                 <div class="game-over-banner hidden" id="whackGameOverBanner">
                   <div class="game-over-title">Game over</div>
                   <div class="game-over-winner" id="whackGameOverWinner"></div>

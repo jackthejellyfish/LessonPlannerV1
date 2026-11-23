@@ -276,6 +276,40 @@ const LESSON_CONTENT = {
       calendar: "var(--rule-c)", sun: "var(--rule-d)", flower: "var(--rule-a)", cloud: "var(--rule-b)",
       cake: "var(--rule-a)", snowflake: "var(--rule-b)", leaf: "var(--rule-c)", umbrella: "var(--rule-a)"
     }
+  },
+  'food-drink': {
+    // Countable and uncountable nouns (a / an, some, any, there is / are)
+    // and ordering food in a restaurant.
+    RULES: [
+      { name: "Countable nouns", formula: "You can count them: one cookie, two cookies · a / an for one, -s for more", color: "var(--rule-a)",
+        examples: [["banana","s"],["cookie","s"],["potato","es"]] },
+      { name: "Uncountable nouns", formula: "You can’t count them: water, bread, rice, juice, sugar, salt · no a / an, no -s", color: "var(--rule-c)",
+        examples: [["water"," (not a water)"],["bread"," (not breads)"],["rice"," (not rices)"]] },
+      { name: "some in positive sentences", formula: "There are some + plural · There’s some + uncountable", color: "var(--rule-b)",
+        examples: [["There are"," some sugar cookies."],["There’s"," some juice too."],["There’s"," some rice."]] },
+      { name: "any in questions and negatives", formula: "Are there any…? · Is there any…? · There aren’t any… · There isn’t any…", color: "var(--rule-d)",
+        examples: [["Are there"," any cookies?"],["Is there"," any water to drink?"],["There isn’t"," any bread."]] },
+      { name: "Is there a…? / Is there an…?", formula: "One countable thing: a + consonant (a banana) · an + vowel (an apple)", color: "var(--rule-a)",
+        examples: [["Is there"," a banana?"],["No, there isn’t"," a banana."],["But there is"," an apple."]] },
+      { name: "In a restaurant", formula: "Waiter: Can I help you? · Are you ready to order? · What would you like to drink?", color: "var(--rule-c)",
+        examples: [["Can I have"," a chicken sandwich, please?"],["I’ll have"," a cheese pizza, please."],["I’d like"," water, please."]] }
+    ],
+    COMPARE_DEMOS: [
+      { labelA: "cookies (countable)", labelB: "bread (uncountable)", valueA: 75, valueB: 75, iconA: "biscuits", iconB: "bread",
+        caption: 'There are <span class="hl">some</span> cookies and there’s <span class="hl">some</span> bread.' },
+      { labelA: "an apple", labelB: "some apples", valueA: 45, valueB: 85, iconA: "apple", iconB: "apple",
+        caption: 'There’s <span class="hl">an</span> apple. There are <span class="hl">some</span> apples.' },
+      { labelA: "some juice", labelB: "any water?", valueA: 75, valueB: 75, iconA: "juice", iconB: "water",
+        caption: 'There’s <span class="hl">some</span> juice, but there isn’t <span class="hl">any</span> water.' },
+      { labelA: "Can I have some soup?", labelB: "I’ll have a pizza!", valueA: 75, valueB: 75, iconA: "bowl", iconB: "pizza",
+        caption: 'Can I <span class="hl">have</span> some soup, <span class="hl">please</span>? — <span class="hl">I’ll have</span> a pizza, please.' }
+    ],
+    COMPARE_ICON_COLORS: {
+      // Food colours: a red apple, golden bread, orange juice, and a
+      // water blue (the palette has no blue, so it's a literal).
+      biscuits: "var(--timer)", bread: "var(--rule-d)", apple: "var(--error)", juice: "var(--timer)",
+      water: "#6FA3C7", bowl: "var(--rule-a)", pizza: "var(--rule-d)"
+    }
   }
 };
 

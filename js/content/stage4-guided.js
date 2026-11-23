@@ -130,6 +130,20 @@ const LESSON_CONTENT = {
       { chips: ["Christmas", "is", "on", "the 25th of December"] },
       { chips: ["We", "go swimming", "in", "summer"] }
     ]
+  },
+  'food-drink': {
+    SEMI_ITEMS: [
+      { chips: ["Is there", "any", "bread"] },
+      { chips: ["There are", "some", "cookies"] },
+      { chips: ["There isn't", "any", "juice"] },
+      { chips: ["Are there", "any", "carrots"] },
+      { chips: ["There's", "an", "apple"] },
+      { chips: ["Can I", "have", "a pizza", "please"] },
+      { chips: ["I'd like", "some", "water", "please"] },
+      { chips: ["Are you", "ready", "to order"] },
+      { chips: ["What would", "you like", "to drink"] },
+      { chips: ["There's", "some", "soup", "too"] }
+    ]
   }
 };
 

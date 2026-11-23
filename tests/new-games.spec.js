@@ -214,7 +214,9 @@ test('Whack-a-Jelly: jellyfish swim up and tapping them scores; the teacher can 
   await page.click('#whackBeginTurnBtn');
   await page.click('#popCheckBtn');
   await page.click('#popCorrectBtn');
-  await expect(page.locator('#whackLanes')).toBeHidden(); // hidden during the round
+  await expect(page.locator('#whackLanes')).toBeHidden(); // hidden from "Get ready!" on
+  await expect(page.locator('#whackReadySub')).toHaveText('One player, one lane.');
+  await page.click('#whackGoBtn');
 
   const box = await page.locator('#whackCanvas').boundingBox();
   const lanesSeen = new Set();
@@ -256,6 +258,13 @@ test('Whack-a-Jelly: every lane gets the same number of jellies, even when one l
   }
   expect(labels).toEqual(['Lane 1 of 4', 'Lane 2 of 4', 'Lane 3 of 4', 'Lane 4 of 4']);
   await expect(page.locator('#popQuestionOverlay')).toHaveClass(/hidden/);
+  // The round waits for Go, so the players can get to their lanes.
+  await expect(page.locator('#whackReady')).toBeVisible();
+  await expect(page.locator('#whackReadySub')).toContainText('4 players');
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(async () => (await import('/js/state.js')).state.whackRoundActive)).toBe(false);
+  await page.click('#whackGoBtn');
+  await expect(page.locator('#whackReady')).toBeHidden();
 
   // Only lane 0 plays (and plays fast); the other three never tap.
   const box = await page.locator('#whackCanvas').boundingBox();
@@ -542,6 +551,7 @@ test('every other turn question is multiple choice, marked by the app', async ({
   await expect(page.locator('.mc-choice')).toHaveCount(0);
   await page.click('#popCheckBtn');
   await page.click('#popCorrectBtn');
+  await page.click('#whackGoBtn');
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 25000 });
   await page.click('#whackNextTeamBtn');
   // Turn 2: multiple choice.
@@ -555,6 +565,7 @@ test('every other turn question is multiple choice, marked by the app', async ({
   await expect(options.first()).toBeDisabled();
   await page.click('#popMcContinueBtn');
   await expect(page.locator('#popQuestionOverlay')).toHaveClass(/hidden/);
+  await page.click('#whackGoBtn');
   await expect(page.locator('#whackPlayArea')).not.toHaveClass(/idle/); // the round runs
   expect(errors).toEqual([]);
 });

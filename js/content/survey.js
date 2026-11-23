@@ -42,6 +42,10 @@ const LESSON_CONTENT = {
   'months-weather': {
     questions: ['When is your birthday?', 'What’s the weather like in your favourite season?'],
     example: { name: 'Max', answers: ['Max’s birthday is on the third of May.', 'In summer it’s hot and sunny.'] }
+  },
+  'food-drink': {
+    questions: ['What would you like to eat for lunch today?', 'Is there any fruit in your bag?'],
+    example: { name: 'Lily', answers: ['Lily would like some pasta and a salad.', 'Yes, there is. There’s an apple.'] }
   }
 };
 

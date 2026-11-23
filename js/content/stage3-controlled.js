@@ -137,6 +137,20 @@ const LESSON_CONTENT = {
       { word: "The last month of the year is ___.", correct: "December", options: ["November", "January", "December"] },
       { word: "Leaves fall from the trees in ___.", correct: "autumn", options: ["autumn", "spring", "summer"] }
     ]
+  },
+  'food-drink': {
+    MC_QUESTIONS: [
+      { word: "Is there ___ bread?", correct: "any", options: ["a", "any", "some"] },
+      { word: "There are ___ cookies on the plate.", correct: "some", options: ["any", "some", "a"] },
+      { word: "Is there ___ banana?", correct: "a", options: ["a", "an", "any"] },
+      { word: "There’s ___ apple in my bag.", correct: "an", options: ["a", "an", "some"] },
+      { word: "There isn’t ___ juice.", correct: "any", options: ["some", "any", "a"] },
+      { word: "Water is ___.", correct: "uncountable", options: ["countable", "uncountable", "plural"] },
+      { word: "Are there any ___?", correct: "potatoes", options: ["potato", "potatoes", "potatos"] },
+      { word: "___ there any carrots?", correct: "Are", options: ["Is", "Are", "Be"] },
+      { word: "I’d ___ some water, please.", correct: "like", options: ["like", "likes", "liking"] },
+      { word: "Can I ___ a cheese sandwich, please?", correct: "have", options: ["has", "have", "having"] }
+    ]
   }
 };
 

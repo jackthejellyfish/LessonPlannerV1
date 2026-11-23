@@ -57,6 +57,8 @@ async function answerQuestion(page){
 async function playTurn(page, prefix, { abandon = false } = {}){
   await page.click(`#${prefix}BeginTurnBtn`);
   await answerQuestion(page);
+  // Whack-a-Jelly waits on "Get ready!" for the teacher's Go.
+  if(prefix === 'whack') await page.click('#whackGoBtn');
   // Star Defender asks "play now or bank it?" after the question.
   const playNow = page.locator('#confirmOverlay:not(.hidden) #confirmOkBtn');
   if(await playNow.isVisible().catch(() => false)) await playNow.click();

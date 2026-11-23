@@ -20,6 +20,26 @@
 }
 .whack-play-area:not(.idle) #whackBeginTurnBtn{ display:none; }
 
+/* "Get ready!" between the last question and the round (2026-11-23):
+   the players get to their lanes, then the teacher presses Go. The lane
+   picker and Begin turn hide meanwhile (the lanes are set by now). */
+.whack-ready{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:24;
+  display:flex; flex-direction:column; align-items:center; gap:clamp(8px,1.6vh,16px);
+  padding:clamp(18px,3.4vh,36px) clamp(26px,4vw,56px); border-radius:24px; text-align:center;
+  background:rgba(6,22,40,0.88); border:2px solid rgba(127,232,255,0.45);
+  box-shadow:0 18px 40px rgba(0,0,0,0.35);
+}
+.whack-ready.hidden{ display:none; }
+.whack-ready-title{
+  margin:0; color:#FFFFFF; font-family:var(--font-display); font-weight:800;
+  font-size:clamp(30px,6vh,60px); line-height:1.05;
+}
+.whack-ready-sub{ margin:0; color:#BDF2FF; font-weight:700; font-size:clamp(16px,2.6vh,24px); }
+.whack-go-btn{ font-size:clamp(20px,3.4vh,32px); padding:clamp(12px,2vh,20px) clamp(40px,5vw,72px); margin-top:clamp(4px,0.8vh,8px); }
+.whack-play-area.ready #whackBeginTurnBtn,
+.whack-play-area.ready .game-picker{ display:none; }
+
 /* Flashes red when a pufferfish is hit — one class toggle, no layout work. */
 .whack-play-area.flash-bad::after{
   content:''; position:absolute; inset:0; background:rgba(255,68,68,0.3);

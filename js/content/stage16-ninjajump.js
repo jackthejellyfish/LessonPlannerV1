@@ -129,6 +129,20 @@ const LESSON_CONTENT = {
       { prompt: "Put the words in order: today / it's / windy", answer: "It's windy today." },
       { prompt: "Put the words in order: on / Christmas / is / the 25th of December", answer: "Christmas is on the 25th of December." }
     ]
+  },
+  'food-drink': {
+    JUMP_QUESTIONS: [
+      { prompt: "Put the words in order: bread / there / any / is / ?", answer: "Is there any bread?" },
+      { prompt: "Put the words in order: some / there are / cookies", answer: "There are some cookies." },
+      { prompt: "Put the words in order: any / there / carrots / are / ?", answer: "Are there any carrots?" },
+      { prompt: "Put the words in order: have / can I / a sandwich / please / ?", answer: "Can I have a sandwich, please?", choices: ["Can I have a sandwich, please?", "Can I a sandwich have, please?", "Have I can a sandwich, please?"] },
+      { prompt: "Put the words in order: to order / you / are / ready / ?", answer: "Are you ready to order?" },
+      { prompt: "Put the words in order: would / what / to drink / you like / ?", answer: "What would you like to drink?" },
+      { prompt: "Put the words in order: water / I'd like / please", answer: "I'd like water, please.", choices: ["I'd like water, please.", "I'd like please, water.", "Water, I'd like please."] },
+      { prompt: "Put the words in order: isn't / any / there / milk", answer: "There isn't any milk." },
+      { prompt: "Put the words in order: an / there's / apple", answer: "There's an apple." },
+      { prompt: "Put the words in order: I'll have / please / a cheese pizza", answer: "I'll have a cheese pizza, please.", choices: ["I'll have a cheese pizza, please.", "I'll a cheese pizza have, please.", "A cheese pizza, I'll have please."] }
+    ]
   }
 };
 

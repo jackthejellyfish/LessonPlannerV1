@@ -68,6 +68,13 @@ const LESSON_CONTENT = {
       { icon: 'sun', sentenceHtml: 'What’s the weather like today? It’s <span class="hl">sunny</span> and <span class="hl">hot</span>.' },
       { icon: 'snowflake', sentenceHtml: 'My favourite season is <span class="hl">winter</span>. It’s cold and snowy in December.' }
     ]
+  },
+  'food-drink': {
+    AIM_EXAMPLES: [
+      { icon: 'apple', sentenceHtml: 'Is there <span class="hl">an</span> apple? Yes, there is. And there are <span class="hl">some</span> bananas too.' },
+      { icon: 'plate', sentenceHtml: 'Is there <span class="hl">any</span> bread? No, there <span class="hl">isn’t any</span> bread. But there’s <span class="hl">some</span> rice.' },
+      { icon: 'pizza', sentenceHtml: 'Are you ready to order? Yes. <span class="hl">I’ll have</span> a cheese pizza, <span class="hl">please</span>.' }
+    ]
   }
 };
 

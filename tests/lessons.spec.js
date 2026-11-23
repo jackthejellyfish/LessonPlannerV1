@@ -24,7 +24,7 @@ test('every lesson renders every stage with no console errors', async ({ page })
 
   await page.goto('/index.html');
   const lessonCount = await page.locator('.lesson-card').count();
-  expect(lessonCount).toBe(9);
+  expect(lessonCount).toBe(10);
 
   for (let lesson = 0; lesson < lessonCount; lesson++) {
     await page.goto('/index.html');

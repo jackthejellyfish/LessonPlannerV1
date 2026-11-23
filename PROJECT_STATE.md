@@ -42,6 +42,7 @@ quiz the same language.
 | `party-fun` | Party Fun: Who Will…? (will for plans: Wh- and Yes/No questions, short answers) |
 | `at-school` | At School: I’ve Got… / I Want… (have got / has got and want / wants, from the Unit 2 textbook pages) |
 | `months-weather` | Months, Weather and Seasons (in + month, on + date, ordinals, It’s + weather, the seasons) |
+| `food-drink` | Food and Drink: Some and Any (countable / uncountable nouns, a / an, some / any, there is / are, ordering in a restaurant) |
 
 ### Stages (21), from `js/stepper.js`
 
@@ -364,8 +365,10 @@ worst frame, and whether lite mode is on.
   the team answers a question before the turn (`askTeamQuestion(q, bank,
   n, { label: 'Lane 2 of 4' })`; `label` is shown above the question in
   the shared modal). `state.whackQuestionsAsked` walks the shuffled bank
-  and reshuffles when it runs out; still 10 turns a game. Tests that
-  start a turn must answer until `#popQuestionOverlay` is hidden.
+  and reshuffles when it runs out; still 10 turns a game. After the
+  last question a "Get ready!" panel waits for the teacher's **Go!**
+  (`#whackGoBtn`) so players can reach their lanes. Tests that start a
+  turn must answer until `#popQuestionOverlay` is hidden, then click Go.
 - **Speaking dice physics** (2026-11-23). Each throw is simulated in full
   before it plays (`simulate()` in `js/stages/dice.js`: 1/120 s steps,
   bounces, rim, friction, tip-overs every dice-width) and played back as

@@ -127,6 +127,20 @@ const LESSON_CONTENT = {
       { prompt: "In or on? 'Christmas is ___ the 25th of December.'", answer: "on" },
       { prompt: "In or on? 'Flowers grow ___ spring.'", answer: "in" }
     ]
+  },
+  'food-drink': {
+    INV_QUESTIONS: [
+      { prompt: "Some or any? 'There are ___ cookies on the table.'", answer: "some" },
+      { prompt: "Some or any? 'Is there ___ milk?'", answer: "any" },
+      { prompt: "Some or any? 'There isn't ___ bread.'", answer: "any" },
+      { prompt: "Some or any? 'I'd like ___ soup, please.'", answer: "some" },
+      { prompt: "Some or any? 'Are there ___ carrots?'", answer: "any" },
+      { prompt: "Some or any? 'There's ___ juice in the fridge.'", answer: "some" },
+      { prompt: "Some or any? 'There aren't ___ potatoes.'", answer: "any" },
+      { prompt: "Some or any? 'There's ___ pasta on my plate.'", answer: "some" },
+      { prompt: "Some or any? 'Is there ___ salt?'", answer: "any" },
+      { prompt: "Some or any? 'Can I have ___ water, please?'", answer: "some" }
+    ]
   }
 };
 

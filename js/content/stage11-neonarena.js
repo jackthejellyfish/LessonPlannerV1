@@ -127,6 +127,20 @@ const LESSON_CONTENT = {
       { prompt: "Which season? 'June, July, August'", answer: "summer" },
       { prompt: "Which season? 'September, October, November'", answer: "autumn" }
     ]
+  },
+  'food-drink': {
+    NEON_QUESTIONS: [
+      { prompt: "A or an? '___ apple'", answer: "an" },
+      { prompt: "A or an? '___ banana'", answer: "a" },
+      { prompt: "A or an? '___ egg'", answer: "an" },
+      { prompt: "A or an? '___ sandwich'", answer: "a" },
+      { prompt: "A or an? '___ orange'", answer: "an" },
+      { prompt: "Make it plural: 'potato' → some ___", answer: "potatoes", choices: ["potatoes", "potatos", "potato"] },
+      { prompt: "Make it plural: 'sandwich' → some ___", answer: "sandwiches", choices: ["sandwiches", "sandwichs", "sandwich"] },
+      { prompt: "Make it plural: 'cookie' → some ___", answer: "cookies", choices: ["cookies", "cookys", "cookie"] },
+      { prompt: "Make it plural: 'tomato' → some ___", answer: "tomatoes", choices: ["tomatoes", "tomatos", "tomato"] },
+      { prompt: "Make it plural: 'carrot' → some ___", answer: "carrots", choices: ["carrots", "carrotes", "carrot"] }
+    ]
   }
 };
 

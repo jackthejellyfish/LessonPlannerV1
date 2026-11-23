@@ -275,6 +275,36 @@ const LESSON_CONTENT = {
       'My favourite season is <span class="blank">___</span>. It’s <span class="blank">___</span> <span class="blank">in</span> <span class="blank">___</span>.',
       'In <span class="blank">___</span>, I like to <span class="blank">___</span> because it’s <span class="blank">___</span>.'
     ]
+  },
+  'food-drink': {
+    FREE_TASK: {
+      headline: "Run a café! Order food and drinks with a partner.",
+      steps: [
+        "A is the waiter: “Hi. Can I help you?”",
+        "B is the customer: ask “Is there any…?”, then order.",
+        "Order a drink too, then swap roles!"
+      ],
+      example: [
+        ["A", "Are you ready to order?"],
+        ["B", "Is there any soup?"],
+        ["A", "No, there isn’t. But there’s some pasta."],
+        ["B", "OK. I’ll have the pasta, please."]
+      ]
+    },
+    // One countable thing → more; uncountable → some.
+    WORD_BANK: [
+      ["a cookie","some cookies"], ["an apple","some apples"], ["a potato","some potatoes"],
+      ["a sandwich","some sandwiches"], ["a carrot","some carrots"], ["an egg","some eggs"],
+      ["water","some water"], ["bread","some bread"], ["rice","some rice"],
+      ["soup","some soup"], ["juice","some juice"], ["pasta","some pasta"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'Hi. Can I <span class="blank">help</span> you? Are you ready to <span class="blank">___</span>?',
+      'Is there <span class="blank">any</span> <span class="blank">___</span>? — Yes, there <span class="blank">is</span>.',
+      'Are there <span class="blank">any</span> <span class="blank">___</span>? — No, there <span class="blank">aren’t</span>.',
+      'Can I <span class="blank">have</span> a <span class="blank">___</span>, please?',
+      'What would you like to drink? — I’d <span class="blank">like</span> <span class="blank">___</span>, please.'
+    ]
   }
 };
 

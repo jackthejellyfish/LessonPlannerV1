@@ -136,6 +136,20 @@ const LESSON_CONTENT = {
       { prompt: "Ask a classmate when their birthday is. Which season is it in?", answer: "e.g. When’s your birthday? — It’s in July. That’s summer!", points: 50 },
       { prompt: "Describe the weather in all four seasons.", answer: "e.g. It’s rainy in spring, hot in summer, windy in autumn and snowy in winter.", points: 200 }
     ]
+  },
+  'food-drink': {
+    WHEEL_QUESTIONS: [
+      { prompt: "What’s in your fridge at home?", answer: "e.g. There’s some milk and there are some eggs.", points: 10 },
+      { prompt: "Name five uncountable foods or drinks!", answer: "e.g. water, bread, rice, sugar, juice", points: 100 },
+      { prompt: "Order a meal from the waiter.", answer: "e.g. Can I have a chicken sandwich, please?", points: 15 },
+      { prompt: "What would you like to drink?", answer: "e.g. I’d like orange juice, please.", points: 25 },
+      { prompt: "A or an? Say it: 'apple'", answer: "an apple", points: 5 },
+      { prompt: "Is there any pizza in the classroom?", answer: "e.g. No, there isn’t any pizza.", points: 20 },
+      { prompt: "Name three things on a table in a restaurant.", answer: "e.g. a fork, a knife and a spoon", points: 30 },
+      { prompt: "Countable or uncountable: 'salt'?", answer: "uncountable", points: 1 },
+      { prompt: "Ask a classmate two questions about their lunch box.", answer: "e.g. Is there any fruit? Are there any cookies?", points: 50 },
+      { prompt: "Be the waiter AND the customer: order a soup, a main dish and a drink!", answer: "e.g. Are you ready to order? — Yes. I’ll have soup, then pizza, and I’d like water, please.", points: 200 }
+    ]
   }
 };
 

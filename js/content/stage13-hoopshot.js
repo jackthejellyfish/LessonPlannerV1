@@ -133,6 +133,20 @@ const LESSON_CONTENT = {
       { prompt: "Tell your partner it's the 3rd of April today.", answer: "It's the third of April." },
       { prompt: "Ask when Ana's birthday is.", answer: "When's Ana's birthday?" }
     ]
+  },
+  'food-drink': {
+    HOOP_QUESTIONS: [
+      { prompt: "Ask the waiter for a chicken sandwich.", answer: "Can I have a chicken sandwich, please?" },
+      { prompt: "You're the waiter. Ask if the customer is ready.", answer: "Are you ready to order?" },
+      { prompt: "You're the waiter. Ask about drinks.", answer: "What would you like to drink?" },
+      { prompt: "Ask if there is any bread.", answer: "Is there any bread?" },
+      { prompt: "Ask if there are any cookies.", answer: "Are there any cookies?" },
+      { prompt: "Order a cheese pizza with 'I'll have'.", answer: "I'll have a cheese pizza, please." },
+      { prompt: "Order water with 'I'd like'.", answer: "I'd like water, please." },
+      { prompt: "You're the waiter. Say hello and offer help.", answer: "Hi. Can I help you?" },
+      { prompt: "Tell your partner there isn't any milk.", answer: "There isn't any milk." },
+      { prompt: "Tell your partner there are some apples.", answer: "There are some apples." }
+    ]
   }
 };
 

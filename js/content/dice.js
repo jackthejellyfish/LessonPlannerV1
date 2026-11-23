@@ -77,6 +77,14 @@ const LESSON_CONTENT = {
     q('What’s the weather like in winter?', ['In winter it’s ___.', 'It’s cold and ___.'], ['cold', 'snowy', 'icy', 'foggy']),
     q('What do you do in summer?', ['In summer I ___.', 'When it’s hot, I ___.'], ['swim', 'play outside', 'eat ice cream', 'go to the beach']),
     q('Which month is the hottest here?', ['___ is the hottest month.', 'It’s hot in ___.'], ['June', 'July', 'August', 'May'])
+  ],
+  'food-drink': [
+    q('What’s in your fridge at home?', ['There’s some ___.', 'There are some ___.'], ['milk', 'cheese', 'eggs', 'apples']),
+    q('What would you like to eat for lunch?', ['I’d like some ___, please.', 'Can I have a ___, please?'], ['soup', 'pasta', 'sandwich', 'pizza']),
+    q('What would you like to drink?', ['I’d like ___, please.', 'I’ll have ___, please.'], ['water', 'orange juice', 'milk', 'lemonade']),
+    q('Is there any food in your bag today?', ['Yes, there is. There’s ___.', 'No, there isn’t any ___.'], ['an apple', 'a banana', 'some bread', 'some cookies']),
+    q('What’s your favourite food? What’s in it?', ['My favourite food is ___.', 'There’s some ___ in it.'], ['cheese', 'tomato', 'rice', 'chicken']),
+    q('Be the waiter! Ask your partner what they want.', ['Are you ready to ___?', 'What would you like to ___?'], ['order', 'drink', 'eat', 'have'])
   ]
 };
 
