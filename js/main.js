@@ -9,12 +9,13 @@
 import { state, resetLessonState } from './state.js';
 import { renderStepper } from './stepper.js';
 import { goToStage, stopStageActivity } from './navigation.js';
-import { speakerIconSVG } from './icons.js';
+import { speakerIconSVG, gaugeIconSVG } from './icons.js';
 import { applyMuteState } from './audio.js';
 import { confirmDialog } from './confirmDialog.js';
 import { getLesson, renderLessonCards } from './lessons.js';
 import { showGameIntroMenu } from './gameIntro.js';
 import { initFpsMeter } from './fpsMeter.js';
+import { isLowQuality, setLiteMode, onQualityChange } from './quality.js';
 
 import { renderAimHeader, renderAimExamples } from './stages/stage1-aim.js';
 import { renderLearnSlide, renderPrintableRules } from './stages/stage2-rules.js';
@@ -77,6 +78,19 @@ document.getElementById('muteBtn').addEventListener('click', () => {
   applyMuteState();
   document.getElementById('muteBtn').innerHTML = speakerIconSVG(state.muted);
 });
+
+// Lite mode by hand (js/quality.js): for a slow classroom PC. The button
+// also follows lite mode when the PC switches it on by itself.
+function syncLiteButton(){
+  const btn = document.getElementById('liteModeBtn');
+  const on = isLowQuality();
+  btn.innerHTML = gaugeIconSVG(on);
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.title = on ? 'Lite mode is on: click for full quality' : 'Lite mode: smoother games on a slow PC';
+}
+syncLiteButton();
+onQualityChange(syncLiteButton);
+document.getElementById('liteModeBtn').addEventListener('click', () => setLiteMode(!isLowQuality()));
 
 // Compact mode: shrinks the fullscreen game into a smaller, centered
 // board for players who can't physically reach the far edges of a large

@@ -43,3 +43,26 @@ export function createTimerHud(timeEl, fillEl, totalSeconds){
     }
   };
 }
+
+// Re-plays a one-off CSS animation class (the life-lost flash) and
+// takes it off again after `ms`. The usual trick, remove the class, read
+// offsetWidth, add it back, forces a synchronous layout of the whole
+// page mid-frame; on a weak PC driving a big board that is a dropped
+// frame at exactly the moment the player is looking. Instead the class
+// comes off now and goes back on two frames later, once the browser has
+// seen it gone, so the animation restarts with no forced layout.
+export function replayClass(el, cls, ms){
+  if(!el) return;
+  clearTimeout(el._replayOff);
+  cancelAnimationFrame(el._replayOn);
+  const on = () => {
+    el.classList.add(cls);
+    el._replayOff = setTimeout(() => el.classList.remove(cls), ms);
+  };
+  if(el.classList.contains(cls)){
+    el.classList.remove(cls);
+    el._replayOn = requestAnimationFrame(() => { el._replayOn = requestAnimationFrame(on); });
+  } else {
+    on();
+  }
+}

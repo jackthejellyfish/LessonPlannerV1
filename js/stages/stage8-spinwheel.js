@@ -10,7 +10,7 @@ import { createCanvasResizer } from '../canvasGame.js';
 import { createBackdrop, drawGlow } from '../canvasGlow.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { createShakeState, triggerShake, applyShake } from '../canvasEffects.js';
-import { particleCount } from '../quality.js';
+import { particleCount, noteFrame } from '../quality.js';
 
 /* =========================================================
    STAGE 8 — SPIN THE WHEEL (replaces the old Bamboozle tile game)
@@ -139,8 +139,10 @@ function updateWheelParticles(){
 // pre-rendered once and then rotated as a single blit (see
 // getWheelFace), so a spinning frame costs one drawImage rather than
 // ten arc fills plus ten text draws.
-const wheelCanvasResizer = createCanvasResizer('wheelCanvas', 'wheelPlayArea', null, { maxBufferWidth: 2200 });
-export function resizeWheelCanvas(){ wheelCanvasResizer.resize(); renderWheelCanvas(); }
+// Repaints on every resize: a canvas is wiped when its size changes, and
+// with no callback here the wheel went blank after a window resize.
+const wheelCanvasResizer = createCanvasResizer('wheelCanvas', 'wheelPlayArea', () => renderWheelCanvas(), { maxBufferWidth: 2200 });
+export function resizeWheelCanvas(){ wheelCanvasResizer.resize(); }
 export function ensureWheelLayout(){
   if(state.wheelTeams.length > 0) resizeWheelCanvas();
 }
@@ -208,6 +210,7 @@ function spinWheelTo(index){
     state.wheelRoundActive = true;
 
     function frame(now){
+      noteFrame(); // a spin is long enough (4.6s) to tell lite mode a PC is slow
       const t = Math.min(1, (now - startTime) / SPIN_DURATION_MS);
       currentWheelAngle = spinProgress(t, startAngle, targetAngle);
 

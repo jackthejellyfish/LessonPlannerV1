@@ -32,6 +32,9 @@ export function updateFloatTexts(list, k = 1, decay = 0.013){
 // that and does the real job better anyway — the point was never the
 // bloom, it was keeping "+3" readable against a bright particle burst.
 export function drawFloatTexts(ctx, list, fontPx){
+  // Every game calls this every frame; most frames have no text, and
+  // setting ctx.font means parsing a font string.
+  if(!list.length) return;
   ctx.save();
   ctx.font = `bold ${fontPx}px sans-serif`;
   ctx.textAlign = 'center';

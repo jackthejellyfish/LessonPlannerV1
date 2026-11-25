@@ -12,7 +12,7 @@ import { confirmDialog } from '../confirmDialog.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, stepParticles, frameFactor } from '../canvasEffects.js';
 import { drawGlow, createBackdrop } from '../canvasGlow.js';
-import { createTimerHud, setTimerFill } from '../hud.js';
+import { createTimerHud, setTimerFill, replayClass } from '../hud.js';
 import { particleCount, noteFrame } from '../quality.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
@@ -430,16 +430,8 @@ function collectPickup(pu, canvas){
 
 // Red border pulse + lives-icon glow + shake when a life is lost.
 function triggerLifeLostFeedback(){
-  const playArea = document.getElementById('invPlayArea');
-  const livesEl = document.getElementById('invLivesDisplay');
-  playArea.classList.remove('life-lost');
-  void playArea.offsetWidth;
-  playArea.classList.add('life-lost');
-  setTimeout(() => playArea.classList.remove('life-lost'), 620);
-  livesEl.classList.remove('pulse');
-  void livesEl.offsetWidth;
-  livesEl.classList.add('pulse');
-  setTimeout(() => livesEl.classList.remove('pulse'), 720);
+  replayClass(document.getElementById('invPlayArea'), 'life-lost', 620);
+  replayClass(document.getElementById('invLivesDisplay'), 'pulse', 720);
   triggerShake(invShake, 8);
 }
 

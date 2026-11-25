@@ -17,6 +17,16 @@ export function speakerIconSVG(muted){
   </svg>`;
 }
 
+// Lite mode button: a speedometer, needle low when lite mode is on.
+export function gaugeIconSVG(lite){
+  const needle = lite ? 'M12 15L7.2 11.2' : 'M12 15L16.8 11.2';
+  return `<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3.5 17a9 9 0 1 1 17 0" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="${needle}" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="12" cy="15" r="1.6" fill="currentColor"/>
+  </svg>`;
+}
+
 // Judgment icons (self-marking "was I right?" buttons on every game's
 // question modal) — a solid currentColor disc with the mark cut out in
 // white, not a plain glyph, so they read as big satisfying buttons

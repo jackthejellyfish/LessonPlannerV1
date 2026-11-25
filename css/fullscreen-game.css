@@ -20,12 +20,12 @@
    than getting its own shrunk-down "in-game" appearance. #hideNavBtn (see
    below) lets a teacher opt back OUT of this per-game when they want the
    old edge-to-edge no-chrome look instead. padding-right clears the mute/
-   compact/hide-nav button cluster (top:20px, right:20/74/128px, z-
+   compact/hide-nav/lite button cluster (top:20px, right:20/74/128/182px, z-
    index:60 — above this bar's z-index:55) so the last step never renders
    underneath them, the same overlap bug fixed once already for the
    normal stepper (see js/lessons.js's change-lesson button placement).
-   The true minimum clearance is the `.navhide-toggle`'s right:128px +
-   its own 44px width ≈ 172px — clamp() floor stays a few px above that
+   The true minimum clearance is the `.lite-toggle`'s right:182px +
+   its own 44px width = 226px — clamp() floor stays a few px above that
    so it never shrinks below the real minimum, while still narrowing on
    displays smaller than the 1600px dev viewport this was authored at. */
 body.fullscreen-game .stepper{
@@ -33,7 +33,7 @@ body.fullscreen-game .stepper{
   max-width:none; margin:0;
   background:var(--surface);
   border-bottom:1px solid var(--line);
-  padding: clamp(10px,1.8vh,18px) clamp(180px,15vw,200px) clamp(10px,1.8vh,18px) clamp(14px,2.5vw,32px);
+  padding: clamp(10px,1.8vh,18px) clamp(234px,17vw,254px) clamp(10px,1.8vh,18px) clamp(14px,2.5vw,32px);
 }
 /* ---- Hide-nav opt-out ----
    Toggled by #hideNavBtn (js/main.js), independent of compact mode:
@@ -211,6 +211,14 @@ body.fullscreen-game.compact-game .compact-toggle{ background:var(--primary); co
 body.fullscreen-game .navhide-toggle{ display:flex; right:128px; }
 body.fullscreen-game.hide-nav .navhide-toggle{ background:var(--primary); color:#fff; }
 
+/* ---- Lite mode toggle (2026-11-25) ----
+   The fourth button in the row: switches js/quality.js's lite mode by
+   hand for a slow classroom PC. Filled while lite mode is on, whether
+   the teacher or the PC itself switched it on. */
+.lite-toggle{ display:none; }
+body.fullscreen-game .lite-toggle{ display:flex; right:182px; }
+body.fullscreen-game.low-quality .lite-toggle{ background:var(--primary); color:#fff; }
+
 body.fullscreen-game.compact-game .stage:not(.hidden){
   inset:auto; top:50%; left:50%; transform:translate(-50%, -50%);
   width:min(82vw, 980px); height:min(80vh, 720px);
@@ -250,3 +258,22 @@ body.fullscreen-game.compact-game .pop-team-list .pop-score{ font-size:clamp(15p
 body.fullscreen-game.compact-game .pop-hud-num{ font-size:clamp(15px,2vh,20px); }
 body.fullscreen-game.compact-game .fs-footer-info{ gap:clamp(10px,1.6vw,20px); }
 body.fullscreen-game.compact-game .timer-bar-track{ width:clamp(60px,7vw,110px); }
+
+/* ---- Laptop-width boards (2026-11-25) ----
+   21 steps at their 56px minimum need 1176px, so at 1280-1500px the
+   in-game step bar ran on under the four corner buttons and the last
+   steps (Jelly Maze, Ninja Jump, Zombie Dash) were hidden behind them.
+   Here the buttons are a little smaller and closer together, and the
+   steps a little narrower, so every step stays visible. */
+@media (max-width: 1500px){
+  body.fullscreen-game .mute-toggle{ width:36px; height:36px; top:14px; font-size:15px; }
+  body.fullscreen-game #muteBtn,
+  body.fullscreen-game .change-lesson-toggle{ right:12px; }
+  body.fullscreen-game .change-lesson-toggle{ top:58px; }
+  body.fullscreen-game .compact-toggle{ right:54px; }
+  body.fullscreen-game .navhide-toggle{ right:96px; }
+  body.fullscreen-game .lite-toggle{ right:138px; }
+  body.fullscreen-game .stepper{ padding-right:184px; padding-left:10px; }
+  body.fullscreen-game .step{ min-width:46px; }
+  body.fullscreen-game .step .step-label{ font-size:11px; }
+}

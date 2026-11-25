@@ -243,10 +243,21 @@ main-thread numbers (busy %, layouts/s, style recalcs/s).
    here (52 to 36fps), so don't reach for that first. Fewer, simpler fills
    and one batched stroke per frame are what worked.
 
-**Lite mode** (`js/quality.js`): after 3 consecutive seconds under 45fps the
-session switches to lite mode. Particles are halved, glows are dropped,
-canvas buffers drop to 70%, and `body.low-quality` stops decorative CSS loops.
-Gameplay is unchanged. `?lite=1` / `?lite=0` force it on or off.
+**Lite mode** (`js/quality.js`): after 3 consecutive seconds under 45fps a
+game steps down to lite mode (level 1): particles are halved, glows are
+dropped, canvas buffers drop to 70%, and `body.low-quality` stops decorative
+CSS loops. A PC still under 45fps at level 1 steps down once more (level 2:
+buffers at 50%, a third of the particles). Gameplay is unchanged. Since
+2026-11-25 the level is **remembered on the PC for 14 days** (`localStorage`
+key `lpa-quality`, was `sessionStorage`), so a slow classroom PC starts every
+lesson in lite mode instead of stuttering back into it. `?lite=1` / `?lite=2`
+force a level; `?lite=0` forces full quality and forgets the stored level.
+The teacher can switch it by hand with the speedometer button in a game's
+top-right corner (`#liteModeBtn`, `setLiteMode()`), filled while lite mode is
+on. A choice made by hand never expires, and switching it OFF by hand stops
+the PC from switching it back on by itself. Below 1500px wide the four
+corner buttons shrink to 36px so all 21 steps fit beside them.
+The Spin Wheel reports its spin frames too (it has the biggest buffer).
 
 **To check a real classroom PC:** open the site with `?fps` to show fps, the
 worst frame, and whether lite mode is on.
@@ -400,6 +411,17 @@ worst frame, and whether lite mode is on.
   team number (a faded swatch read as a different, pastel colour).
 - **Billiards** uses a deliberately spread layout, not a real rack. A tight
   rack absorbs the cue ball's energy and nothing gets pocketed.
+- **Assigning a canvas's size wipes it**, even to the same value.
+  `createCanvasResizer` now only assigns when the size changed, and every
+  game's resize callback must repaint: the Spin Wheel had none and went
+  blank after F11 or a window resize (2026-11-25).
+- **Restarting a CSS animation** (Star Defender / Neon life lost): use
+  `replayClass(el, cls, ms)` from `js/hud.js`, never remove-class /
+  `void el.offsetWidth` / add-class, which forces a full-page layout
+  mid-frame.
+- **Don't draw from pointer handlers** when a loop is already running
+  (Billiards drew the whole table on every mouse move during an aim drag,
+  several times a frame on a high-rate mouse or touch board).
 - **No emoji anywhere** (UI, text or comments). Use monochrome symbols
   (✓ ✗ ← → ↺ ♥ ✕), text, or SVGs from `js/icons.js`.
 - Use `confirmDialog()`, never the browser's `confirm()`.
@@ -425,7 +447,7 @@ npm test                                         # serial (workers: 1); serves o
 | `layout-fit` | every game's play area clears the step bar and footer at 1280x720, 1366x768, 1536x730, and in compact mode |
 | `lessons` | every lesson through every stage |
 | `team-games`, `new-games` | real played turns through the result modal |
-| `quality` | lite mode off by default, forced on, auto-triggers; `?fps` meter; Billiards survives compact mode |
+| `quality` | lite mode off by default, forced on, auto-triggers, remembered / forgotten, level 2; `?fps` meter; Billiards survives compact mode; Spin Wheel repaints after a resize |
 | `perf`, `perf-games` | fps floors and the per-game main-thread survey at 1440p, CPU 6× slower (load `?lite=0`) |
 | `soak` (opt-in: `SOAK=1`) | plays every game for many turns with 6 teams, leaves rounds half-way, restarts; checks memory, DOM nodes and listeners stay flat |
 

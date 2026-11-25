@@ -1,4 +1,4 @@
-import { isLowQuality } from './quality.js';
+import { bufferScale } from './quality.js';
 /* =========================================================
    CANVAS GAME HELPER
    Every canvas-based game (Ball Pop's particle layer, Star Defender,
@@ -46,14 +46,13 @@ import { isLowQuality } from './quality.js';
 const MAX_BUFFER_WIDTH = 820;
 
 // Lite mode (js/quality.js) renders every game canvas at 70% of its
-// usual buffer width: half the pixels to fill, for content that is
-// already soft and upscaled.
-const LITE_BUFFER_SCALE = 0.7;
+// usual buffer width (half the pixels to fill), or 50% at level 2, for
+// content that is already soft and upscaled.
 
 function bufferSize(playArea, renderScale, maxBufferWidth){
   const w = playArea.clientWidth, h = playArea.clientHeight;
   if(w <= 0 || h <= 0) return { w: 0, h: 0 };
-  const cap = isLowQuality() ? maxBufferWidth * LITE_BUFFER_SCALE : maxBufferWidth;
+  const cap = maxBufferWidth * bufferScale();
   const scale = Math.min(renderScale, cap / w);
   if(scale >= 1) return { w, h };
   return { w: Math.max(1, Math.round(w * scale)), h: Math.max(1, Math.round(h * scale)) };
@@ -99,8 +98,12 @@ export function createCanvasResizer(canvasId, playAreaId, onResize, { renderScal
     const playArea = document.getElementById(playAreaId);
     if(!canvas || !playArea) return;
     const { w, h } = bufferSize(playArea, renderScale, maxBufferWidth);
-    canvas.width = w;
-    canvas.height = h;
+    // Assigning a canvas's width or height WIPES it, even to the same
+    // value. Every window resize reaches every game's canvas, so only
+    // assign when the size really changed (2026-11-25: the Spin Wheel,
+    // which had no repaint here, went blank after F11 or a window resize).
+    if(canvas.width !== w) canvas.width = w;
+    if(canvas.height !== h) canvas.height = h;
     if(onResize) onResize(canvas);
 
     if(settleFrame === null){

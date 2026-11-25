@@ -11,7 +11,7 @@ import { drawGlow, createBackdrop } from '../canvasGlow.js';
 import { showTurnResultModal, finishTeamGame, wireTeamManagementButtons, readTeamsFromSetup, showGameScreen, renderTurnBanner } from '../teamGameFlow.js';
 import { spawnFloatText, updateFloatTexts, drawFloatTexts } from '../canvasFloatText.js';
 import { createShakeState, triggerShake, applyShake, spawnShockwave, updateShockwaves, drawShockwaves, stepParticles, frameFactor } from '../canvasEffects.js';
-import { createTimerHud, setTimerFill } from '../hud.js';
+import { createTimerHud, setTimerFill, replayClass } from '../hud.js';
 import { particleCount, noteFrame } from '../quality.js';
 
 // Rising "+N" text on every kill — same shared canvas float-text helper
@@ -485,16 +485,8 @@ function collectNeonPickup(pu, canvas){
    triggerLifeLostFeedback, plus a canvas shake bigger than any kill.
 ========================================================= */
 function triggerNeonLifeLostFeedback(){
-  const playArea = document.getElementById('neonPlayArea');
-  const livesEl = document.getElementById('neonLivesDisplay');
-  playArea.classList.remove('life-lost');
-  void playArea.offsetWidth;
-  playArea.classList.add('life-lost');
-  setTimeout(() => playArea.classList.remove('life-lost'), 620);
-  livesEl.classList.remove('pulse');
-  void livesEl.offsetWidth;
-  livesEl.classList.add('pulse');
-  setTimeout(() => livesEl.classList.remove('pulse'), 720);
+  replayClass(document.getElementById('neonPlayArea'), 'life-lost', 620);
+  replayClass(document.getElementById('neonLivesDisplay'), 'pulse', 720);
   triggerShake(neonShake, 8);
 }
 

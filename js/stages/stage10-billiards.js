@@ -31,7 +31,7 @@ let billiardsShockwaves = [];
    fading, a shake) plus a couple of frames after it stops so the final
    positions land. Anything that changes the picture without going
    through the physics (a resize, a new rack) calls invalidateBilliards();
-   the aim drag renders itself directly from its pointer handler. */
+   a drag in progress keeps the loop drawing. */
 let billiardsDirtyFrames = 2;
 function invalidateBilliards(){ billiardsDirtyFrames = 2; }
 function billiardsSceneIsStill(){
@@ -502,7 +502,9 @@ function onBilliardsPointerMove(e){
   if(!dragging) return;
   const canvas = billiardsCanvasResizer.getCanvas();
   dragCurrent = canvasPoint(canvas, e);
-  renderBilliardsCanvas();
+  // No render here: the round's loop draws every frame while dragging
+  // (billiardsSceneIsStill). Rendering per pointer event drew the whole
+  // table several times a frame on a high-rate mouse or touch board.
 }
 function onBilliardsPointerUp(){
   if(!dragging) return;

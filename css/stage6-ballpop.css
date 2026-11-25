@@ -198,7 +198,10 @@
     background:linear-gradient(110deg, #8FF2E4, #FFD23F, #FF6BD6, #8FF2E4);
     background-size:220% auto; background-position:0% center;
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#fff;
-    animation: gameOverShine 2.6s linear infinite;
+    /* Three sweeps, then still. It animates background-position, which
+       repaints the whole banner every frame, and the banner can stay up
+       for minutes while the class celebrates. */
+    animation: gameOverShine 2.6s linear 3;
     text-shadow:0 0 40px rgba(255,255,255,0.12);
   }
   @keyframes gameOverIn{

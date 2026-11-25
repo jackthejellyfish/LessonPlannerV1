@@ -7,13 +7,14 @@
 
      fps     frames drawn in the last second
      worst   the slowest single frame in that second, in ms
-     lite    whether adaptive lite mode is on (js/quality.js)
+     lite    whether adaptive lite mode is on, and at which level
+             (js/quality.js)
 
    It does nothing at all unless ?fps is present: no element, no loop.
    It measures with its own requestAnimationFrame, so it reports what
    the screen is actually achieving whether or not a game is running.
 ========================================================= */
-import { isLowQuality } from './quality.js';
+import { qualityLevel } from './quality.js';
 
 function wanted(){
   try { return new URLSearchParams(window.location.search).has('fps'); } catch(_) { return false; }
@@ -34,7 +35,7 @@ export function initFpsMeter(){
     if(dt > worst) worst = dt;
     if(now - windowStart >= 1000){
       const fps = Math.round((frames * 1000) / (now - windowStart));
-      el.textContent = `${fps} fps · worst ${Math.round(worst)}ms · lite ${isLowQuality() ? 'on' : 'off'}`;
+      el.textContent = `${fps} fps · worst ${Math.round(worst)}ms · lite ${qualityLevel() ? `on (level ${qualityLevel()})` : 'off'}`;
       el.classList.toggle('slow', fps < 45);
       frames = 0; worst = 0; windowStart = now;
     }
