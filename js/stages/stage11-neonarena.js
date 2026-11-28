@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -241,7 +241,7 @@ document.getElementById('neonStartBtn').addEventListener('click', () => {
   state.neonTeams = readTeamsFromSetup('neon', neonRowColors);
   state.neonCurrentTeam = 0;
   state.neonTurnsPlayed = 0;
-  state.neonQuestionOrder = shuffle(NEON_QUESTIONS.map((_, i) => i));
+  state.neonQuestionOrder = pickQuestions(NEON_QUESTIONS);
   state.neonLives = NEON_MAX_LIVES;
 
   showGameScreen('neon');
@@ -254,7 +254,7 @@ function renderNeonScoreboard(){
   renderTeamScoreboard('neonTeamList', state.neonTeams, state.neonCurrentTeam);
 }
 function renderNeonTurnBanner(){
-  renderTurnBanner('neon', state.neonTeams[state.neonCurrentTeam], state.neonTurnsPlayed + 1, NEON_QUESTIONS.length);
+  renderTurnBanner('neon', state.neonTeams[state.neonCurrentTeam], state.neonTurnsPlayed + 1, GAME_TURNS);
 }
 function renderNeonLives(){
   document.getElementById('neonLivesDisplay').innerHTML = Array.from({ length: NEON_MAX_LIVES }, (_, i) =>
@@ -266,8 +266,7 @@ function renderNeonLives(){
    QUESTION + TURN FLOW
 ========================================================= */
 function askNeonQuestion(){
-  const qIndex = state.neonQuestionOrder[state.neonTurnsPlayed];
-  const q = NEON_QUESTIONS[qIndex];
+  const q = state.neonQuestionOrder[state.neonTurnsPlayed];
   return askTeamQuestion(q, NEON_QUESTIONS, state.neonTurnsPlayed);
 }
 
@@ -1146,7 +1145,7 @@ function finishNeonRound(){
   renderNeonScoreboard();
 
   showNeonResult().then(() => {
-    if(state.neonTurnsPlayed >= NEON_QUESTIONS.length){
+    if(state.neonTurnsPlayed >= GAME_TURNS){
       endNeonGame();
     } else {
       state.neonCurrentTeam = (state.neonCurrentTeam + 1) % state.neonTeams.length;

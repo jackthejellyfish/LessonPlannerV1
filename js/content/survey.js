@@ -46,6 +46,14 @@ const LESSON_CONTENT = {
   'food-drink': {
     questions: ['What would you like to eat for lunch today?', 'Is there any fruit in your bag?'],
     example: { name: 'Lily', answers: ['Lily would like some pasta and a salad.', 'Yes, there is. There’s an apple.'] }
+  },
+  'at-the-buffet': {
+    questions: ['What did you have for breakfast today?', 'What did you have for lunch yesterday? How did it taste?'],
+    example: { name: 'Ben', answers: ['Ben had cereal and grapefruit juice.', 'He had chicken wings. They tasted spicy.'] }
+  },
+  'at-the-market': {
+    questions: ['What fruit have you got at home?', 'Have you got any milk or cheese in your fridge?'],
+    example: { name: 'Mai', answers: ['Mai has got some grapes and some lemons.', 'Yes, she has. She’s got some milk, but she hasn’t got any cheese.'] }
   }
 };
 

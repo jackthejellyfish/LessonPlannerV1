@@ -2,6 +2,7 @@ import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions } from '../questionDeck.js';
 import { beep, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -22,7 +23,12 @@ import { particleCount, noteFrame } from '../quality.js';
    answer scores nothing. The wheel lands on a random slice that hasn't
    been won yet, so each slice pays out at most once a game.
 ========================================================= */
-const SEG_COUNT = WHEEL_QUESTIONS.length;
+// The slices' points: a game mechanic, the same for every lesson, and
+// no longer tied to a question (2026-11-27: the questions now come from
+// a bigger bank through js/questionDeck.js, so a replay asks new ones).
+// Scattered on purpose, jackpots next to a token "1".
+export const WHEEL_POINTS = [10, 100, 15, 5, 200, 20, 1, 50, 25, 30];
+const SEG_COUNT = WHEEL_POINTS.length;
 const SEG_ANGLE = (Math.PI * 2) / SEG_COUNT;
 const SPIN_DURATION_MS = 4600;
 const SPIN_EXTRA_TURNS = 6;
@@ -67,11 +73,11 @@ document.getElementById('wheelStartBtn').addEventListener('click', () => {
   state.wheelTeams = readTeamsFromSetup('wheel', wheelRowColors);
   state.wheelCurrentTeam = 0;
   state.wheelTurnsPlayed = 0;
-  state.wheelQuestionOrder = shuffle(WHEEL_QUESTIONS.map((_, i) => i));
+  state.wheelQuestionOrder = pickQuestions(WHEEL_QUESTIONS, SEG_COUNT);
   state.wheelUsedSegments = new Array(SEG_COUNT).fill(false);
-  // Two bonus slices, never the first question's (the first spin is a
-  // plain one, so the class learns the game before the twists turn up).
-  bonusSlices = new Set(shuffle(state.wheelQuestionOrder.slice(1)).slice(0, BONUS_SLICES));
+  // Two bonus slices. The first spin never lands on one (see
+  // beginWheelTurn), so the class learns the game before the twists.
+  bonusSlices = new Set(shuffle(WHEEL_POINTS.map((_, i) => i)).slice(0, BONUS_SLICES));
   currentWheelAngle = 0;
   flap = 0; flapVel = 0; twistBanner = null;
 
@@ -251,7 +257,7 @@ function spinWheelTo(index){
 // actually makes both visible.
 function landOnSegment(index, resolve){
   const canvas = wheelCanvasResizer.getCanvas();
-  const points = WHEEL_QUESTIONS[index].points;
+  const points = WHEEL_POINTS[index];
   spawnWheelConfetti(canvas.width / 2, canvas.height * 0.12, 40);
   sfxLand(points);
   triggerShake(wheelShake, Math.min(10, 2 + points / 25));
@@ -333,12 +339,14 @@ async function beginWheelTurn(){
   document.getElementById('wheelPlayArea').classList.remove('idle');
 
   // 1. The question.
-  const q = WHEEL_QUESTIONS[state.wheelQuestionOrder[state.wheelTurnsPlayed]];
+  const q = state.wheelQuestionOrder[state.wheelTurnsPlayed];
   const correct = await askTeamQuestion(q, WHEEL_QUESTIONS, state.wheelTurnsPlayed);
   if(!correct){ finishWheelTurn(null, 0); return; }
 
   // 2. Right answer: spin for a slice nobody has won yet.
-  const free = WHEEL_QUESTIONS.map((_, i) => i).filter(i => !state.wheelUsedSegments[i]);
+  let free = WHEEL_POINTS.map((_, i) => i).filter(i => !state.wheelUsedSegments[i]);
+  const plain = free.filter(i => !bonusSlices.has(i));
+  if(state.wheelTurnsPlayed === 0 && plain.length) free = plain;
   const slice = free.length ? free[Math.floor(Math.random() * free.length)] : Math.floor(Math.random() * SEG_COUNT);
   // Confetti/sfx/shake + a beat to see where it landed all happen inside
   // spinWheelTo's own landOnSegment() settle loop.
@@ -346,7 +354,7 @@ async function beginWheelTurn(){
   const twist = bonusSlices.has(slice) ? await rollTwist() : null;
   twistBanner = null;
   renderWheelCanvas();
-  finishWheelTurn(slice, WHEEL_QUESTIONS[slice].points, twist);
+  finishWheelTurn(slice, WHEEL_POINTS[slice], twist);
 }
 
 // `slice` is null when the answer was wrong (no spin).
@@ -427,7 +435,7 @@ let wheelFaceKey = '';
 function getWheelFace(radius){
   const pad = Math.ceil(radius * 0.06) + 4;          // room for the rim stroke
   const size = Math.ceil(radius * 2) + pad * 2;
-  const key = `${size}|${WHEEL_QUESTIONS.map(q => q.points).join(',')}|${[...bonusSlices].join(',')}`;
+  const key = `${size}|${[...bonusSlices].join(',')}`;
   if(wheelFace && wheelFaceKey === key) return wheelFace;
 
   const face = wheelFace && wheelFace.width === size ? wheelFace : document.createElement('canvas');
@@ -463,9 +471,9 @@ function getWheelFace(radius){
     fx.lineJoin = 'round';
     fx.lineWidth = Math.max(3, radius * 0.035);
     fx.strokeStyle = 'rgba(0,0,0,0.45)';
-    fx.strokeText(String(WHEEL_QUESTIONS[i].points), 0, 0);
+    fx.strokeText(String(WHEEL_POINTS[i]), 0, 0);
     fx.fillStyle = '#ffffff';
-    fx.fillText(String(WHEEL_QUESTIONS[i].points), 0, 0);
+    fx.fillText(String(WHEEL_POINTS[i]), 0, 0);
     // A bonus slice carries a gold star nearer the hub.
     if(bonusSlices.has(i)){
       fx.translate(0, radius * 0.27);

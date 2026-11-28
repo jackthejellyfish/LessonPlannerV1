@@ -197,6 +197,35 @@ function buildAimIcon(type){
       <ellipse cx="37" cy="35" rx="4" ry="7" fill="var(--paper)" opacity="0.55"/>
     </svg>`;
   }
+  // --- At the Buffet / At the Market lessons (2026-11-27).
+  if(type === 'chili'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M30 18 C34 46 52 62 82 60 C62 54 50 40 44 16 Z" fill="var(--error)"/>
+      <path d="M30 18 q2 -8 10 -6 l4 4" stroke="var(--success)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="40" cy="30" rx="2.5" ry="7" fill="var(--paper)" opacity="0.5" transform="rotate(-20 40 30)"/>
+    </svg>`;
+  }
+  if(type === 'grapes'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M50 14 q2 -8 10 -10" stroke="var(--success)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      ${[[38,22],[50,22],[62,22],[44,34],[56,34],[50,46],[50,58]].map(([x, y]) =>
+        `<circle cx="${x}" cy="${y}" r="7.5" fill="#8E5BB5"/>`).join('')}
+    </svg>`;
+  }
+  if(type === 'cheese'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M18 54 L82 54 L82 34 L18 22 Z" fill="#F2C94C"/>
+      <path d="M18 22 L82 34 L70 18 Z" fill="#F7DD86"/>
+      <circle cx="36" cy="40" r="4" fill="#D9A92B"/><circle cx="60" cy="46" r="5" fill="#D9A92B"/><circle cx="70" cy="40" r="3" fill="#D9A92B"/>
+    </svg>`;
+  }
+  if(type === 'milk'){
+    return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
+      <path d="M38 22 L62 22 L62 64 L38 64 Z" fill="var(--paper)" stroke="var(--muted)" stroke-width="2"/>
+      <path d="M38 22 L44 10 L56 10 L62 22 Z" fill="var(--rule-b)"/>
+      <rect x="38" y="36" width="24" height="12" fill="var(--rule-b)"/>
+    </svg>`;
+  }
   if(type === 'snowflake'){
     return `<svg viewBox="0 0 100 70" class="aim-example-svg" aria-hidden="true">
       ${[0, 60, 120].map(a => `<g transform="rotate(${a} 50 35)" stroke="var(--rule-b)" stroke-width="4" stroke-linecap="round" fill="none">

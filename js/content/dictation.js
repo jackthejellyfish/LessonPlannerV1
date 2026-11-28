@@ -85,6 +85,22 @@ const LESSON_CONTENT = {
     'I’d like some orange juice, please.',
     'Put the fork on the left of the plate.',
     'There isn’t any milk, but there’s some water.'
+  ],
+  'at-the-buffet': [
+    'What did you have for breakfast?',
+    'I had scrambled eggs and grapefruit juice.',
+    'How did the fruit salad taste? It tasted sweet.',
+    'The chicken wings tasted spicy and greasy.',
+    'We had tuna sandwiches and lemonade for lunch.',
+    'The grapefruit juice tasted a bit bitter.'
+  ],
+  'at-the-market': [
+    'He’s got some grapes and some lemons.',
+    'She hasn’t got any mushrooms.',
+    'Have you got any beef? No, I haven’t.',
+    'Has she got any milk? Yes, she has.',
+    'The farmer has got some big pumpkins.',
+    'We haven’t got any butter, but we’ve got some cheese.'
   ]
 };
 

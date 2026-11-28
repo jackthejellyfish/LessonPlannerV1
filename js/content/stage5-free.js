@@ -305,6 +305,66 @@ const LESSON_CONTENT = {
       'Can I <span class="blank">have</span> a <span class="blank">___</span>, please?',
       'What would you like to drink? — I’d <span class="blank">like</span> <span class="blank">___</span>, please.'
     ]
+  },
+  'at-the-buffet': {
+    FREE_TASK: {
+      headline: "Buffet interview! What did your partner have? How did it taste?",
+      steps: [
+        "A asks: “What did you have for breakfast?”",
+        "B answers: “I had…”",
+        "A asks: “How did it taste?” Then swap!"
+      ],
+      example: [
+        ["A", "What did you have for lunch?"],
+        ["B", "I had chicken wings and lemonade."],
+        ["A", "How did the chicken wings taste?"],
+        ["B", "They tasted spicy!"]
+      ]
+    },
+    // A food → how it tasted.
+    WORD_BANK: [
+      ["fruit salad","sweet"], ["chicken wings","spicy"], ["grapefruit juice","bitter"],
+      ["lemonade","sour"], ["tuna sandwiches","salty"], ["fried rice","greasy"],
+      ["cereal","sweet"], ["scrambled eggs","salty"], ["have","had"],
+      ["taste","tasted"], ["one thing","It tasted…"], ["two or more","They tasted…"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'What did you <span class="blank">have</span> for <span class="blank">___</span>?',
+      'I <span class="blank">had</span> <span class="blank">___</span> and <span class="blank">___</span>.',
+      'How did the <span class="blank">___</span> <span class="blank">taste</span>?',
+      'It <span class="blank">tasted</span> <span class="blank">___</span>.',
+      'They <span class="blank">tasted</span> <span class="blank">___</span>.'
+    ]
+  },
+  'at-the-market': {
+    FREE_TASK: {
+      headline: "Market day! Find out what your partner has got.",
+      steps: [
+        "Secretly choose four foods from the word bank.",
+        "A asks: “Have you got any…?” B answers.",
+        "Tell the class: “She’s got some… She hasn’t got any…”"
+      ],
+      example: [
+        ["A", "Have you got any grapes?"],
+        ["B", "Yes, I have."],
+        ["A", "Have you got any cheese?"],
+        ["B", "No, I haven’t."]
+      ]
+    },
+    // Fruit and vegetables, then food from the farm animals.
+    WORD_BANK: [
+      ["grapes","some grapes"], ["watermelons","some watermelons"], ["pumpkins","some pumpkins"],
+      ["mushrooms","some mushrooms"], ["cucumbers","some cucumbers"], ["lemons","some lemons"],
+      ["beef","some beef"], ["lamb","some lamb"], ["milk","some milk"],
+      ["butter","some butter"], ["cheese","some cheese"], ["yoghurt","some yoghurt"]
+    ],
+    SCAFFOLD_FRAMES: [
+      'Have you got <span class="blank">any</span> <span class="blank">___</span>?',
+      'Yes, I <span class="blank">have</span>. / No, I <span class="blank">haven’t</span>.',
+      'He’s got <span class="blank">some</span> <span class="blank">___</span>.',
+      'She <span class="blank">hasn’t</span> got <span class="blank">any</span> <span class="blank">___</span>.',
+      '<span class="blank">Has</span> he got any <span class="blank">___</span>? — Yes, he <span class="blank">has</span>.'
+    ]
   }
 };
 

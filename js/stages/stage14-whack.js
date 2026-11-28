@@ -2,6 +2,7 @@ import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
 import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -102,7 +103,7 @@ document.getElementById('whackStartBtn').addEventListener('click', () => {
   state.whackTeams = readTeamsFromSetup('whack', whackRowColors);
   state.whackCurrentTeam = 0;
   state.whackTurnsPlayed = 0;
-  state.whackQuestionOrder = shuffle(WHACK_QUESTIONS.map((_, i) => i));
+  state.whackQuestionOrder = pickQuestions(WHACK_QUESTIONS);
   state.whackQuestionsAsked = 0;
   showWhackReady(false);
 
@@ -117,7 +118,7 @@ function renderWhackScoreboard(){
   renderTeamScoreboard('whackTeamList', state.whackTeams, state.whackCurrentTeam);
 }
 function renderWhackTurnBanner(){
-  renderTurnBanner('whack', state.whackTeams[state.whackCurrentTeam], state.whackTurnsPlayed + 1, WHACK_QUESTIONS.length, 'turn');
+  renderTurnBanner('whack', state.whackTeams[state.whackCurrentTeam], state.whackTurnsPlayed + 1, GAME_TURNS, 'turn');
 }
 
 /* ---- The teacher's lane picker (shown between turns) ---- */
@@ -143,14 +144,14 @@ document.querySelectorAll('#whackLanes [data-lanes]').forEach(btn => {
 ========================================================= */
 // One question per lane (2026-11-23): each student on the team answers a
 // question, then they all play together, one per lane. Questions run
-// through the shuffled bank and reshuffle once it's used up, so a long
-// game with five lanes doesn't repeat one straight after itself.
+// through the deck's picks and pick more once they're used up (a long
+// game with five lanes asks far more than ten), least asked first.
 function nextWhackQuestion(){
   if(state.whackQuestionsAsked >= state.whackQuestionOrder.length){
-    state.whackQuestionOrder = state.whackQuestionOrder.concat(shuffle(WHACK_QUESTIONS.map((_, i) => i)));
+    state.whackQuestionOrder = state.whackQuestionOrder.concat(pickQuestions(WHACK_QUESTIONS));
   }
   const n = state.whackQuestionsAsked++;
-  return { q: WHACK_QUESTIONS[state.whackQuestionOrder[n]], n };
+  return { q: state.whackQuestionOrder[n], n };
 }
 async function askWhackQuestions(){
   const count = lanes();
@@ -784,7 +785,7 @@ function finishWhackRound(){
   renderWhackScoreboard();
 
   showTurnResultModal('whackNextTeamBtn', { teams: state.whackTeams, currentTeamIndex: state.whackCurrentTeam }).then(() => {
-    if(state.whackTurnsPlayed >= WHACK_QUESTIONS.length){ endWhackGame(); return; }
+    if(state.whackTurnsPlayed >= GAME_TURNS){ endWhackGame(); return; }
     state.whackCurrentTeam = (state.whackCurrentTeam + 1) % state.whackTeams.length;
     renderWhackScoreboard();
     renderWhackTurnBanner();

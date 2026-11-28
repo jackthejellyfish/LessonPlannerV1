@@ -157,6 +157,36 @@ const LESSON_CONTENT = {
       { q: 'Are there any cakes for dessert? What is there?', a: 'No, there aren’t. There are some chocolate cookies.' },
       { q: 'What would you like to order at a café?', a: `${OWN}, e.g. I’d like a sandwich and some juice, please.` }
     ]
+  },
+  'at-the-buffet': {
+    title: 'Breakfast at the Hotel Buffet',
+    paragraphs: [
+      'Hi, I’m Max. Last summer my family stayed at a big hotel by the sea. Every morning there was a buffet. On the first day I had scrambled eggs and grapefruit juice. The eggs tasted good, but the juice tasted bitter! My little sister had cereal with milk. It tasted sweet.',
+      'For lunch we had fried rice and chicken wings. The chicken wings tasted spicy, so I drank lots of lemonade. My dad had tuna sandwiches. They tasted salty. Then we all had fruit salad. It tasted sweet and fresh. Yum!'
+    ],
+    questions: [
+      { q: 'Where did Max’s family stay?', a: 'At a big hotel by the sea.' },
+      { q: 'What did Max have on the first day?', a: 'Scrambled eggs and grapefruit juice.' },
+      { q: 'How did the grapefruit juice taste?', a: 'It tasted bitter.' },
+      { q: 'What did his little sister have?', a: 'Cereal with milk.' },
+      { q: 'Why did Max drink lots of lemonade?', a: 'Because the chicken wings tasted spicy.' },
+      { q: 'What did you have for breakfast today? How did it taste?', a: `${OWN}, e.g. I had cereal. It tasted sweet.` }
+    ]
+  },
+  'at-the-market': {
+    title: 'Saturday at the Farmers’ Market',
+    paragraphs: [
+      'Every Saturday, Lucy and her grandpa go to the farmers’ market. Today Grandpa has got a big shopping bag. First they go to the fruit stall. The farmer has got some grapes and some watermelons, but he hasn’t got any lemons. Lucy loves grapes, so Grandpa buys some.',
+      'Next they go to the milk stall. “Have you got any yoghurt?” asks Lucy. “Yes, I have,” says the woman. She has got some cheese and some butter too, but she hasn’t got any milk today. Now Grandpa’s bag is very heavy!'
+    ],
+    questions: [
+      { q: 'When do Lucy and her grandpa go to the market?', a: 'Every Saturday.' },
+      { q: 'What has the farmer got?', a: 'Some grapes and some watermelons.' },
+      { q: 'Has the farmer got any lemons?', a: 'No, he hasn’t.' },
+      { q: 'What does Grandpa buy at the fruit stall?', a: 'Some grapes.' },
+      { q: 'Has the woman got any milk today?', a: 'No, she hasn’t. But she’s got some yoghurt, cheese and butter.' },
+      { q: 'What have you got in your fridge at home?', a: `${OWN}, e.g. I’ve got some milk and some cheese.` }
+    ]
   }
 };
 

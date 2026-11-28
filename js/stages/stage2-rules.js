@@ -419,6 +419,39 @@ export function buildCompareIcon(type, valuePct, color){
       <path d="M28 ${64 - h * 0.5} q3 -3 6 0 q3 3 6 0" stroke="var(--paper)" stroke-width="2" fill="none" stroke-linecap="round"/>
     </svg>`;
   }
+  // --- At the Buffet / At the Market lesson icons (2026-11-27).
+  if(type === 'chili'){
+    const s = 0.8 + 0.25 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70"><g transform="translate(35 36) scale(${s})">
+      <path d="M-14 -22 C-10 6 4 22 26 20 C10 14 0 0 -4 -24 Z" fill="${color}"/>
+      <path d="M-14 -22 q2 -8 9 -6 l3 3" stroke="var(--success)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </g></svg>`;
+  }
+  if(type === 'lemon'){
+    const r = 12 + 8 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <ellipse cx="35" cy="38" rx="${r}" ry="${r * 0.72}" fill="${color}"/>
+      <ellipse cx="${35 + r}" cy="38" rx="3" ry="2.5" fill="${color}"/>
+      <ellipse cx="${35 - r}" cy="38" rx="3" ry="2.5" fill="${color}"/>
+      <ellipse cx="${35 - r * 0.35}" cy="${38 - r * 0.3}" rx="${r * 0.25}" ry="${r * 0.12}" fill="var(--paper)" opacity="0.6"/>
+    </svg>`;
+  }
+  if(type === 'grapes'){
+    const r = 4 + 3 * scale;
+    const pts = [[-2, -1.5], [0, -1.5], [2, -1.5], [-1, 0], [1, 0], [0, 1.5], [0, 3]];
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M35 ${36 - r * 3.4} q2 -6 8 -8" stroke="var(--success)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      ${pts.map(([x, y]) => `<circle cx="${35 + x * r * 1.05}" cy="${34 + y * r * 1.4}" r="${r}" fill="${color}"/>`).join('')}
+    </svg>`;
+  }
+  if(type === 'cheese'){
+    const w = 18 + 10 * scale;
+    return `<svg viewBox="0 0 70 70" width="70" height="70">
+      <path d="M${35 - w} 54 L${35 + w} 54 L${35 + w} 38 L${35 - w} 26 Z" fill="${color}"/>
+      <circle cx="${35 - w * 0.4}" cy="42" r="3.5" fill="var(--paper)" opacity="0.5"/>
+      <circle cx="${35 + w * 0.4}" cy="47" r="4" fill="var(--paper)" opacity="0.5"/>
+    </svg>`;
+  }
   if(type === 'leaf'){
     const s = 0.85 + 0.15 * scale;
     return `<svg viewBox="0 0 70 70" width="70" height="70"><g transform="translate(35 36) scale(${s}) rotate(-30)">

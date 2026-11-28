@@ -7,7 +7,9 @@
 ========================================================= */
 .lesson-select{
   position:fixed; inset:0; z-index:100;
-  display:flex; align-items:center; justify-content:center;
+  display:flex; align-items:safe center; justify-content:center;
+  /* If the cards ever outgrow the screen, scroll rather than clip. */
+  overflow-y:auto;
   padding: clamp(16px, 4vh, 40px);
   background:
     radial-gradient(circle at 20% 20%, rgba(92,138,130,0.14), transparent 45%),
@@ -90,3 +92,12 @@ body.low-quality .brand-mark{ animation:none; }
    stays two rows tall instead of wrapping a lone ninth card onto a
    third row below the bottom of a laptop screen. */
 .lesson-cards:has(> :nth-child(9)) .lesson-card{ flex-basis:196px; padding:18px 18px 16px; }
+
+/* Twelve lessons (2026-11-27): six a row, 6 + 6. Five a row left a third
+   row of two that ran off the bottom of a 720p board. A wider row, a
+   narrower basis and slightly smaller type keep it two rows. */
+.lesson-select-inner:has(.lesson-cards > :nth-child(11)){ max-width:1240px; }
+.lesson-cards:has(> :nth-child(11)){ gap:14px; }
+.lesson-cards:has(> :nth-child(11)) .lesson-card{ flex-basis:170px; padding:16px 16px 14px; gap:8px; }
+.lesson-cards:has(> :nth-child(11)) .lesson-card h2{ font-size:clamp(17px, 2.4vh, 20px); }
+.lesson-cards:has(> :nth-child(11)) .lesson-card p{ font-size:clamp(12px, 1.7vh, 14px); line-height:1.45; }

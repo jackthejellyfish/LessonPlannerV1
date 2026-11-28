@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { beep } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -142,11 +142,11 @@ document.getElementById('billiardsStartBtn').addEventListener('click', () => {
   state.billiardsTeams = readTeamsFromSetup('billiards', billiardsRowColors);
   state.billiardsCurrentTeam = 0;
   state.billiardsTurnsPlayed = 0;
-  state.billiardsQuestionOrder = shuffle(BILLIARDS_QUESTIONS.map((_, i) => i));
+  state.billiardsQuestionOrder = pickQuestions(BILLIARDS_QUESTIONS);
 
   showGameScreen('billiards');
   resizeBilliardsCanvas();
-  document.getElementById('billiardsQDisplay').textContent = `1/${BILLIARDS_QUESTIONS.length}`;
+  document.getElementById('billiardsQDisplay').textContent = `1/${GAME_TURNS}`;
   renderBilliardsScoreboard();
   renderBilliardsTurnBanner();
   loadBilliardsRack();
@@ -157,7 +157,7 @@ function renderBilliardsScoreboard(){
   renderTeamScoreboard('billiardsTeamList', state.billiardsTeams, state.billiardsCurrentTeam);
 }
 function renderBilliardsTurnBanner(){
-  renderTurnBanner('billiards', state.billiardsTeams[state.billiardsCurrentTeam], state.billiardsTurnsPlayed + 1, BILLIARDS_QUESTIONS.length);
+  renderTurnBanner('billiards', state.billiardsTeams[state.billiardsCurrentTeam], state.billiardsTurnsPlayed + 1, GAME_TURNS);
 }
 
 /* =========================================================
@@ -272,8 +272,7 @@ function loadBilliardsRack(){
    QUESTION + TURN FLOW
 ========================================================= */
 function askBilliardsQuestion(){
-  const qIndex = state.billiardsQuestionOrder[state.billiardsTurnsPlayed];
-  const q = BILLIARDS_QUESTIONS[qIndex];
+  const q = state.billiardsQuestionOrder[state.billiardsTurnsPlayed];
   return askTeamQuestion(q, BILLIARDS_QUESTIONS, state.billiardsTurnsPlayed);
 }
 
@@ -304,13 +303,13 @@ function finishBilliardsTurn(){
   document.getElementById('billiardsHint').classList.add('hidden');
 
   showBilliardsResult().then(() => {
-    if(state.billiardsTurnsPlayed >= BILLIARDS_QUESTIONS.length){
+    if(state.billiardsTurnsPlayed >= GAME_TURNS){
       endBilliardsGame();
     } else {
       state.billiardsCurrentTeam = (state.billiardsCurrentTeam + 1) % state.billiardsTeams.length;
       renderBilliardsScoreboard();
       renderBilliardsTurnBanner();
-      document.getElementById('billiardsQDisplay').textContent = `${state.billiardsTurnsPlayed + 1}/${BILLIARDS_QUESTIONS.length}`;
+      document.getElementById('billiardsQDisplay').textContent = `${state.billiardsTurnsPlayed + 1}/${GAME_TURNS}`;
       document.getElementById('billiardsBeginTurnBtn').disabled = false;
     }
   });

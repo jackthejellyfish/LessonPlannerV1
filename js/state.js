@@ -39,7 +39,7 @@ function createState(lessonId, muted){
     qsStarted: false,   // Stage 9 worksheet set up for this lesson (keeps revealed answers on revisits)
     popTeams: [],
     popCurrentTeam: 0,
-    popQuestionOrder: [],  // shuffled indices into POP_QUESTIONS, one consumed per turn
+    popQuestionOrder: [],  // the questions this game asks, one per turn (pickQuestions, js/questionDeck.js); every game's xQuestionOrder is the same
     popTurnsPlayed: 0,
     popScore: 0,           // pops scored in the round currently in progress
     popRoundActive: false,

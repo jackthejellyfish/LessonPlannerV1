@@ -310,6 +310,67 @@ const LESSON_CONTENT = {
       biscuits: "var(--timer)", bread: "var(--rule-d)", apple: "var(--error)", juice: "var(--timer)",
       water: "#6FA3C7", bowl: "var(--rule-a)", pizza: "var(--rule-d)"
     }
+  },
+  'at-the-buffet': {
+    // Past simple of have (What did you have for…? I had…) and
+    // How did it taste? It tasted… / They tasted… with six taste words.
+    RULES: [
+      { name: "have → had", formula: "Yesterday, this morning, last night: I / you / he / she / we / they had…", color: "var(--rule-a)",
+        examples: [["I"," had cereal for breakfast."],["She"," had fried rice for lunch."],["We"," had tuna sandwiches."]] },
+      { name: "What did you have…?", formula: "What did + you / he / she / they + have + for breakfast / lunch / dinner?", color: "var(--rule-b)",
+        examples: [["What did you"," have for breakfast?"],["What did he"," have for lunch?"],["What did they"," have for dinner?"]] },
+      { name: "How did it taste?", formula: "How did the + food or drink + taste? (taste, not tasted, after did)", color: "var(--rule-c)",
+        examples: [["How did the soup"," taste?"],["How did the lemonade"," taste?"],["How did the chicken wings"," taste?"]] },
+      { name: "It tasted… / They tasted…", formula: "One thing or uncountable: It tasted… · Plural (-s): They tasted…", color: "var(--rule-d)",
+        examples: [["The fruit salad?"," It tasted sweet."],["The chicken wings?"," They tasted spicy."],["The tuna sandwiches?"," They tasted salty."]] },
+      { name: "Taste words", formula: "sweet · spicy · bitter · sour · salty · greasy", color: "var(--rule-a)",
+        examples: [["Lemons"," taste sour."],["Chillies"," taste spicy."],["Grapefruit juice"," tastes bitter."]] }
+    ],
+    COMPARE_DEMOS: [
+      { labelA: "cereal", labelB: "grapefruit juice", valueA: 75, valueB: 75, iconA: "bowl", iconB: "juice",
+        caption: 'What did you have for breakfast? I <span class="hl">had</span> cereal and grapefruit juice.' },
+      { labelA: "fruit salad: sweet", labelB: "lemonade: sour", valueA: 75, valueB: 75, iconA: "apple", iconB: "lemon",
+        caption: 'The fruit salad <span class="hl">tasted</span> sweet. The lemonade <span class="hl">tasted</span> sour.' },
+      { labelA: "chicken wings: spicy", labelB: "fried rice: greasy", valueA: 75, valueB: 75, iconA: "chili", iconB: "bowl",
+        caption: 'The chicken wings? <span class="hl">They</span> tasted spicy. The fried rice? <span class="hl">It</span> tasted greasy.' },
+      { labelA: "the soup → It", labelB: "the sandwiches → They", valueA: 60, valueB: 85, iconA: "bowl", iconB: "bread",
+        caption: 'How did the soup taste? <span class="hl">It</span> tasted salty. How did the sandwiches taste? <span class="hl">They</span> tasted good.' }
+    ],
+    COMPARE_ICON_COLORS: {
+      bowl: "var(--rule-a)", juice: "var(--timer)", apple: "var(--error)", lemon: "#F2C94C",
+      chili: "var(--error)", bread: "var(--rule-d)"
+    }
+  },
+  'at-the-market': {
+    // have got / has got with some and any, and
+    // Have you got any…? / Has he got any…? with short answers.
+    RULES: [
+      { name: "have got / has got", formula: "I / you / we / they’ve got · he / she’s got", color: "var(--rule-a)",
+        examples: [["I","’ve got some grapes."],["She","’s got some lemons."],["They","’ve got some pumpkins."]] },
+      { name: "some in positive sentences", formula: "’ve got / ’s got + some + plural or uncountable", color: "var(--rule-b)",
+        examples: [["He’s got"," some cucumbers."],["She’s got"," some cheese."],["We’ve got"," some milk."]] },
+      { name: "any in negatives", formula: "haven’t got any · hasn’t got any", color: "var(--rule-c)",
+        examples: [["He hasn’t got"," any mushrooms."],["I haven’t got"," any butter."],["They haven’t got"," any lamb."]] },
+      { name: "Have you got any…?", formula: "Have + I / you / we / they + got any…? · Yes, I have. / No, I haven’t.", color: "var(--rule-d)",
+        examples: [["Have you got"," any beef?"],["Yes,"," I have."],["No,"," I haven’t."]] },
+      { name: "Has he / she got any…?", formula: "Has + he / she + got any…? · Yes, she has. / No, he hasn’t.", color: "var(--rule-a)",
+        examples: [["Has she got"," any milk?"],["Yes,"," she has."],["No,"," he hasn’t."]] },
+      { name: "What has he got?", formula: "What has + he / she + got? · What have + you / they + got?", color: "var(--rule-c)",
+        examples: [["What has he"," got? He’s got some grapes."],["What has she"," got? She’s got some yoghurt."],["What have they"," got? They’ve got some beef."]] }
+    ],
+    COMPARE_DEMOS: [
+      { labelA: "some grapes", labelB: "some lemons", valueA: 75, valueB: 75, iconA: "grapes", iconB: "lemon",
+        caption: 'He<span class="hl">’s got some</span> grapes and <span class="hl">some</span> lemons.' },
+      { labelA: "some cheese ✓", labelB: "any milk? ✗", valueA: 85, valueB: 30, iconA: "cheese", iconB: "water",
+        caption: 'She<span class="hl">’s got some</span> cheese, but she <span class="hl">hasn’t got any</span> milk.' },
+      { labelA: "Have you got any grapes?", labelB: "Yes, I have!", valueA: 75, valueB: 75, iconA: "grapes", iconB: "tick",
+        caption: '<span class="hl">Have</span> you got <span class="hl">any</span> grapes? — Yes, I <span class="hl">have</span>.' },
+      { labelA: "Has he got any lemons?", labelB: "No, he hasn’t.", valueA: 75, valueB: 25, iconA: "lemon", iconB: "lemon",
+        caption: '<span class="hl">Has</span> he got <span class="hl">any</span> lemons? — No, he <span class="hl">hasn’t</span>.' }
+    ],
+    COMPARE_ICON_COLORS: {
+      grapes: "#8E5BB5", lemon: "#F2C94C", cheese: "#F2C94C", water: "#F4F1EA", tick: "var(--success)"
+    }
   }
 };
 

@@ -19,7 +19,12 @@ const LESSON_CONTENT = {
       { prompt: "Make it a question: 'He is older than you.'", answer: "Is he older than you?" },
       { prompt: "Make it a question: 'The film was better than the book.'", answer: "Was the film better than the book?" },
       { prompt: "Make it a question: 'They were busier yesterday.'", answer: "Were they busier yesterday?" },
-      { prompt: "Ask your partner which is faster, a bike or a motorbike.", answer: "Which is faster, a bike or a motorbike?" }
+      { prompt: "Ask your partner which is faster, a bike or a motorbike.", answer: "Which is faster, a bike or a motorbike?" },
+      { prompt: "Make it a question: 'Your sister is younger than you.'", answer: "Is your sister younger than you?" },
+      { prompt: "Make it a question: 'Cats are quieter than dogs.'", answer: "Are cats quieter than dogs?" },
+      { prompt: "Make it a question: 'The test was easier than last week.'", answer: "Was the test easier than last week?" },
+      { prompt: "Ask your partner which is bigger, an elephant or a whale.", answer: "Which is bigger, an elephant or a whale?" },
+      { prompt: "Ask your partner who is older, their mum or their dad.", answer: "Who is older, your mum or your dad?" }
     ]
   },
   health: {
@@ -33,7 +38,12 @@ const LESSON_CONTENT = {
       { prompt: "Ask someone what is wrong with them.", answer: "What's the matter?" },
       { prompt: "Ask your partner for advice about a headache.", answer: "What should I do about a headache?" },
       { prompt: "Make it a question: 'He should go to hospital.'", answer: "Should he go to hospital?" },
-      { prompt: "Ask your partner if they should eat more fruit.", answer: "Should I eat more fruit?" }
+      { prompt: "Ask your partner if they should eat more fruit.", answer: "Should I eat more fruit?" },
+      { prompt: "Make it a question: 'She should stay at home.'", answer: "Should she stay at home?" },
+      { prompt: "Ask your partner what's wrong with their brother.", answer: "What's the matter with your brother?" },
+      { prompt: "Make it a question: 'They should go to bed early.'", answer: "Should they go to bed early?" },
+      { prompt: "Ask your partner for advice about a cold.", answer: "What should I do about a cold?" },
+      { prompt: "Make it a question: 'I should take some medicine.'", answer: "Should I take some medicine?" }
     ]
   },
   'comparatives-superlatives': {
@@ -47,7 +57,12 @@ const LESSON_CONTENT = {
       { prompt: "Ask your partner the most beautiful place they know.", answer: "What is the most beautiful place you know?" },
       { prompt: "Make it a question: 'This is the easiest exercise.'", answer: "Is this the easiest exercise?" },
       { prompt: "Ask who is the fastest runner in the school.", answer: "Who is the fastest runner in the school?" },
-      { prompt: "Make it a question: 'July is hotter than May.'", answer: "Is July hotter than May?" }
+      { prompt: "Make it a question: 'July is hotter than May.'", answer: "Is July hotter than May?" },
+      { prompt: "Make it a question: 'The Nile is the longest river.'", answer: "Is the Nile the longest river?" },
+      { prompt: "Ask who is the oldest person in your partner's family.", answer: "Who is the oldest person in your family?" },
+      { prompt: "Make it a question: 'A cheetah is faster than a lion.'", answer: "Is a cheetah faster than a lion?" },
+      { prompt: "Ask your partner what the best film is.", answer: "What is the best film?" },
+      { prompt: "Make it a question: 'They were the happiest children.'", answer: "Were they the happiest children?" }
     ]
   },
   'will-wont': {
@@ -61,7 +76,12 @@ const LESSON_CONTENT = {
       { prompt: "Make it a question: 'We will need our coats.'", answer: "Will we need our coats?" },
       { prompt: "Ask if the shop will open on Sunday.", answer: "Will the shop open on Sunday?" },
       { prompt: "Make it a question: 'You will like this film.'", answer: "Will you like this film?" },
-      { prompt: "Ask who will win the match.", answer: "Who will win the match?" }
+      { prompt: "Ask who will win the match.", answer: "Who will win the match?" },
+      { prompt: "Make it a question: 'They will win the match.'", answer: "Will they win the match?" },
+      { prompt: "Ask your partner what they will eat tonight.", answer: "What will you eat tonight?" },
+      { prompt: "Make it a question: 'It will be cold.'", answer: "Will it be cold?" },
+      { prompt: "Ask when the bus will arrive.", answer: "When will the bus arrive?" },
+      { prompt: "Make it a question: 'Your sister will call me.'", answer: "Will your sister call me?" }
     ]
   },
   'present-perfect': {
@@ -75,7 +95,12 @@ const LESSON_CONTENT = {
       { prompt: "Ask your partner how many countries they have visited.", answer: "How many countries have you visited?" },
       { prompt: "Make it a question: 'We have met before.'", answer: "Have we met before?" },
       { prompt: "Ask your partner if they have ever eaten sushi.", answer: "Have you ever eaten sushi?" },
-      { prompt: "Make it a question: 'It has stopped raining.'", answer: "Has it stopped raining?" }
+      { prompt: "Make it a question: 'It has stopped raining.'", answer: "Has it stopped raining?" },
+      { prompt: "Make it a question: 'She has been to Paris.'", answer: "Has she been to Paris?" },
+      { prompt: "Ask your partner if they have ever seen snow.", answer: "Have you ever seen snow?" },
+      { prompt: "Make it a question: 'They have bought a dog.'", answer: "Have they bought a dog?" },
+      { prompt: "Ask your partner if they have done their homework.", answer: "Have you done your homework?" },
+      { prompt: "Make it a question: 'The film has started.'", answer: "Has the film started?" }
     ]
   },
   'amusement-park': {
@@ -89,7 +114,12 @@ const LESSON_CONTENT = {
       { prompt: "Ask your partner about the 3D film.", answer: "How was the 3D film?" },
       { prompt: "Make it a question: 'He rode the merry-go-round.'", answer: "Did he ride the merry-go-round?" },
       { prompt: "Ask your partner what they ate at the park.", answer: "What did you eat at the park?" },
-      { prompt: "Ask your partner which attraction they visited first.", answer: "Which attraction did you visit first?" }
+      { prompt: "Ask your partner which attraction they visited first.", answer: "Which attraction did you visit first?" },
+      { prompt: "Make it a question: 'You bought a souvenir.'", answer: "Did you buy a souvenir?" },
+      { prompt: "Ask your partner how the parade was.", answer: "How was the parade?" },
+      { prompt: "Make it a question: 'They ate candy floss.'", answer: "Did they eat candy floss?" },
+      { prompt: "Ask your partner how they felt on the roller coaster.", answer: "How did you feel on the roller coaster?" },
+      { prompt: "Make it a question: 'She won a prize.'", answer: "Did she win a prize?" }
     ]
   },
   'party-fun': {
@@ -103,7 +133,12 @@ const LESSON_CONTENT = {
       { prompt: "Ask who will blow up the balloons.", answer: "Who will blow up the balloons?" },
       { prompt: "Make it a question: 'They will hang up the decorations.'", answer: "Will they hang up the decorations?" },
       { prompt: "Ask your partner what Tom will do for the party.", answer: "What will Tom do for the party?" },
-      { prompt: "Make it a question: 'She will set up the games.'", answer: "Will she set up the games?" }
+      { prompt: "Make it a question: 'She will set up the games.'", answer: "Will she set up the games?" },
+      { prompt: "Ask who will bake biscuits.", answer: "Who will bake biscuits?" },
+      { prompt: "Make it a question: 'Ann will buy balloons.'", answer: "Will Ann buy balloons?" },
+      { prompt: "Ask who will draw the posters.", answer: "Who will draw the posters?" },
+      { prompt: "Make it a question: 'We will order pizza.'", answer: "Will we order pizza?" },
+      { prompt: "Ask your partner if they will play the music.", answer: "Will you play the music?" }
     ]
   },
   'at-school': {
@@ -117,7 +152,12 @@ const LESSON_CONTENT = {
       { prompt: "Ask what they have got.", answer: "What have they got?" },
       { prompt: "Ask what your friends want.", answer: "What do your friends want?" },
       { prompt: "Tell your partner you have a paintbrush.", answer: "I've got a paintbrush." },
-      { prompt: "Tell your partner you want soup and juice.", answer: "I want soup and juice." }
+      { prompt: "Tell your partner you want soup and juice.", answer: "I want soup and juice." },
+      { prompt: "Ask what your teacher has got.", answer: "What has your teacher got?" },
+      { prompt: "Ask what they want.", answer: "What do they want?" },
+      { prompt: "Tell your partner you have got a stapler.", answer: "I've got a stapler." },
+      { prompt: "Ask what Mia wants.", answer: "What does Mia want?" },
+      { prompt: "Tell your partner Tom wants fish.", answer: "Tom wants fish." }
     ]
   },
   'months-weather': {
@@ -131,7 +171,12 @@ const LESSON_CONTENT = {
       { prompt: "Tell your partner it is raining.", answer: "It's rainy." },
       { prompt: "Ask what the weather is like in summer.", answer: "What's the weather like in summer?" },
       { prompt: "Tell your partner it's the 3rd of April today.", answer: "It's the third of April." },
-      { prompt: "Ask when Ana's birthday is.", answer: "When's Ana's birthday?" }
+      { prompt: "Ask when Ana's birthday is.", answer: "When's Ana's birthday?" },
+      { prompt: "Ask your partner what the weather is like in winter.", answer: "What's the weather like in winter?" },
+      { prompt: "Tell your partner your birthday is on the 8th of May.", answer: "My birthday is on the eighth of May." },
+      { prompt: "Ask your partner when their mum's birthday is.", answer: "When's your mum's birthday?" },
+      { prompt: "Tell your partner it's cold and windy today.", answer: "It's cold and windy today." },
+      { prompt: "Ask which season it is.", answer: "What season is it?" }
     ]
   },
   'food-drink': {
@@ -145,7 +190,50 @@ const LESSON_CONTENT = {
       { prompt: "Order water with 'I'd like'.", answer: "I'd like water, please." },
       { prompt: "You're the waiter. Say hello and offer help.", answer: "Hi. Can I help you?" },
       { prompt: "Tell your partner there isn't any milk.", answer: "There isn't any milk." },
-      { prompt: "Tell your partner there are some apples.", answer: "There are some apples." }
+      { prompt: "Tell your partner there are some apples.", answer: "There are some apples." },
+      { prompt: "Ask if there is any rice.", answer: "Is there any rice?" },
+      { prompt: "Ask if there are any bananas.", answer: "Are there any bananas?" },
+      { prompt: "Order soup with 'Can I have'.", answer: "Can I have some soup, please?" },
+      { prompt: "Tell your partner there aren't any eggs.", answer: "There aren't any eggs." },
+      { prompt: "You're the customer. Order juice with 'I'll have'.", answer: "I'll have some juice, please." }
+    ]
+  },
+  'at-the-buffet': {
+    HOOP_QUESTIONS: [
+      { prompt: "Ask your partner what they had for breakfast.", answer: "What did you have for breakfast?" },
+      { prompt: "Ask your partner what they had for lunch.", answer: "What did you have for lunch?" },
+      { prompt: "Ask how the fruit salad tasted.", answer: "How did the fruit salad taste?" },
+      { prompt: "Ask how the chicken wings tasted.", answer: "How did the chicken wings taste?" },
+      { prompt: "Make it a question: 'You had cereal.'", answer: "Did you have cereal?" },
+      { prompt: "Ask what Tom had for dinner.", answer: "What did Tom have for dinner?" },
+      { prompt: "Tell your partner you had scrambled eggs for breakfast.", answer: "I had scrambled eggs for breakfast." },
+      { prompt: "Tell your partner the lemonade tasted sweet.", answer: "The lemonade tasted sweet." },
+      { prompt: "Ask how the tuna sandwiches tasted.", answer: "How did the tuna sandwiches taste?" },
+      { prompt: "Make it a question: 'She had fried rice.'", answer: "Did she have fried rice?" },
+      { prompt: "Ask what your partner had to drink.", answer: "What did you have to drink?" },
+      { prompt: "Tell your partner the chicken wings tasted spicy.", answer: "The chicken wings tasted spicy." },
+      { prompt: "Ask how the grapefruit juice tasted.", answer: "How did the grapefruit juice taste?" },
+      { prompt: "Make it a question: 'They had fruit salad.'", answer: "Did they have fruit salad?" },
+      { prompt: "Ask what Mia had for lunch.", answer: "What did Mia have for lunch?" }
+    ]
+  },
+  'at-the-market': {
+    HOOP_QUESTIONS: [
+      { prompt: "Ask your partner if they have got any grapes.", answer: "Have you got any grapes?" },
+      { prompt: "Ask if he has got any milk.", answer: "Has he got any milk?" },
+      { prompt: "Ask what she has got.", answer: "What has she got?" },
+      { prompt: "Make it a question: 'She's got some cheese.'", answer: "Has she got any cheese?" },
+      { prompt: "Tell your partner you've got some lemons.", answer: "I've got some lemons." },
+      { prompt: "Tell your partner he hasn't got any mushrooms.", answer: "He hasn't got any mushrooms." },
+      { prompt: "Make it a question: 'They've got some pumpkins.'", answer: "Have they got any pumpkins?" },
+      { prompt: "Ask the farmer if he has got any watermelons.", answer: "Have you got any watermelons?" },
+      { prompt: "Ask what Tom has got.", answer: "What has Tom got?" },
+      { prompt: "Make it a question: 'You've got some beef.'", answer: "Have you got any beef?" },
+      { prompt: "Ask your partner if their mum has got any butter.", answer: "Has your mum got any butter?" },
+      { prompt: "Tell your partner she's got some yoghurt.", answer: "She's got some yoghurt." },
+      { prompt: "Make it a question: 'He's got some cucumbers.'", answer: "Has he got any cucumbers?" },
+      { prompt: "Ask what they have got.", answer: "What have they got?" },
+      { prompt: "Ask if she has got any lamb.", answer: "Has she got any lamb?" }
     ]
   }
 };

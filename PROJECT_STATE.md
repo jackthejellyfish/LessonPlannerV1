@@ -1,7 +1,7 @@
 # Teacher Jack’s Lesson Planner — Project State
 
 > Handover summary: what the app is, how it's built, the rules that keep it
-> fast and stable, and how to change it. Current as of **v3.6 (2026-11-22)**.
+> fast and stable, and how to change it. Current as of **v3.7 (2026-11-27)**.
 > The full design history (why things are the way they are, per-game deep
 > dives, superseded decisions) is in
 > [archive/PROJECT_STATE-history.md](archive/PROJECT_STATE-history.md). It is
@@ -29,7 +29,7 @@ quiz the same language.
 - **Hardware target:** weak classroom PCs driving large displays. Frame rate
   matters more than visual polish (see section 5).
 
-### Lessons (9), from `js/lessons.js`
+### Lessons (12), from `js/lessons.js`
 
 | id | Title |
 |---|---|
@@ -43,6 +43,8 @@ quiz the same language.
 | `at-school` | At School: I’ve Got… / I Want… (have got / has got and want / wants, from the Unit 2 textbook pages) |
 | `months-weather` | Months, Weather and Seasons (in + month, on + date, ordinals, It’s + weather, the seasons) |
 | `food-drink` | Food and Drink: Some and Any (countable / uncountable nouns, a / an, some / any, there is / are, ordering in a restaurant) |
+| `at-the-buffet` | At the Buffet: How Did It Taste? (What did you have for…? I had…, How did it taste? It / They tasted…, taste words; Unit 3 textbook pages) |
+| `at-the-market` | At the Market: Have You Got Any…? (have got / has got with some / any, Have you got any…? / Has he got any…? and short answers; Unit 3 textbook pages) |
 
 ### Stages (21), from `js/stepper.js`
 
@@ -74,6 +76,14 @@ Every team game follows the same loop: a setup screen (rules plus teams and
 colours) → a team answers a question → the team plays a short timed turn →
 the result modal shows the standings → the next team → the game-over banner.
 
+**Every game is 10 turns** (`GAME_TURNS` in `js/questionDeck.js`), whatever
+the size of its bank. Each game bank holds **15 questions a lesson** (at
+least; `tests/question-banks.spec.js` checks), and the deck picks a game's
+ten: its own bank's questions not yet asked this lesson first, then the
+lesson's other games' unasked questions, and only then repeats (least
+recently asked first). So replays and later games keep meeting new
+questions (feedback 2026-11-27: "the same questions keep coming up").
+
 ---
 
 ## 2. File map
@@ -99,6 +109,7 @@ js/hud.js             timer bars: createTimerHud(), setTimerFill()
 js/quality.js         adaptive lite mode: noteFrame(), particleCount(), isLowQuality()
 js/fpsMeter.js        on-screen meter, only when the URL has ?fps
 js/questionChoices.js multiple-choice versions of the turn questions (askTeamQuestion)
+js/questionDeck.js    which questions a game asks: pickQuestions(), GAME_TURNS, asked-this-lesson memory
 js/timerRing.js, audio.js, particles.js, confirmDialog.js, icons.js, utils.js
 js/stages/stageN-*.js game and stage logic
 js/content/stageN-*.js lesson content (plain data, keyed by lesson id)
@@ -337,6 +348,16 @@ worst frame, and whether lite mode is on.
   two similar answers from the same bank). Where that guesses wrong, give
   the question its own `choices: [right, wrong, ...]` (three Whack-a-Jelly
   questions do). The app marks a multiple-choice answer itself.
+  `askTeamQuestion` also records the question as asked (for the deck), and
+  a question borrowed from another game's bank takes its wrong options
+  from that bank (`homeBank(q)`). An "X or Y?" option takes the answer's
+  case, so "It or they?" offers "It" / "They", not "It" / "they".
+- **The question deck** (`js/questionDeck.js`, 2026-11-27). A game never
+  indexes its bank by turn: at the start it calls `pickQuestions(BANK)`
+  and stores the questions themselves in `state.xQuestionOrder`. "Asked"
+  is remembered per lesson, by prompt text, until the page reloads (a
+  restart or lesson switch keeps it). Spin the Wheel's slice points are
+  `WHEEL_POINTS` in its stage file, no longer a field on each question.
 - **The question is always the centre of attention** (feedback
   2026-11-18). Every game's question modal (`.modal-question` in
   `css/modals.css`) fills most of the screen over a dark backdrop, with the
@@ -375,8 +396,8 @@ worst frame, and whether lite mode is on.
 - **One question per lane** (Whack-a-Jelly, 2026-11-23). Each player on
   the team answers a question before the turn (`askTeamQuestion(q, bank,
   n, { label: 'Lane 2 of 4' })`; `label` is shown above the question in
-  the shared modal). `state.whackQuestionsAsked` walks the shuffled bank
-  and reshuffles when it runs out; still 10 turns a game. After the
+  the shared modal). `state.whackQuestionsAsked` walks the deck's picks
+  and picks ten more when it runs out; still 10 turns a game. After the
   last question a "Get ready!" panel waits for the teacher's **Go!**
   (`#whackGoBtn`) so players can reach their lanes. Tests that start a
   turn must answer until `#popQuestionOverlay` is hidden, then click Go.
@@ -390,9 +411,9 @@ worst frame, and whether lite mode is on.
   never `shuffle()`, for unscramble tasks: it guarantees the words don't
   come out in (or nearly in) the right order. Stage 9 seeds it with
   `seededRandom(answer)` so the board and the printed sheet match.
-- **Zombie Dash's questions** come from the other games' banks
-  (`js/content/stage17-zombies.js`, applied LAST in `main.js`), so a new
-  lesson needs no block for it. `bankOf(q)` gives multiple-choice turns
+- **Zombie Dash's questions** come from the other games' banks (all of
+  them, one pool; `js/content/stage17-zombies.js`, applied LAST in
+  `main.js`), so a new lesson needs no block for it. `bankOf(q)` gives multiple-choice turns
   like-for-like wrong options.
 - **The turn-result screen** is a grid of equal cards (one column per
   team, 3 + 3 for five or six), a "+N this turn" tag on the team that
@@ -446,6 +467,7 @@ npm test                                         # serial (workers: 1); serves o
 | `full-regression` | every stage with zero console errors; modulepreload list matches `js/`; Stage 5 fit |
 | `layout-fit` | every game's play area clears the step bar and footer at 1280x720, 1366x768, 1536x730, and in compact mode |
 | `lessons` | every lesson through every stage |
+| `question-banks` | 15+ questions per game per lesson, no repeats in a bank; the deck asks no repeats until a lesson's questions run out |
 | `team-games`, `new-games` | real played turns through the result modal |
 | `quality` | lite mode off by default, forced on, auto-triggers, remembered / forgotten, level 2; `?fps` meter; Billiards survives compact mode; Spin Wheel repaints after a resize |
 | `perf`, `perf-games` | fps floors and the per-game main-thread survey at 1440p, CPU 6× slower (load `?lite=0`) |

@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { beep, sfxIncorrect, sfxTimeUp, sfxImpact, sfxRisingChime, sfxBalloonPop } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -95,7 +95,7 @@ document.getElementById('popStartBtn').addEventListener('click', () => {
   state.popTeams = readTeamsFromSetup('pop', popRowColors);
   state.popCurrentTeam = 0;
   state.popTurnsPlayed = 0;
-  state.popQuestionOrder = shuffle(POP_QUESTIONS.map((_, i) => i));
+  state.popQuestionOrder = pickQuestions(POP_QUESTIONS);
 
   showGameScreen('pop');
   renderPopScoreboard();
@@ -108,11 +108,11 @@ function renderPopScoreboard(){
   renderTeamScoreboard('popTeamList', state.popTeams, state.popCurrentTeam);
 }
 function renderPopTurnBanner(){
-  renderTurnBanner('pop', state.popTeams[state.popCurrentTeam], state.popTurnsPlayed + 1, POP_QUESTIONS.length);
+  renderTurnBanner('pop', state.popTeams[state.popCurrentTeam], state.popTurnsPlayed + 1, GAME_TURNS);
 }
 
 function askPopQuestion(){
-  const q = POP_QUESTIONS[state.popQuestionOrder[state.popTurnsPlayed]];
+  const q = state.popQuestionOrder[state.popTurnsPlayed];
   return askTeamQuestion(q, POP_QUESTIONS, state.popTurnsPlayed);
 }
 
@@ -743,7 +743,7 @@ function finishPopRound(){
   renderPopScoreboard();
 
   showTurnResultModal('popNextTeamBtn', { teams: state.popTeams, currentTeamIndex: state.popCurrentTeam }).then(() => {
-    if(state.popTurnsPlayed >= POP_QUESTIONS.length){
+    if(state.popTurnsPlayed >= GAME_TURNS){
       endPopGame();
     } else {
       state.popCurrentTeam = (state.popCurrentTeam + 1) % state.popTeams.length;

@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { ensureAudio, beep, audioOut, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -143,7 +143,7 @@ document.getElementById('invStartBtn').addEventListener('click', () => {
   state.invTeams = readTeamsFromSetup('inv', invRowColors).map(team => ({ ...team, bankedSeconds: 0 }));
   state.invCurrentTeam = 0;
   state.invTurnsPlayed = 0;
-  state.invQuestionOrder = shuffle(INV_QUESTIONS.map((_, i) => i));
+  state.invQuestionOrder = pickQuestions(INV_QUESTIONS);
   state.invLives = INV_MAX_LIVES;
 
   showGameScreen('inv');
@@ -156,7 +156,7 @@ function renderInvScoreboard(){
   renderTeamScoreboard('invTeamList', state.invTeams, state.invCurrentTeam);
 }
 function renderInvTurnBanner(){
-  renderTurnBanner('inv', state.invTeams[state.invCurrentTeam], state.invTurnsPlayed + 1, INV_QUESTIONS.length);
+  renderTurnBanner('inv', state.invTeams[state.invCurrentTeam], state.invTurnsPlayed + 1, GAME_TURNS);
 }
 function renderInvLives(){
   document.getElementById('invLivesDisplay').innerHTML = Array.from({ length: INV_MAX_LIVES }, (_, i) =>
@@ -167,8 +167,7 @@ function renderInvLives(){
 /* ---- Question modal — reuses Ball Pop's overlay elements, since only
    one modal is ever open at a time regardless of which stage it's for ---- */
 function askInvQuestion(){
-  const qIndex = state.invQuestionOrder[state.invTurnsPlayed];
-  const q = INV_QUESTIONS[qIndex];
+  const q = state.invQuestionOrder[state.invTurnsPlayed];
   return askTeamQuestion(q, INV_QUESTIONS, state.invTurnsPlayed);
 }
 
@@ -930,7 +929,7 @@ function finishInvRound(){
   renderInvScoreboard();
 
   showInvResult().then(() => {
-    if(state.invTurnsPlayed >= INV_QUESTIONS.length){
+    if(state.invTurnsPlayed >= GAME_TURNS){
       endInvGame();
     } else {
       state.invCurrentTeam = (state.invCurrentTeam + 1) % state.invTeams.length;

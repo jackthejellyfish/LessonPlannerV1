@@ -18,13 +18,15 @@ const { test, expect } = require('@playwright/test');
 const STAGE_COUNT = 21;
 
 test('every lesson renders every stage with no console errors', async ({ page }) => {
+  // About 2.5s a lesson: past the 30s default once there were 12 lessons.
+  test.setTimeout(120000);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
 
   await page.goto('/index.html');
   const lessonCount = await page.locator('.lesson-card').count();
-  expect(lessonCount).toBe(10);
+  expect(lessonCount).toBe(12);
 
   for (let lesson = 0; lesson < lessonCount; lesson++) {
     await page.goto('/index.html');

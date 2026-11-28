@@ -151,6 +151,34 @@ const LESSON_CONTENT = {
       { word: "I’d ___ some water, please.", correct: "like", options: ["like", "likes", "liking"] },
       { word: "Can I ___ a cheese sandwich, please?", correct: "have", options: ["has", "have", "having"] }
     ]
+  },
+  'at-the-buffet': {
+    MC_QUESTIONS: [
+      { word: "What did you ___ for breakfast?", correct: "have", options: ["have", "had", "has"] },
+      { word: "I ___ scrambled eggs yesterday.", correct: "had", options: ["have", "had", "haved"] },
+      { word: "How did the fruit salad ___?", correct: "taste", options: ["taste", "tasted", "tastes"] },
+      { word: "The chicken wings? ___ tasted spicy.", correct: "They", options: ["It", "They", "He"] },
+      { word: "The lemonade? ___ tasted sweet.", correct: "It", options: ["It", "They", "She"] },
+      { word: "Lemons taste ___.", correct: "sour", options: ["sweet", "sour", "greasy"] },
+      { word: "Chillies taste ___.", correct: "spicy", options: ["bitter", "spicy", "sweet"] },
+      { word: "Chips with lots of salt taste ___.", correct: "salty", options: ["salty", "sour", "sweet"] },
+      { word: "___ did the soup taste?", correct: "How", options: ["What", "How", "Who"] },
+      { word: "Grapefruit juice tastes a bit ___.", correct: "bitter", options: ["bitter", "spicy", "greasy"] }
+    ]
+  },
+  'at-the-market': {
+    MC_QUESTIONS: [
+      { word: "He’s got ___ grapes.", correct: "some", options: ["some", "any", "a"] },
+      { word: "She hasn’t got ___ mushrooms.", correct: "any", options: ["some", "any", "an"] },
+      { word: "___ you got any beef?", correct: "Have", options: ["Have", "Has", "Do"] },
+      { word: "___ he got any milk?", correct: "Has", options: ["Have", "Has", "Is"] },
+      { word: "Have you got any cheese? — Yes, I ___.", correct: "have", options: ["have", "has", "got"] },
+      { word: "Has she got any yoghurt? — No, she ___.", correct: "hasn’t", options: ["haven’t", "hasn’t", "isn’t"] },
+      { word: "What ___ he got?", correct: "has", options: ["have", "has", "is"] },
+      { word: "They ___ got any lemons.", correct: "haven’t", options: ["hasn’t", "haven’t", "aren’t"] },
+      { word: "They’re big and orange: ___", correct: "pumpkins", options: ["pumpkins", "cucumbers", "grapes"] },
+      { word: "Cheese and butter come from ___.", correct: "milk", options: ["milk", "lamb", "lemons"] }
+    ]
   }
 };
 

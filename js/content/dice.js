@@ -85,6 +85,22 @@ const LESSON_CONTENT = {
     q('Is there any food in your bag today?', ['Yes, there is. There’s ___.', 'No, there isn’t any ___.'], ['an apple', 'a banana', 'some bread', 'some cookies']),
     q('What’s your favourite food? What’s in it?', ['My favourite food is ___.', 'There’s some ___ in it.'], ['cheese', 'tomato', 'rice', 'chicken']),
     q('Be the waiter! Ask your partner what they want.', ['Are you ready to ___?', 'What would you like to ___?'], ['order', 'drink', 'eat', 'have'])
+  ],
+  'at-the-buffet': [
+    q('What did you have for breakfast today?', ['I had ___.', 'I had ___ and ___.'], ['cereal', 'scrambled eggs', 'toast', 'grapefruit juice']),
+    q('What did you have for lunch yesterday?', ['I had ___ for lunch.', 'It tasted ___.'], ['fried rice', 'tuna sandwiches', 'chicken wings', 'soup']),
+    q('How did your dinner taste last night?', ['It tasted ___.', 'They tasted ___.'], ['sweet', 'salty', 'spicy', 'greasy']),
+    q('What’s your favourite buffet food? Why?', ['My favourite is ___.', 'It tastes ___. / They taste ___.'], ['fruit salad', 'chicken wings', 'fried rice', 'lemonade']),
+    q('Name a food that tastes sour or bitter.', ['___ tastes sour.', '___ tastes bitter.'], ['lemons', 'grapefruit', 'coffee', 'lemonade']),
+    q('Ask your partner! What did they have for dinner?', ['What did you have for ___?', 'How did the ___ taste?'], ['breakfast', 'lunch', 'dinner', 'soup'])
+  ],
+  'at-the-market': [
+    q('What have you got in your fridge?', ['I’ve got some ___.', 'I haven’t got any ___.'], ['milk', 'cheese', 'butter', 'yoghurt']),
+    q('Have you got any fruit in your bag?', ['Yes, I have. I’ve got some ___.', 'No, I haven’t.'], ['grapes', 'lemons', 'watermelon', 'bananas']),
+    q('What has your best friend got today?', ['She’s / He’s got some ___.', 'She / He hasn’t got any ___.'], ['pencils', 'grapes', 'cookies', 'juice']),
+    q('Ask your partner: Have you got any…?', ['Have you got any ___?', 'Yes, I have. / No, I haven’t.'], ['mushrooms', 'cucumbers', 'pumpkins', 'beef']),
+    q('What’s your favourite fruit or vegetable?', ['My favourite is ___.', 'I’ve got some at home. / I haven’t got any.'], ['watermelons', 'grapes', 'cucumbers', 'mushrooms']),
+    q('Be a farmer! What have you got at your stall?', ['I’ve got some ___.', 'I haven’t got any ___.'], ['pumpkins', 'lemons', 'lamb', 'cheese'])
   ]
 };
 

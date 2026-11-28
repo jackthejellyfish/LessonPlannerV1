@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -101,7 +101,7 @@ document.getElementById('mazeStartBtn').addEventListener('click', () => {
   state.mazeTeams = readTeamsFromSetup('maze', mazeRowColors);
   state.mazeCurrentTeam = 0;
   state.mazeTurnsPlayed = 0;
-  state.mazeQuestionOrder = shuffle(MAZE_QUESTIONS.map((_, i) => i));
+  state.mazeQuestionOrder = pickQuestions(MAZE_QUESTIONS);
 
   showGameScreen('maze');
   renderMazeScoreboard();
@@ -115,14 +115,14 @@ function renderMazeScoreboard(){
   renderTeamScoreboard('mazeTeamList', state.mazeTeams, state.mazeCurrentTeam);
 }
 function renderMazeTurnBanner(){
-  renderTurnBanner('maze', state.mazeTeams[state.mazeCurrentTeam], state.mazeTurnsPlayed + 1, MAZE_QUESTIONS.length);
+  renderTurnBanner('maze', state.mazeTeams[state.mazeCurrentTeam], state.mazeTurnsPlayed + 1, GAME_TURNS);
 }
 
 /* =========================================================
    QUESTION + TURN FLOW
 ========================================================= */
 function askMazeQuestion(){
-  const q = MAZE_QUESTIONS[state.mazeQuestionOrder[state.mazeTurnsPlayed]];
+  const q = state.mazeQuestionOrder[state.mazeTurnsPlayed];
   return askTeamQuestion(q, MAZE_QUESTIONS, state.mazeTurnsPlayed);
 }
 
@@ -908,7 +908,7 @@ function finishMazeRound(){
   renderMazeScoreboard();
 
   showTurnResultModal('mazeNextTeamBtn', { teams: state.mazeTeams, currentTeamIndex: state.mazeCurrentTeam }).then(() => {
-    if(state.mazeTurnsPlayed >= MAZE_QUESTIONS.length){
+    if(state.mazeTurnsPlayed >= GAME_TURNS){
       endMazeGame();
     } else {
       state.mazeCurrentTeam = (state.mazeCurrentTeam + 1) % state.mazeTeams.length;

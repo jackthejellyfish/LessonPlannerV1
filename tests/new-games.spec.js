@@ -70,9 +70,9 @@ test('Spin the Wheel: answer first; a right answer spins, a bonus slice pays out
   await expect(page.locator('#popResultOverlay')).not.toHaveClass(/hidden/, { timeout: 12000 });
   const { total, won } = await page.evaluate(async () => {
     const { state } = await import('/js/state.js');
-    const { WHEEL_QUESTIONS } = await import('/js/content/stage8-spinwheel.js');
+    const { WHEEL_POINTS } = await import('/js/stages/stage8-spinwheel.js');
     const i = state.wheelUsedSegments.indexOf(true);
-    return { total: state.wheelTeams[0].total, won: WHEEL_QUESTIONS[i].points };
+    return { total: state.wheelTeams[0].total, won: WHEEL_POINTS[i] };
   });
   // Nobody had points, so the twist was double or triple, never a steal.
   expect([won * 2, won * 3]).toContain(total);
@@ -85,8 +85,7 @@ test('Spin the Wheel: answer first; a right answer spins, a bonus slice pays out
   if (await choices.count()) {
     const right = await page.evaluate(async () => {
       const { state } = await import('/js/state.js');
-      const { WHEEL_QUESTIONS } = await import('/js/content/stage8-spinwheel.js');
-      return WHEEL_QUESTIONS[state.wheelQuestionOrder[1]].answer;
+      return state.wheelQuestionOrder[1].answer;
     });
     const n = await choices.count();
     for (let i = 0; i < n; i++) {

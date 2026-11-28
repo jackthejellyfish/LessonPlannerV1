@@ -17,6 +17,7 @@
    a fair set of options, and the question is then asked the usual way.
 ========================================================= */
 import { shuffle, showQuestionModal } from './utils.js';
+import { markAsked, homeBank } from './questionDeck.js';
 
 const norm = (t) => String(t).toLowerCase().replace(/[’`]/g, "'").replace(/[.,!?;:"]/g, '').replace(/\s+/g, ' ').trim();
 // The answer without a teacher's note in brackets: "Pizza is better
@@ -62,7 +63,10 @@ function orChoices(prompt, answer){
   const opts = [m[1].toLowerCase(), m[2].toLowerCase()];
   const a = norm(answer);
   if(!opts.includes(a)) return null;
-  return [answer, opts.find(o => o !== a)];
+  // Same case as the answer, or a capital letter gives it away
+  // ("It" against "they" in "It or they? '___ tasted sweet.'").
+  const other = opts.find(o => o !== a);
+  return [answer, /^[A-Z]/.test(answer) ? other.charAt(0).toUpperCase() + other.slice(1) : other];
 }
 
 function yesNoChoices(answer){
@@ -160,7 +164,10 @@ export function buildChoices(q, bank){
 // the open kind.
 // `label` is an optional line above the question (Whack-a-Jelly uses it
 // for "Lane 2 of 4": one question per student before the team plays).
+// A question borrowed from another game's bank (js/questionDeck.js) takes
+// its wrong options from that bank, where the answers look like its own.
 export function askTeamQuestion(q, bank, turnIndex, { label = '' } = {}){
-  const choices = turnIndex % 2 === 1 ? buildChoices(q, bank) : null;
+  markAsked(q);
+  const choices = turnIndex % 2 === 1 ? buildChoices(q, homeBank(q) || bank) : null;
   return showQuestionModal(q.prompt, q.answer, { showFollowup: true, choices, label });
 }

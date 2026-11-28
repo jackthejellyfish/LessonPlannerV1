@@ -13,7 +13,12 @@ const LESSON_CONTENT = {
       { prompt: "What is the comparative of 'good'? (it's irregular!)", answer: "better" },
       { prompt: "What is the comparative of 'thin'?", answer: "thinner" },
       { prompt: "What is the comparative of 'interesting'?", answer: "more interesting" },
-      { prompt: "What is the comparative of 'bad'? (it's irregular!)", answer: "worse" }
+      { prompt: "What is the comparative of 'bad'? (it's irregular!)", answer: "worse" },
+      { prompt: "What is the comparative of 'sweet'?", answer: "sweeter" },
+      { prompt: "What is the comparative of 'late'?", answer: "later" },
+      { prompt: "What is the comparative of 'healthy'?", answer: "healthier" },
+      { prompt: "What is the comparative of 'wet'?", answer: "wetter" },
+      { prompt: "What is the comparative of 'boring'?", answer: "more boring" }
     ]
   },
   health: {
@@ -27,7 +32,12 @@ const LESSON_CONTENT = {
       { prompt: "He's got sunburn.", answer: "He should put on some cream." },
       { prompt: "I've got hiccups.", answer: "I should drink some water." },
       { prompt: "She's got a cough.", answer: "She should drink some water." },
-      { prompt: "You're tired.", answer: "You should get some sleep." }
+      { prompt: "You're tired.", answer: "You should get some sleep." },
+      { prompt: "He's got a toothache.", answer: "He should see a dentist." },
+      { prompt: "She's got a backache.", answer: "She should rest." },
+      { prompt: "You've got a cold.", answer: "You should stay in bed." },
+      { prompt: "We've got runny noses.", answer: "We should blow our noses." },
+      { prompt: "He's got an earache.", answer: "He should see a doctor." }
     ]
   },
   'comparatives-superlatives': {
@@ -41,7 +51,12 @@ const LESSON_CONTENT = {
       { prompt: "'famous' \u2014 give BOTH forms.", answer: "more famous / the most famous" },
       { prompt: "'crowded' \u2014 give BOTH forms.", answer: "more crowded / the most crowded" },
       { prompt: "'thin' \u2014 give BOTH forms.", answer: "thinner / the thinnest" },
-      { prompt: "'pretty' \u2014 give BOTH forms.", answer: "prettier / the prettiest" }
+      { prompt: "'pretty' \u2014 give BOTH forms.", answer: "prettier / the prettiest" },
+      { prompt: "'big' — give BOTH forms.", answer: "bigger / the biggest" },
+      { prompt: "'happy' — give BOTH forms.", answer: "happier / the happiest" },
+      { prompt: "'expensive' — give BOTH forms.", answer: "more expensive / the most expensive" },
+      { prompt: "'nice' — give BOTH forms.", answer: "nicer / the nicest" },
+      { prompt: "'hot' — give BOTH forms.", answer: "hotter / the hottest" }
     ]
   },
   'will-wont': {
@@ -55,7 +70,12 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'It will rains tomorrow.'", answer: "No \u2014 'It will rain tomorrow.'" },
       { prompt: "Is this correct? 'We won't forget.'", answer: "Yes \u2014 that's correct!" },
       { prompt: "Is this correct? 'Do you will come?'", answer: "No \u2014 'Will you come?'" },
-      { prompt: "Is this correct? 'She'll be here soon.'", answer: "Yes \u2014 that's correct!" }
+      { prompt: "Is this correct? 'She'll be here soon.'", answer: "Yes \u2014 that's correct!" },
+      { prompt: "Is this correct? 'He won't be late.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'I will helps you.'", answer: "No — 'I will help you.'" },
+      { prompt: "Is this correct? 'They'll come tomorrow.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'We willn't go.'", answer: "No — 'We won't go.'" },
+      { prompt: "Is this correct? 'Will she comes to the party?'", answer: "No — 'Will she come to the party?'" }
     ]
   },
   'present-perfect': {
@@ -69,7 +89,12 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'Have you ever ride a horse?'", answer: "No \u2014 'Have you ever ridden a horse?'" },
       { prompt: "Is this correct? 'She hasn't been to Paris.'", answer: "Yes \u2014 that's correct!" },
       { prompt: "Is this correct? 'It has stopped raining.'", answer: "Yes \u2014 that's correct!" },
-      { prompt: "Is this correct? 'I have buyed a new bike.'", answer: "No \u2014 'I have bought a new bike.'" }
+      { prompt: "Is this correct? 'I have buyed a new bike.'", answer: "No \u2014 'I have bought a new bike.'" },
+      { prompt: "Is this correct? 'I have eaten breakfast.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'He has wrote a story.'", answer: "No — 'He has written a story.'" },
+      { prompt: "Is this correct? 'Have she finished?'", answer: "No — 'Has she finished?'" },
+      { prompt: "Is this correct? 'They have flown to Paris.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'We has seen a whale.'", answer: "No — 'We have seen a whale.'" }
     ]
   },
   'amusement-park': {
@@ -83,7 +108,12 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'The haunted house was scary.'", answer: "Yes — that's correct!" },
       { prompt: "Is this correct? 'They visitted a petting zoo.'", answer: "No — 'They visited a petting zoo.'" },
       { prompt: "Is this correct? 'We were amazed by the film.'", answer: "Yes — that's correct!" },
-      { prompt: "Is this correct? 'I was scaring in the haunted house.'", answer: "No — 'I was scared in the haunted house.'" }
+      { prompt: "Is this correct? 'I was scaring in the haunted house.'", answer: "No — 'I was scared in the haunted house.'" },
+      { prompt: "Is this correct? 'We buyed a souvenir.'", answer: "No — 'We bought a souvenir.'" },
+      { prompt: "Is this correct? 'The fireworks were amazing.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'I was exciting on the ride.'", answer: "No — 'I was excited on the ride.'" },
+      { prompt: "Is this correct? 'She eated candy floss.'", answer: "No — 'She ate candy floss.'" },
+      { prompt: "Is this correct? 'They took lots of photos.'", answer: "Yes — that's correct!" }
     ]
   },
   'party-fun': {
@@ -97,7 +127,12 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'Will he choose music? — No, he won't.'", answer: "Yes — that's correct!" },
       { prompt: "Is this correct? 'What you will do for the party?'", answer: "No — 'What will you do for the party?'" },
       { prompt: "Is this correct? 'Dave will playing the music.'", answer: "No — 'Dave will play the music.'" },
-      { prompt: "Is this correct? 'Will you blow up the balloons? — Yes, I'll.'", answer: "No — 'Yes, I will.' (never I'll at the end)" }
+      { prompt: "Is this correct? 'Will you blow up the balloons? — Yes, I'll.'", answer: "No — 'Yes, I will.' (never I'll at the end)" },
+      { prompt: "Is this correct? 'Who will play the music?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'She won't draws the posters.'", answer: "No — 'She won't draw the posters.'" },
+      { prompt: "Is this correct? 'Will they bring games? — Yes, they will.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Tom wills order pizza.'", answer: "No — 'Tom will order pizza.'" },
+      { prompt: "Is this correct? 'Who will sets the table?'", answer: "No — 'Who will set the table?'" }
     ]
   },
   'at-school': {
@@ -111,7 +146,12 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'What does he wants?'", answer: "No — 'What does he want?'" },
       { prompt: "Is this correct? 'What do she want?'", answer: "No — 'What does she want?'" },
       { prompt: "Is this correct? 'We've got a pencil sharpener.'", answer: "Yes — that's correct!" },
-      { prompt: "Is this correct? 'They has got a marker pen.'", answer: "No — 'They have got (They've got) a marker pen.'" }
+      { prompt: "Is this correct? 'They has got a marker pen.'", answer: "No — 'They have got (They've got) a marker pen.'" },
+      { prompt: "Is this correct? 'Tom want steak.'", answer: "No — 'Tom wants steak.'" },
+      { prompt: "Is this correct? 'What have they got?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'She's got a marker pen.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'What do he want?'", answer: "No — 'What does he want?'" },
+      { prompt: "Is this correct? 'I has got a paintbrush.'", answer: "No — 'I have got (I've got) a paintbrush.'" }
     ]
   },
   'months-weather': {
@@ -125,7 +165,12 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'My birthday is in july.'", answer: "No — July needs a capital letter." },
       { prompt: "Is this correct? 'Leaves fall in autumn.'", answer: "Yes — that's correct!" },
       { prompt: "Is this correct? 'It's rainy and windy.'", answer: "Yes — that's correct!" },
-      { prompt: "Is this correct? 'Christmas is in the 25th of December.'", answer: "No — 'on the 25th of December.'" }
+      { prompt: "Is this correct? 'Christmas is in the 25th of December.'", answer: "No — 'on the 25th of December.'" },
+      { prompt: "Is this correct? 'It's on the first of May.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'It's snow today.'", answer: "No — 'It's snowy today.'" },
+      { prompt: "Is this correct? 'My birthday is in March.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Today is the threeth of May.'", answer: "No — 'the third of May.'" },
+      { prompt: "Is this correct? 'We have a party in the 4th of July.'", answer: "No — 'on the 4th of July.'" }
     ]
   },
   'food-drink': {
@@ -139,7 +184,50 @@ const LESSON_CONTENT = {
       { prompt: "Is this correct? 'Are there any rice?'", answer: "No — 'Is there any rice?'" },
       { prompt: "Is this correct? 'I'd like water, please.'", answer: "Yes — that's correct!" },
       { prompt: "Is this correct? 'There isn't some milk.'", answer: "No — 'There isn't any milk.'" },
-      { prompt: "Is this correct? 'Are there any potatoes?'", answer: "Yes — that's correct!" }
+      { prompt: "Is this correct? 'Are there any potatoes?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'There's an egg in the fridge.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Are there any milk?'", answer: "No — 'Is there any milk?'" },
+      { prompt: "Is this correct? 'There aren't some apples.'", answer: "No — 'There aren't any apples.'" },
+      { prompt: "Is this correct? 'Can I have a water?'", answer: "No — 'Can I have some water?'" },
+      { prompt: "Is this correct? 'There are some carrots.'", answer: "Yes — that's correct!" }
+    ]
+  },
+  'at-the-buffet': {
+    FRUIT_QUESTIONS: [
+      { prompt: "Is this correct? 'I haved cereal for breakfast.'", answer: "No — 'I had cereal for breakfast.'" },
+      { prompt: "Is this correct? 'How did the fruit salad taste?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'The chicken wings tasted spicy.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'What did you had for lunch?'", answer: "No — 'What did you have for lunch?'" },
+      { prompt: "Is this correct? 'The lemonade tasted sour.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'How did the chicken wings taste? It tasted spicy.'", answer: "No — 'They tasted spicy.'" },
+      { prompt: "Is this correct? 'She had scrambled eggs.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Yesterday the fried rice taste greasy.'", answer: "No — 'Yesterday the fried rice tasted greasy.'" },
+      { prompt: "Is this correct? 'How did taste the soup?'", answer: "No — 'How did the soup taste?'" },
+      { prompt: "Is this correct? 'We had tuna sandwiches for lunch.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'What you had for breakfast?'", answer: "No — 'What did you have for breakfast?'" },
+      { prompt: "Is this correct? 'The grapefruit juice tasted bitter.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'He has fruit salad yesterday.'", answer: "No — 'He had fruit salad yesterday.'" },
+      { prompt: "Is this correct? 'How did the fruit salad taste? They tasted sweet.'", answer: "No — 'It tasted sweet.'" },
+      { prompt: "Is this correct? 'I had lemonade and chicken wings.'", answer: "Yes — that's correct!" }
+    ]
+  },
+  'at-the-market': {
+    FRUIT_QUESTIONS: [
+      { prompt: "Is this correct? 'He's got some grapes.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'She hasn't got some mushrooms.'", answer: "No — 'She hasn't got any mushrooms.'" },
+      { prompt: "Is this correct? 'Have you got any beef? — Yes, I have.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Has he got any milk? — No, he haven't.'", answer: "No — 'No, he hasn't.'" },
+      { prompt: "Is this correct? 'I've got any cheese.'", answer: "No — 'I've got some cheese.'" },
+      { prompt: "Is this correct? 'Have she got any yoghurt?'", answer: "No — 'Has she got any yoghurt?'" },
+      { prompt: "Is this correct? 'We haven't got any lemons.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'He's got some milks.'", answer: "No — 'He's got some milk.'" },
+      { prompt: "Is this correct? 'They've got some pumpkins.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'Has you got any butter?'", answer: "No — 'Have you got any butter?'" },
+      { prompt: "Is this correct? 'What has she got?'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'He hasn't got any cucumbers.'", answer: "Yes — that's correct!" },
+      { prompt: "Is this correct? 'What have he got?'", answer: "No — 'What has he got?'" },
+      { prompt: "Is this correct? 'Have you got any lamb? — No, I hasn't.'", answer: "No — 'No, I haven't.'" },
+      { prompt: "Is this correct? 'Has she got any grape?'", answer: "No — 'Has she got any grapes?'" }
     ]
   }
 };

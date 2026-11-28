@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -171,7 +171,7 @@ document.getElementById('zombieStartBtn').addEventListener('click', () => {
   state.zombieTeams = readTeamsFromSetup('zombie', zombieRowColors);
   state.zombieCurrentTeam = 0;
   state.zombieTurnsPlayed = 0;
-  state.zombieQuestionOrder = shuffle(ZOMBIE_QUESTIONS.map((_, i) => i));
+  state.zombieQuestionOrder = pickQuestions(ZOMBIE_QUESTIONS);
   state.zombieLevel = 0;
   showGameScreen('zombie');
   renderZombieScoreboard();
@@ -185,7 +185,7 @@ function renderZombieScoreboard(){
   renderTeamScoreboard('zombieTeamList', state.zombieTeams, state.zombieCurrentTeam);
 }
 function renderZombieTurnBanner(){
-  renderTurnBanner('zombie', state.zombieTeams[state.zombieCurrentTeam], state.zombieTurnsPlayed + 1, ZOMBIE_QUESTIONS.length);
+  renderTurnBanner('zombie', state.zombieTeams[state.zombieCurrentTeam], state.zombieTurnsPlayed + 1, GAME_TURNS);
 }
 
 /* ---- The teacher's level picker (shown between turns) ---- */
@@ -212,7 +212,7 @@ levelPicker.addEventListener('click', (e) => {
    QUESTION + TURN FLOW
 ========================================================= */
 function askZombieQuestion(){
-  const q = ZOMBIE_QUESTIONS[state.zombieQuestionOrder[state.zombieTurnsPlayed]];
+  const q = state.zombieQuestionOrder[state.zombieTurnsPlayed];
   return askTeamQuestion(q, bankOf(q), state.zombieTurnsPlayed);
 }
 
@@ -1171,7 +1171,7 @@ function finishZombieRound(){
   renderZombieScoreboard();
 
   showTurnResultModal('zombieNextTeamBtn', { teams: state.zombieTeams, currentTeamIndex: state.zombieCurrentTeam }).then(() => {
-    if(state.zombieTurnsPlayed >= ZOMBIE_QUESTIONS.length){
+    if(state.zombieTurnsPlayed >= GAME_TURNS){
       endZombieGame();
     } else {
       state.zombieCurrentTeam = (state.zombieCurrentTeam + 1) % state.zombieTeams.length;

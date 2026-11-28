@@ -144,6 +144,34 @@ const LESSON_CONTENT = {
       { chips: ["What would", "you like", "to drink"] },
       { chips: ["There's", "some", "soup", "too"] }
     ]
+  },
+  'at-the-buffet': {
+    SEMI_ITEMS: [
+      { chips: ["What did", "you have", "for breakfast"] },
+      { chips: ["I had", "scrambled eggs", "and", "grapefruit juice"] },
+      { chips: ["How did", "the fruit salad", "taste"] },
+      { chips: ["It", "tasted", "sweet"] },
+      { chips: ["They", "tasted", "spicy"] },
+      { chips: ["She had", "fried rice", "for lunch"] },
+      { chips: ["How did", "the chicken wings", "taste"] },
+      { chips: ["We had", "tuna sandwiches", "for lunch"] },
+      { chips: ["The lemonade", "tasted", "sour"] },
+      { chips: ["What did", "he have", "for dinner"] }
+    ]
+  },
+  'at-the-market': {
+    SEMI_ITEMS: [
+      { chips: ["He's got", "some", "grapes"] },
+      { chips: ["She hasn't got", "any", "mushrooms"] },
+      { chips: ["Have you got", "any", "beef"] },
+      { chips: ["Has he got", "any", "milk"] },
+      { chips: ["What has", "she", "got"] },
+      { chips: ["I've got", "some", "cheese"] },
+      { chips: ["We haven't got", "any", "lemons"] },
+      { chips: ["Have they got", "any", "pumpkins"] },
+      { chips: ["She's got", "some", "cucumbers"] },
+      { chips: ["Has Tom got", "any", "yoghurt"] }
+    ]
   }
 };
 

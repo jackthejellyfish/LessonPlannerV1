@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -102,7 +102,7 @@ document.getElementById('hoopStartBtn').addEventListener('click', () => {
   state.hoopTeams = readTeamsFromSetup('hoop', hoopRowColors);
   state.hoopCurrentTeam = 0;
   state.hoopTurnsPlayed = 0;
-  state.hoopQuestionOrder = shuffle(HOOP_QUESTIONS.map((_, i) => i));
+  state.hoopQuestionOrder = pickQuestions(HOOP_QUESTIONS);
   showGameScreen('hoop');
   renderHoopScoreboard();
   renderHoopTurnBanner();
@@ -114,7 +114,7 @@ function renderHoopScoreboard(){
   renderTeamScoreboard('hoopTeamList', state.hoopTeams, state.hoopCurrentTeam);
 }
 function renderHoopTurnBanner(){
-  renderTurnBanner('hoop', state.hoopTeams[state.hoopCurrentTeam], state.hoopTurnsPlayed + 1, HOOP_QUESTIONS.length);
+  renderTurnBanner('hoop', state.hoopTeams[state.hoopCurrentTeam], state.hoopTurnsPlayed + 1, GAME_TURNS);
 }
 
 /* =========================================================
@@ -745,7 +745,7 @@ function renderHoopCanvas(){
    QUESTION + TURN FLOW
 ========================================================= */
 function askHoopQuestion(){
-  const q = HOOP_QUESTIONS[state.hoopQuestionOrder[state.hoopTurnsPlayed]];
+  const q = state.hoopQuestionOrder[state.hoopTurnsPlayed];
   return askTeamQuestion(q, HOOP_QUESTIONS, state.hoopTurnsPlayed);
 }
 
@@ -817,7 +817,7 @@ function finishHoopRound(){
   renderHoopScoreboard();
 
   showTurnResultModal('hoopNextTeamBtn', { teams: state.hoopTeams, currentTeamIndex: state.hoopCurrentTeam }).then(() => {
-    if(state.hoopTurnsPlayed >= HOOP_QUESTIONS.length){ endHoopGame(); return; }
+    if(state.hoopTurnsPlayed >= GAME_TURNS){ endHoopGame(); return; }
     state.hoopCurrentTeam = (state.hoopCurrentTeam + 1) % state.hoopTeams.length;
     renderHoopScoreboard();
     renderHoopTurnBanner();

@@ -75,6 +75,20 @@ const LESSON_CONTENT = {
       { icon: 'plate', sentenceHtml: 'Is there <span class="hl">any</span> bread? No, there <span class="hl">isn’t any</span> bread. But there’s <span class="hl">some</span> rice.' },
       { icon: 'pizza', sentenceHtml: 'Are you ready to order? Yes. <span class="hl">I’ll have</span> a cheese pizza, <span class="hl">please</span>.' }
     ]
+  },
+  'at-the-buffet': {
+    AIM_EXAMPLES: [
+      { icon: 'plate', sentenceHtml: 'What <span class="hl">did</span> you <span class="hl">have</span> for breakfast? I <span class="hl">had</span> scrambled eggs and grapefruit juice.' },
+      { icon: 'apple', sentenceHtml: 'How did the fruit salad <span class="hl">taste</span>? <span class="hl">It tasted</span> sweet.' },
+      { icon: 'chili', sentenceHtml: 'How did the chicken wings taste? <span class="hl">They tasted</span> spicy.' }
+    ]
+  },
+  'at-the-market': {
+    AIM_EXAMPLES: [
+      { icon: 'grapes', sentenceHtml: 'He<span class="hl">’s got some</span> grapes, but he <span class="hl">hasn’t got any</span> mushrooms.' },
+      { icon: 'cheese', sentenceHtml: '<span class="hl">Have</span> you <span class="hl">got any</span> cheese? Yes, I <span class="hl">have</span>.' },
+      { icon: 'milk', sentenceHtml: '<span class="hl">Has</span> she <span class="hl">got any</span> milk? No, she <span class="hl">hasn’t</span>.' }
+    ]
   }
 };
 

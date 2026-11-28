@@ -343,6 +343,74 @@ const LESSON_CONTENT = {
           {prompt:"What’s in your lunch box today? Write what there is and what there isn’t."},
         ]},
     ]
+  },
+  'at-the-buffet': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Complete each sentence with have, had, taste, tasted, it, they or a taste word.",
+        questions:[
+          {prompt:"What did you ___ for lunch?", answer:"have"},
+          {prompt:"I ___ cereal for breakfast.", answer:"had"},
+          {prompt:"How did the soup ___?", answer:"taste"},
+          {prompt:"The chicken wings? They ___ spicy.", answer:"tasted"},
+          {prompt:"Lemons taste ___.", answer:"sour"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
+        questions:[
+          {chips:["What","did","you","have","for","breakfast","?"],answer:"What did you have for breakfast ?"},
+          {chips:["I","had","fried","rice","for","lunch","."],answer:"I had fried rice for lunch ."},
+          {chips:["How","did","the","lemonade","taste","?"],answer:"How did the lemonade taste ?"},
+          {chips:["It","tasted","very","sweet","."],answer:"It tasted very sweet ."},
+          {chips:["They","tasted","spicy","and","greasy","."],answer:"They tasted spicy and greasy ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence or question about food and how it tasted.",
+        questions:[
+          {prompt:'Write what you had for breakfast today.',     hint:'I had ___ and ___.'},
+          {prompt:'Write what you had for lunch yesterday.',     hint:'I had ___ for lunch.'},
+          {prompt:'Write how your breakfast tasted.',            hint:'It tasted ___. / They tasted ___.'},
+          {prompt:'Write a question about a friend’s dinner.',   hint:'What did you have for ___?'},
+          {prompt:'Write about a food you didn’t like.',         hint:'I had ___. It tasted ___.'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3–5 sentences about food and how it tasted.",
+        questions:[
+          {prompt:"Write about a day at a buffet. What did you have for breakfast and lunch? How did it taste?"},
+          {prompt:"Write a menu for a school buffet. Say how each food tastes."},
+          {prompt:"Ask three classmates what they had for dinner last night. Write their answers."},
+        ]},
+    ]
+  },
+  'at-the-market': {
+    QS_SETS: [
+      { label:"Gap Fill", type:"gap", desc:"Complete each sentence with some, any, have, has, haven’t or hasn’t.",
+        questions:[
+          {prompt:"He’s got ___ grapes.", answer:"some"},
+          {prompt:"She hasn’t got ___ milk.", answer:"any"},
+          {prompt:"___ you got any cheese?", answer:"Have"},
+          {prompt:"Has he got any beef? — No, he ___.", answer:"hasn’t"},
+          {prompt:"What ___ she got?", answer:"has"},
+        ]},
+      { label:"Unscramble", type:"scramble", desc:"Put the words in the correct order to make a sentence.",
+        questions:[
+          {chips:["He's","got","some","watermelons","."],answer:"He's got some watermelons ."},
+          {chips:["Have","you","got","any","butter","?"],answer:"Have you got any butter ?"},
+          {chips:["She","hasn't","got","any","lemons","."],answer:"She hasn't got any lemons ."},
+          {chips:["Has","he","got","any","yoghurt","?"],answer:"Has he got any yoghurt ?"},
+          {chips:["We've","got","some","mushrooms","."],answer:"We've got some mushrooms ."},
+        ]},
+      { label:"Sentences", type:"sentence", desc:"Write a full sentence or question with have got, some and any.",
+        questions:[
+          {prompt:'Write what you have got in your fridge.',  hint:'I’ve got some ___.'},
+          {prompt:'Write what you haven’t got.',              hint:'I haven’t got any ___.'},
+          {prompt:'Write a question for a friend.',           hint:'Have you got any ___?'},
+          {prompt:'Write about a classmate’s lunch.',         hint:'She’s got some ___. / He hasn’t got any ___.'},
+          {prompt:'Write a question about your teacher.',     hint:'Has he / she got any ___?'},
+        ]},
+      { label:"Free Writing", type:"free", desc:"Write 3–5 sentences about food at the market.",
+        questions:[
+          {prompt:"You are at a farmers’ market. Write what the farmers have got and what they haven’t got."},
+          {prompt:"Write a shopping list. Then write what you have got at home and what you haven’t got."},
+          {prompt:"Write a conversation at a market stall. Use ‘Have you got any…?’ and short answers."},
+        ]},
+    ]
   }
 };
 

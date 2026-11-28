@@ -74,8 +74,10 @@ whatever would help get it right without back-and-forth.
 Reads `js/lessons.js` for the current lesson registry, adds a new entry there
 (title/tagline/objective/print titles/question template), then adds a
 matching dataset to every `js/content/stage*.js` file's `applyLesson()`
-switch — game-stage question banks (`{prompt,answer}`, one file per game) get auto-
-generated with varied phrasing/subjects from the vocab list; Stage 4/9/5 get
+switch — game-stage question banks (`{prompt,answer}`, one file per game,
+**15 questions each**, so 150 per lesson; a game asks 10 and the class
+meets new ones on a replay) get generated with varied phrasing/subjects
+from the vocab list; Stage 4/9/5 get
 hand-written sentences/frames; Stage 2 gets rule cards (reusing the existing
 `[base, suffix]` shape if it fits the grammar type above) and, if the
 Word-transformation vs Modal shape doesn't apply, may need a couple of new

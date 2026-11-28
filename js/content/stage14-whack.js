@@ -23,7 +23,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'My bag is heavyer / heavier.'", answer: "heavier" },
       { prompt: "Which is correct? 'That was badder / worse.'", answer: "worse" },
       { prompt: "Which is correct? 'The sea is safer / more safe here.'", answer: "safer" },
-      { prompt: "Which is correct? 'Maths is more easy / easier for me.'", answer: "easier" }
+      { prompt: "Which is correct? 'Maths is more easy / easier for me.'", answer: "easier" },
+      { prompt: "Which is correct? 'A tiger is stronger / more strong than a cat.'", answer: "stronger" },
+      { prompt: "Which is correct? 'My dog is funnier / funnyer than yours.'", answer: "funnier" },
+      { prompt: "Which is correct? 'This road is longer / more long.'", answer: "longer" },
+      { prompt: "Which is correct? 'Gold is more expensive / expensiver than silver.'", answer: "more expensive", choices: ["more expensive", "expensiver"] },
+      { prompt: "Which is correct? 'Your bag is biger / bigger than mine.'", answer: "bigger" }
     ]
   },
   health: {
@@ -37,7 +42,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'You should / shouldn't wash your hands.'", answer: "should" },
       { prompt: "Which is correct? 'With a toothache, see a dentist / see a mechanic.'", answer: "see a dentist" },
       { prompt: "Which is correct? 'They should / shoulds take some medicine.'", answer: "should" },
-      { prompt: "Which is correct? 'You shouldn't carry / shouldn't carries heavy bags.'", answer: "shouldn't carry" }
+      { prompt: "Which is correct? 'You shouldn't carry / shouldn't carries heavy bags.'", answer: "shouldn't carry" },
+      { prompt: "Which is correct? 'With a toothache you should / shouldn't eat sweets.'", answer: "shouldn't" },
+      { prompt: "Which is correct? 'She should rest / should rests.'", answer: "should rest" },
+      { prompt: "Which is correct? 'With a fever, stay in bed / go swimming.'", answer: "stay in bed" },
+      { prompt: "Which is correct? 'He should see / should to see a doctor.'", answer: "should see", choices: ["should see", "should to see"] },
+      { prompt: "Which is correct? 'What's the matter / What the matter?'", answer: "What's the matter" }
     ]
   },
   'comparatives-superlatives': {
@@ -51,7 +61,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'He is the happiest / the happyest person here.'", answer: "the happiest" },
       { prompt: "Which is correct? 'That is the more expensive / the most expensive car.'", answer: "the most expensive" },
       { prompt: "Which is correct? 'She is the busiest / the busyest teacher.'", answer: "the busiest" },
-      { prompt: "Which is correct? 'It is the biggest / the bigest dog.'", answer: "the biggest" }
+      { prompt: "Which is correct? 'It is the biggest / the bigest dog.'", answer: "the biggest" },
+      { prompt: "Which is correct? 'He is the youngest / the most young in his family.'", answer: "the youngest" },
+      { prompt: "Which is correct? 'This is the cheapest / the cheapiest shop.'", answer: "the cheapest" },
+      { prompt: "Which is correct? 'A car is faster / more fast than a bike.'", answer: "faster" },
+      { prompt: "Which is correct? 'She is the most famous / the famousest singer.'", answer: "the most famous", choices: ["the most famous", "the famousest"] },
+      { prompt: "Which is correct? 'It was the funniest / the funnyest film.'", answer: "the funniest" }
     ]
   },
   'will-wont': {
@@ -65,7 +80,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'We won't forget / won't forgets.'", answer: "won't forget" },
       { prompt: "Which is correct? 'She will not / not will come.'", answer: "will not" },
       { prompt: "Which is correct? 'They will be / will are happy.'", answer: "will be" },
-      { prompt: "Which is correct? 'I'll / I will's see you later.'", answer: "I'll", choices: ["I'll", "I will's"] }
+      { prompt: "Which is correct? 'I'll / I will's see you later.'", answer: "I'll", choices: ["I'll", "I will's"] },
+      { prompt: "Which is correct? 'I won't / willn't tell anyone.'", answer: "won't" },
+      { prompt: "Which is correct? 'It will be / will is sunny.'", answer: "will be" },
+      { prompt: "Which is correct? 'He will play / will plays football.'", answer: "will play" },
+      { prompt: "Which is correct? 'Where will you / you will go?'", answer: "will you" },
+      { prompt: "Which is correct? 'She won't be / won't is late.'", answer: "won't be" }
     ]
   },
   'present-perfect': {
@@ -79,7 +99,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'I haven't did / haven't done it.'", answer: "haven't done" },
       { prompt: "Which is correct? 'She has buyed / has bought a bike.'", answer: "has bought" },
       { prompt: "Which is correct? 'It has stop / has stopped raining.'", answer: "has stopped" },
-      { prompt: "Which is correct? 'They hasn't / haven't arrived.'", answer: "haven't" }
+      { prompt: "Which is correct? 'They hasn't / haven't arrived.'", answer: "haven't" },
+      { prompt: "Which is correct? 'I have ate / have eaten lunch.'", answer: "have eaten" },
+      { prompt: "Which is correct? 'He has / have lost his keys.'", answer: "has" },
+      { prompt: "Which is correct? 'We have flew / have flown to Japan.'", answer: "have flown" },
+      { prompt: "Which is correct? 'Has / Have your brother finished?'", answer: "Has" },
+      { prompt: "Which is correct? 'She has written / has wrote a song.'", answer: "has written" }
     ]
   },
   'amusement-park': {
@@ -93,7 +118,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'The parade was boring / bored.'", answer: "boring" },
       { prompt: "Which is correct? 'My brother was boring / bored.'", answer: "bored" },
       { prompt: "Which is correct? 'The haunted house was scary / scared.'", answer: "scary" },
-      { prompt: "Which is correct? 'We were amazing / amazed by the film.'", answer: "amazed" }
+      { prompt: "Which is correct? 'We were amazing / amazed by the film.'", answer: "amazed" },
+      { prompt: "Which is correct? 'We ate / eated candy floss.'", answer: "ate" },
+      { prompt: "Which is correct? 'The fireworks were amazing / amazed.'", answer: "amazing" },
+      { prompt: "Which is correct? 'I was tired / tiring after the park.'", answer: "tired" },
+      { prompt: "Which is correct? 'He bought / buyed a souvenir.'", answer: "bought" },
+      { prompt: "Which is correct? 'The ghost train was frightening / frightened.'", answer: "frightening" }
     ]
   },
   'party-fun': {
@@ -107,7 +137,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'Rosa will set / setting the table.'", answer: "set" },
       { prompt: "Which is correct? 'Will he order pizza? — No, he won't / don't.'", answer: "won't" },
       { prompt: "Which is correct? 'I'm full. I will / won't have dessert.'", answer: "won't" },
-      { prompt: "Which is correct? 'We'll / We're will hang up the decorations.'", answer: "We'll" }
+      { prompt: "Which is correct? 'We'll / We're will hang up the decorations.'", answer: "We'll" },
+      { prompt: "Which is correct? 'Who will bring / brings the games?'", answer: "bring" },
+      { prompt: "Which is correct? 'Will she bake biscuits? — No, she won't / doesn't.'", answer: "won't" },
+      { prompt: "Which is correct? 'Tom will play / plays the music.'", answer: "play" },
+      { prompt: "Which is correct? 'They will hang / hangs up the decorations.'", answer: "hang" },
+      { prompt: "Which is correct? 'What will Tom / Tom will do?'", answer: "will Tom" }
     ]
   },
   'at-school': {
@@ -121,7 +156,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'What do / does she want?'", answer: "does" },
       { prompt: "Which is correct? 'What does he want / wants?'", answer: "want" },
       { prompt: "Which is correct? 'You paint with a pencil sharpener / paintbrush.'", answer: "paintbrush" },
-      { prompt: "Which is correct? 'I drink juice / steak.'", answer: "juice" }
+      { prompt: "Which is correct? 'I drink juice / steak.'", answer: "juice" },
+      { prompt: "Which is correct? 'They've got / They's got a glue stick.'", answer: "They've got" },
+      { prompt: "Which is correct? 'Mia want / wants soup.'", answer: "wants" },
+      { prompt: "Which is correct? 'What do / does they want?'", answer: "do" },
+      { prompt: "Which is correct? 'What has / have Tom got?'", answer: "has" },
+      { prompt: "Which is correct? 'I want soup / a stapler for lunch.'", answer: "soup" }
     ]
   },
   'months-weather': {
@@ -135,7 +175,12 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'What's the weather like / likes?'", answer: "like" },
       { prompt: "Which is correct? 'August / august is hot.'", answer: "August" },
       { prompt: "Which is correct? 'It's windy / windly today.'", answer: "windy" },
-      { prompt: "Which is correct? 'Flowers grow in spring / autumn.'", answer: "spring" }
+      { prompt: "Which is correct? 'Flowers grow in spring / autumn.'", answer: "spring" },
+      { prompt: "Which is correct? 'the second / twoth of June'", answer: "second" },
+      { prompt: "Which is correct? 'It's cloudy / cloud today.'", answer: "cloudy" },
+      { prompt: "Which is correct? 'My birthday is on / in the 9th of May.'", answer: "on" },
+      { prompt: "Which is correct? 'It's hot in summer / winter.'", answer: "summer" },
+      { prompt: "Which is correct? 'the third / threeth of March'", answer: "third" }
     ]
   },
   'food-drink': {
@@ -149,7 +194,50 @@ const LESSON_CONTENT = {
       { prompt: "Which is correct? 'Can I have / has a pizza, please?'", answer: "have" },
       { prompt: "Which is correct? 'There's some rice / rices.'", answer: "rice" },
       { prompt: "Which is correct? 'Are there any potato / potatoes?'", answer: "potatoes" },
-      { prompt: "Which is correct? 'Is / Are there any milk?'", answer: "Is" }
+      { prompt: "Which is correct? 'Is / Are there any milk?'", answer: "Is" },
+      { prompt: "Which is correct? 'There's some / any milk.'", answer: "some" },
+      { prompt: "Which is correct? 'Is there an / a egg?'", answer: "an", choices: ["an", "a"] },
+      { prompt: "Which is correct? 'There aren't any / some eggs.'", answer: "any" },
+      { prompt: "Which is correct? 'Are / Is there any apples?'", answer: "Are" },
+      { prompt: "Which is correct? 'Can I have some bread / breads?'", answer: "bread" }
+    ]
+  },
+  'at-the-buffet': {
+    WHACK_QUESTIONS: [
+      { prompt: "Which is correct? 'I had / have cereal yesterday.'", answer: "had" },
+      { prompt: "Which is correct? 'What did you have / had for lunch?'", answer: "have" },
+      { prompt: "Which is correct? 'How did the soup taste / tasted?'", answer: "taste" },
+      { prompt: "Which is correct? 'How did the chicken wings taste? They / It tasted spicy.'", answer: "They" },
+      { prompt: "Which is correct? 'How did the fruit salad taste? It / They tasted sweet.'", answer: "It" },
+      { prompt: "Which is correct? 'Lemons taste sour / sweet.'", answer: "sour" },
+      { prompt: "Which is correct? 'Chillies taste spicy / sweet.'", answer: "spicy" },
+      { prompt: "Which is correct? 'Sugar tastes sweet / bitter.'", answer: "sweet" },
+      { prompt: "Which is correct? 'Chips with lots of salt taste salty / sour.'", answer: "salty" },
+      { prompt: "Which is correct? 'You drink lemonade / chicken wings.'", answer: "lemonade", choices: ["lemonade", "chicken wings"] },
+      { prompt: "Which is correct? 'She had / haved fried rice.'", answer: "had" },
+      { prompt: "Which is correct? 'What did he have / has for breakfast?'", answer: "have" },
+      { prompt: "Which is correct? 'Coffee with no sugar tastes bitter / sweet.'", answer: "bitter" },
+      { prompt: "Which is correct? 'Chicken wings with lots of oil taste greasy / sour.'", answer: "greasy" },
+      { prompt: "Which is correct? 'How did / does the cereal taste yesterday?'", answer: "did" }
+    ]
+  },
+  'at-the-market': {
+    WHACK_QUESTIONS: [
+      { prompt: "Which is correct? 'He's got some / any grapes.'", answer: "some" },
+      { prompt: "Which is correct? 'She hasn't got any / some mushrooms.'", answer: "any" },
+      { prompt: "Which is correct? 'Have / Has you got any beef?'", answer: "Have" },
+      { prompt: "Which is correct? 'Has / Have he got any milk?'", answer: "Has" },
+      { prompt: "Which is correct? 'Has she got any cheese? — Yes, she has / Yes, she have.'", answer: "Yes, she has" },
+      { prompt: "Which is correct? 'Have you got any lamb? — No, I haven't / No, I hasn't.'", answer: "No, I haven't" },
+      { prompt: "Which is correct? 'What has / have she got?'", answer: "has" },
+      { prompt: "Which is correct? 'I've got some milk / milks.'", answer: "milk" },
+      { prompt: "Which is correct? 'They haven't / hasn't got any lemons.'", answer: "haven't" },
+      { prompt: "Which is correct? 'Has the shop got any / some beef?'", answer: "any" },
+      { prompt: "Which is correct? 'Pumpkins / Mushrooms are big and orange.'", answer: "Pumpkins" },
+      { prompt: "Which is correct? 'Lemons / Watermelons are small, yellow and sour.'", answer: "Lemons" },
+      { prompt: "Which is correct? 'Cheese and butter come from milk / grapes.'", answer: "milk" },
+      { prompt: "Which is correct? 'What have / has they got?'", answer: "have" },
+      { prompt: "Which is correct? 'She hasn't / haven't got any cucumbers.'", answer: "hasn't" }
     ]
   }
 };

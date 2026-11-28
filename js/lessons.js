@@ -134,6 +134,32 @@ export const LESSONS = [
     printWorksheetTitle: 'Food and Drink — Practice Worksheet',
     printFooter: 'Food and Drink: Some and Any — Teacher Jack’s Lesson Planner',
     mcQuestionTemplate: (word) => word  // the question speaks for itself (no 'Choose the correct answer:')
+  },
+  {
+    // Unit 3 "At the Buffet" textbook pages (2026-11-27).
+    id: 'at-the-buffet',
+    title: 'At the Buffet: How Did It Taste?',
+    tagline: 'Buffet food, what you had for breakfast and lunch, and how it tasted.',
+    objective: 'By the end of this lesson, you will be able to ask and answer What did you have for breakfast / lunch? and How did it taste? (It tasted sweet. / They tasted spicy.)',
+    pageTitle: 'At the Buffet: How Did It Taste? — Teacher Jack’s Lesson Planner',
+    printRulesTitle: 'At the Buffet — Rules Reference',
+    printRulesSubtitle: 'have → had, What did you have…?, How did it taste?, and taste words',
+    printWorksheetTitle: 'At the Buffet — Practice Worksheet',
+    printFooter: 'At the Buffet: How Did It Taste? — Teacher Jack’s Lesson Planner',
+    mcQuestionTemplate: (word) => word
+  },
+  {
+    // Unit 3 "At the Market" textbook pages (2026-11-27).
+    id: 'at-the-market',
+    title: 'At the Market: Have You Got Any…?',
+    tagline: 'Fruit, vegetables and farm food, with have got / has got, some and any.',
+    objective: 'By the end of this lesson, you will be able to say what people have got with some and any, and ask and answer Have you got any…? / Has he got any…?',
+    pageTitle: 'At the Market: Have You Got Any…? — Teacher Jack’s Lesson Planner',
+    printRulesTitle: 'At the Market — Rules Reference',
+    printRulesSubtitle: 'have got / has got, some and any, and short answers',
+    printWorksheetTitle: 'At the Market — Practice Worksheet',
+    printFooter: 'At the Market: Have You Got Any…? — Teacher Jack’s Lesson Planner',
+    mcQuestionTemplate: (word) => word
   }
 ];
 

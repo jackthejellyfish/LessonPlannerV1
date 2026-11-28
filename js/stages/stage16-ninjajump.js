@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { beep, sfxImpact, sfxRisingChime } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -467,7 +467,7 @@ document.getElementById('jumpStartBtn').addEventListener('click', () => {
   state.jumpTeams = readTeamsFromSetup('jump', jumpRowColors);
   state.jumpCurrentTeam = 0;
   state.jumpTurnsPlayed = 0;
-  state.jumpQuestionOrder = shuffle(JUMP_QUESTIONS.map((_, i) => i));
+  state.jumpQuestionOrder = pickQuestions(JUMP_QUESTIONS);
   state.jumpLevel = 0;
 
   showGameScreen('jump');
@@ -523,14 +523,14 @@ function renderJumpScoreboard(){
   renderTeamScoreboard('jumpTeamList', state.jumpTeams, state.jumpCurrentTeam);
 }
 function renderJumpTurnBanner(){
-  renderTurnBanner('jump', state.jumpTeams[state.jumpCurrentTeam], state.jumpTurnsPlayed + 1, JUMP_QUESTIONS.length);
+  renderTurnBanner('jump', state.jumpTeams[state.jumpCurrentTeam], state.jumpTurnsPlayed + 1, GAME_TURNS);
 }
 
 /* =========================================================
    QUESTION + TURN FLOW
 ========================================================= */
 function askJumpQuestion(){
-  const q = JUMP_QUESTIONS[state.jumpQuestionOrder[state.jumpTurnsPlayed]];
+  const q = state.jumpQuestionOrder[state.jumpTurnsPlayed];
   return askTeamQuestion(q, JUMP_QUESTIONS, state.jumpTurnsPlayed);
 }
 
@@ -1682,7 +1682,7 @@ function finishJumpRound(){
   renderJumpScoreboard();
 
   showTurnResultModal('jumpNextTeamBtn', { teams: state.jumpTeams, currentTeamIndex: state.jumpCurrentTeam }).then(() => {
-    if(state.jumpTurnsPlayed >= JUMP_QUESTIONS.length){
+    if(state.jumpTurnsPlayed >= GAME_TURNS){
       endJumpGame();
     } else {
       state.jumpCurrentTeam = (state.jumpCurrentTeam + 1) % state.jumpTeams.length;

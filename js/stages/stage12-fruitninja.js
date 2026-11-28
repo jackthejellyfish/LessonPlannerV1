@@ -1,7 +1,7 @@
 import { state } from '../state.js';
 import { goToStage } from '../navigation.js';
-import { shuffle } from '../utils.js';
 import { askTeamQuestion } from '../questionChoices.js';
+import { pickQuestions, GAME_TURNS } from '../questionDeck.js';
 import { sfxImpact, sfxRisingChime, sfxSlash, sfxCombo } from '../audio.js';
 import { renderTeamSetupRows, wireAddTeamButton, renderTeamScoreboard } from '../teamColorPicker.js';
 import { renderGameIntro } from '../gameIntro.js';
@@ -165,7 +165,7 @@ document.getElementById('fruitStartBtn').addEventListener('click', () => {
   state.fruitTeams = readTeamsFromSetup('fruit', fruitRowColors);
   state.fruitCurrentTeam = 0;
   state.fruitTurnsPlayed = 0;
-  state.fruitQuestionOrder = shuffle(FRUIT_QUESTIONS.map((_, i) => i));
+  state.fruitQuestionOrder = pickQuestions(FRUIT_QUESTIONS);
 
   showGameScreen('fruit');
   renderFruitScoreboard();
@@ -176,15 +176,14 @@ function renderFruitScoreboard(){
   renderTeamScoreboard('fruitTeamList', state.fruitTeams, state.fruitCurrentTeam);
 }
 function renderFruitTurnBanner(){
-  renderTurnBanner('fruit', state.fruitTeams[state.fruitCurrentTeam], state.fruitTurnsPlayed + 1, FRUIT_QUESTIONS.length);
+  renderTurnBanner('fruit', state.fruitTeams[state.fruitCurrentTeam], state.fruitTurnsPlayed + 1, GAME_TURNS);
 }
 
 /* =========================================================
    QUESTION + TURN FLOW
 ========================================================= */
 function askFruitQuestion(){
-  const qIndex = state.fruitQuestionOrder[state.fruitTurnsPlayed];
-  const q = FRUIT_QUESTIONS[qIndex];
+  const q = state.fruitQuestionOrder[state.fruitTurnsPlayed];
   return askTeamQuestion(q, FRUIT_QUESTIONS, state.fruitTurnsPlayed);
 }
 
@@ -865,7 +864,7 @@ function finishFruitRound(){
   renderFruitScoreboard();
 
   showFruitResult().then(() => {
-    if(state.fruitTurnsPlayed >= FRUIT_QUESTIONS.length){
+    if(state.fruitTurnsPlayed >= GAME_TURNS){
       endFruitGame();
     } else {
       state.fruitCurrentTeam = (state.fruitCurrentTeam + 1) % state.fruitTeams.length;
